@@ -297,9 +297,6 @@ export function HomeTab() {
 
   return (
     <div>
-      {/* Overview strip */}
-      <HomeOverviewStrip />
-
       {/* Subtab Navigation */}
       <div className="flex gap-4 mb-6 border-b border-slate-200 pb-0 overflow-x-auto">
         {subtabs.map((subtab) => {
@@ -320,6 +317,9 @@ export function HomeTab() {
           );
         })}
       </div>
+
+      {/* Overview strip */}
+      <HomeOverviewStrip />
 
       {activeSubtab === "2" && <CoverageSection />}
       {activeSubtab === "3" && <ReadinessSection />}

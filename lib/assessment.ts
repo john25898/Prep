@@ -247,6 +247,7 @@ export const RESPONSE_OPTIONS: {
 ];
 
 const STORAGE_KEY = "ewene_facility_assessments_v1";
+export const DEMO_ASSESSMENTS_SEEDED_KEY = "ewene_demo_assessments_seeded_v1";
 export const ASSESSMENTS_CHANGED_EVENT = "ewene:assessments-changed";
 
 // ---------------------------------------------------------------------------
@@ -367,6 +368,175 @@ export function createEmptyAssessment(): FacilityAssessment {
     createdAt: new Date().toISOString(),
   };
 }
+
+function createResponseMap(responses: Record<string, AssessmentResponse>) {
+  const items: Record<string, AssessmentItemValue> = {};
+  for (const item of QUESTIONNAIRE_ITEMS) {
+    items[item.id] = {
+      response: responses[item.id] ?? "na",
+      evidenceChecked: true,
+      gapAction: "",
+      checked: [],
+    };
+  }
+  return items;
+}
+
+function createDemoAssessment(input: {
+  id: string;
+  facilityName: string;
+  mflCode: string;
+  facilityLevel: string;
+  county: string;
+  subCounty: string;
+  date: string;
+  assessmentType: AssessmentType;
+  assessorName: string;
+  responses: Record<string, AssessmentResponse>;
+}): FacilityAssessment {
+  return {
+    id: input.id,
+    facilityName: input.facilityName,
+    mflCode: input.mflCode,
+    facilityLevel: input.facilityLevel,
+    county: input.county,
+    subCounty: input.subCounty,
+    date: input.date,
+    assessmentType: input.assessmentType,
+    assessorName: input.assessorName,
+    items: createResponseMap(input.responses),
+    createdAt: `${input.date}T08:00:00.000Z`,
+  };
+}
+
+export const DEMO_ASSESSMENTS: FacilityAssessment[] = [
+  createDemoAssessment({
+    id: "demo-embu-referral",
+    facilityName: "Embu County Referral Hospital",
+    mflCode: "11001",
+    facilityLevel: "Level 5",
+    county: "Embu",
+    subCounty: "Manyatta",
+    date: "2026-08-01",
+    assessmentType: "baseline",
+    assessorName: "Demo Assessor",
+    responses: {
+      "3.1": "yes",
+      "3.2": "partial",
+      "3.3": "yes",
+      "3.4": "yes",
+      "3.5": "yes",
+      "3.6": "yes",
+      "3.7": "partial",
+      "3.8": "yes",
+    },
+  }),
+  createDemoAssessment({
+    id: "demo-runyenjes",
+    facilityName: "Runyenjes Sub-County Hospital",
+    mflCode: "11002",
+    facilityLevel: "Level 4",
+    county: "Embu",
+    subCounty: "Runyenjes",
+    date: "2026-08-01",
+    assessmentType: "baseline",
+    assessorName: "Demo Assessor",
+    responses: {
+      "3.1": "partial",
+      "3.2": "no",
+      "3.3": "partial",
+      "3.4": "yes",
+      "3.5": "partial",
+      "3.6": "partial",
+      "3.7": "yes",
+      "3.8": "partial",
+    },
+  }),
+  createDemoAssessment({
+    id: "demo-meru-referral",
+    facilityName: "Meru Teaching & Referral Hospital",
+    mflCode: "12001",
+    facilityLevel: "Level 5",
+    county: "Meru",
+    subCounty: "Imenti Central",
+    date: "2026-08-02",
+    assessmentType: "quarterly",
+    assessorName: "Demo Assessor",
+    responses: {
+      "3.1": "yes",
+      "3.2": "yes",
+      "3.3": "partial",
+      "3.4": "yes",
+      "3.5": "yes",
+      "3.6": "partial",
+      "3.7": "yes",
+      "3.8": "yes",
+    },
+  }),
+  createDemoAssessment({
+    id: "demo-nkubu",
+    facilityName: "Nkubu Health Centre",
+    mflCode: "12002",
+    facilityLevel: "Level 3",
+    county: "Meru",
+    subCounty: "Imenti South",
+    date: "2026-08-02",
+    assessmentType: "quarterly",
+    assessorName: "Demo Assessor",
+    responses: {
+      "3.1": "partial",
+      "3.2": "na",
+      "3.3": "yes",
+      "3.4": "yes",
+      "3.5": "yes",
+      "3.6": "na",
+      "3.7": "partial",
+      "3.8": "yes",
+    },
+  }),
+  createDemoAssessment({
+    id: "demo-olkalou",
+    facilityName: "Ol Kalou Sub-County Hospital",
+    mflCode: "13001",
+    facilityLevel: "Level 4",
+    county: "Nyandarua",
+    subCounty: "Ol Kalou",
+    date: "2026-08-03",
+    assessmentType: "follow-up",
+    assessorName: "Demo Assessor",
+    responses: {
+      "3.1": "yes",
+      "3.2": "partial",
+      "3.3": "yes",
+      "3.4": "partial",
+      "3.5": "yes",
+      "3.6": "partial",
+      "3.7": "yes",
+      "3.8": "partial",
+    },
+  }),
+  createDemoAssessment({
+    id: "demo-chuka",
+    facilityName: "Chuka County Referral Hospital",
+    mflCode: "14001",
+    facilityLevel: "Level 5",
+    county: "Tharaka-Nithi",
+    subCounty: "Chuka",
+    date: "2026-08-03",
+    assessmentType: "baseline",
+    assessorName: "Demo Assessor",
+    responses: {
+      "3.1": "yes",
+      "3.2": "yes",
+      "3.3": "yes",
+      "3.4": "yes",
+      "3.5": "partial",
+      "3.6": "partial",
+      "3.7": "yes",
+      "3.8": "yes",
+    },
+  }),
+];
 
 // ---------------------------------------------------------------------------
 // Aggregate indicator helpers (used by Home + Readiness dashboards)
