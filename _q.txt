@@ -1,0 +1,182 @@
+
+
+Domain 3 Facility Readiness Assessment Questionnaire
+Purpose: This questionnaire is designed for quarterly or baseline facility assessment of readiness to provide safe maternal and newborn services under Domain 3: Facility Readiness and Safe Systems. Assessors should combine interview responses with direct observation, register review, LMIS/KHIS verification, and facility walk-through findings.
+
+69850398185Facility name:
+ | MFL Code: 	
+Facility Level: 	
+ | 
+69850399741County:
+ | 69850399741Sub-county:
+ | 
+Date: 	/ 	/ 	
+ | Assessment type: Baseline / Quarterly
+/ Follow-up
+Assessor name:
+ | 
+
+Print-use instructions: Print one copy per facility assessment. Complete the facility details before starting. For each item, circle or tick one response, enter the score in the space provided, record the evidence reviewed, and write any priority gap or action required. Use the summary scoring sheet after completing all eight items.
+Scoring guide: Yes = 2 points; Partial = 1 point; No = 0 points; Not applicable = excluded from denominator. Domain score = total points achieved divided by total possible points, expressed as a percentage. Facilities scoring 80% and above may be considered ready, 60–79% partially ready, and below 60% not ready and requiring priority corrective action.
+917892100640Item 3.1: Tracer MNH commodities
+Assessment question: Are all tracer MNH commodities available on the day of assessment, and has the facility had zero stockout of oxytocin, carbetocin, magnesium sulphate, tranexamic acid, and benzyl penicillin during the reporting period?
+Item 3.1: Tracer MNH commodities
+Assessment question: Are all tracer MNH commodities available on the day of assessment, and has the facility had zero stockout of oxytocin, carbetocin, magnesium sulphate, tranexamic acid, and benzyl penicillin during the reporting period?
+
+Response options: Yes / Partial / No / N/A
+Scoring instruction: Score Yes = 2 if all tracer commodities are available and no stockout occurred during the reporting period; Partial = 1 if some commodities are available or stockout data are incomplete; No = 0 if any required tracer commodity is unavailable or stockout occurred; N/A = exclude only if the commodity is not expected at that facility level.
+Scoring example: Score 2 if oxytocin, carbetocin, magnesium sulphate, tranexamic acid, and benzyl penicillin are all physically available and LMIS shows no stockout; score 1 if all are available today but magnesium sulphate had a documented stockout during the month; score 0 if oxytocin or any
+required tracer commodity is out of stock; mark N/A only for a commodity not expected at that facility level.
+Evidence source: LMIS, KHIS, bin cards, stock cards, physical count. Score entered: 	/ 2	Evidence checked: Yes / No	Gap or action required: 				
+Response options: Yes / Partial / No / N/A
+Scoring instruction: Score Yes = 2 if all tracer commodities are available and no stockout occurred during the reporting period; Partial = 1 if some commodities are available or stockout data are incomplete; No = 0 if any required tracer commodity is unavailable or stockout occurred; N/A = exclude only if the commodity is not expected at that facility level.
+Scoring example: Score 2 if oxytocin, carbetocin, magnesium sulphate, tranexamic acid, and benzyl penicillin are all physically available and LMIS shows no stockout; score 1 if all are available today but magnesium sulphate had a documented stockout during the month; score 0 if oxytocin or any
+required tracer commodity is out of stock; mark N/A only for a commodity not expected at that facility level.
+Evidence source: LMIS, KHIS, bin cards, stock cards, physical count. Score entered: 	/ 2	Evidence checked: Yes / No	Gap or action required: 				
+
+917892168897Item 3.2: Functional blood transfusion services
+Assessment question: Does the facility have functional blood transfusion services appropriate for its level, including blood availability, trained staff, transfusion supplies, cross-matching capacity, cold storage or referral linkage, and documentation of transfusion services?
+Response options: Yes / Partial / No / N/A
+Scoring instruction: Score Yes = 2 if blood transfusion services are functional with required staff, supplies, storage or linkage, cross-matching, and documentation; Partial = 1 if some components are present but service is inconsistent or incomplete; No = 0 if transfusion service is not functional; N/A = exclude for facility levels where transfusion services are not expected.
+Scoring example: Score 2 if blood is available or reliably accessible, cross-matching is done, cold storage is functional, staff are trained, and transfusions are documented; score 1 if the facility has
+trained staff and documentation but depends on delayed external blood supply; score 0 if no functional
+Item 3.2: Functional blood transfusion services
+Assessment question: Does the facility have functional blood transfusion services appropriate for its level, including blood availability, trained staff, transfusion supplies, cross-matching capacity, cold storage or referral linkage, and documentation of transfusion services?
+Response options: Yes / Partial / No / N/A
+Scoring instruction: Score Yes = 2 if blood transfusion services are functional with required staff, supplies, storage or linkage, cross-matching, and documentation; Partial = 1 if some components are present but service is inconsistent or incomplete; No = 0 if transfusion service is not functional; N/A = exclude for facility levels where transfusion services are not expected.
+Scoring example: Score 2 if blood is available or reliably accessible, cross-matching is done, cold storage is functional, staff are trained, and transfusions are documented; score 1 if the facility has
+trained staff and documentation but depends on delayed external blood supply; score 0 if no functional
+
+transfusion service or referral mechanism exists; mark N/A for lower-level facilities where transfusion is not expected.
+Evidence source: HFA-QOC, blood bank records, transfusion register, equipment observation.
+Score entered: 	/ 2	Evidence checked: Yes / No	Gap or action required: 				
+transfusion service or referral mechanism exists; mark N/A for lower-level facilities where transfusion is not expected.
+Evidence source: HFA-QOC, blood bank records, transfusion register, equipment observation.
+Score entered: 	/ 2	Evidence checked: Yes / No	Gap or action required: 				
+
+914717165814Item 3.3: Oxygen and neonatal CPAP readiness
+Assessment question: Is there a functional oxygen supply for maternal and newborn emergencies, and is neonatal CPAP available, functional, supported by trained staff, consumables, maintenance arrangements, and clinical protocols?
+Response options: Yes / Partial / No / N/A
+Scoring instruction: Score Yes = 2 if functional oxygen supply and neonatal CPAP are available with trained staff, consumables, maintenance support, and protocols; Partial = 1 if oxygen is functional but CPAP or supporting systems are incomplete; No = 0 if oxygen and CPAP are unavailable or nonfunctional; N/A = exclude only where neonatal CPAP is not expected by facility level.
+Scoring example: Score 2 if oxygen concentrator or cylinders are functional, CPAP is working,
+consumables are available, staff can demonstrate use, and protocols are displayed; score 1 if oxygen is functional but CPAP consumables or trained staff are missing; score 0 if oxygen source is unavailable or nonfunctional; mark N/A only where neonatal CPAP is not required for the facility level.
+Evidence source: HFA-QOC, facility walk-through, oxygen log, CPAP checklist, maintenance records.
+Score entered	/ 2
+required:
+Evidence checked: Yes / No
+Gap or action
+Item 3.3: Oxygen and neonatal CPAP readiness
+Assessment question: Is there a functional oxygen supply for maternal and newborn emergencies, and is neonatal CPAP available, functional, supported by trained staff, consumables, maintenance arrangements, and clinical protocols?
+Response options: Yes / Partial / No / N/A
+Scoring instruction: Score Yes = 2 if functional oxygen supply and neonatal CPAP are available with trained staff, consumables, maintenance support, and protocols; Partial = 1 if oxygen is functional but CPAP or supporting systems are incomplete; No = 0 if oxygen and CPAP are unavailable or nonfunctional; N/A = exclude only where neonatal CPAP is not expected by facility level.
+Scoring example: Score 2 if oxygen concentrator or cylinders are functional, CPAP is working,
+consumables are available, staff can demonstrate use, and protocols are displayed; score 1 if oxygen is functional but CPAP consumables or trained staff are missing; score 0 if oxygen source is unavailable or nonfunctional; mark N/A only where neonatal CPAP is not required for the facility level.
+Evidence source: HFA-QOC, facility walk-through, oxygen log, CPAP checklist, maintenance records.
+Score entered	/ 2
+required:
+Evidence checked: Yes / No
+Gap or action
+
+917892196862Item 3.4: Equipment functionality and active use
+Item 3.4: Equipment functionality and active use
+
+Assessment question: For IP-procured or supported equipment, is the equipment installed, functional, in active clinical use, recorded in the asset register, maintained, and supported by spare parts, consumables, and trained users six months after delivery?
+Response options: Yes / Partial / No / N/A
+Scoring instruction: Score Yes = 2 if supported equipment is installed, functional, in active use, recorded in the asset register, maintained, and supported by trained users and consumables; Partial = 1 if equipment is present but one or more readiness requirements are incomplete; No = 0 if equipment is absent, nonfunctional, unused, or untracked; N/A = exclude if no IP-procured or supported equipment applies.
+Scoring example: Score 2 if a procured radiant warmer is installed, working, used in the newborn unit, recorded in the asset register, maintained, and staff are trained; score 1 if it works but has no
+maintenance log or only one trained user; score 0 if it is boxed, broken, missing, or not used; mark N/A if the facility did not receive IP-supported equipment.
+Evidence source: Facility assessment, asset register, maintenance log, user training records, observation.
+Score entered	/ 2
+required:
+Evidence checked: Yes / No
+Gap or action
+Assessment question: For IP-procured or supported equipment, is the equipment installed, functional, in active clinical use, recorded in the asset register, maintained, and supported by spare parts, consumables, and trained users six months after delivery?
+Response options: Yes / Partial / No / N/A
+Scoring instruction: Score Yes = 2 if supported equipment is installed, functional, in active use, recorded in the asset register, maintained, and supported by trained users and consumables; Partial = 1 if equipment is present but one or more readiness requirements are incomplete; No = 0 if equipment is absent, nonfunctional, unused, or untracked; N/A = exclude if no IP-procured or supported equipment applies.
+Scoring example: Score 2 if a procured radiant warmer is installed, working, used in the newborn unit, recorded in the asset register, maintained, and staff are trained; score 1 if it works but has no
+maintenance log or only one trained user; score 0 if it is boxed, broken, missing, or not used; mark N/A if the facility did not receive IP-supported equipment.
+Evidence source: Facility assessment, asset register, maintenance log, user training records, observation.
+Score entered	/ 2
+required:
+Evidence checked: Yes / No
+Gap or action
+
+917892179692Item 3.5: BEmONC signal functions
+Assessment question: Has the facility performed all seven BEmONC signal functions in the required reference period: parenteral antibiotics, parenteral uterotonics, parenteral anticonvulsants, manual removal of placenta, removal of retained products, assisted vaginal delivery, and neonatal resuscitation?
+Response options: Yes / Partial / No / N/A
+Scoring instruction: Score Yes = 2 if all seven BEmONC signal functions were performed and documented during the reference period; Partial = 1 if some but not all signal functions were performed or documentation is incomplete; No = 0
+Item 3.5: BEmONC signal functions
+Assessment question: Has the facility performed all seven BEmONC signal functions in the required reference period: parenteral antibiotics, parenteral uterotonics, parenteral anticonvulsants, manual removal of placenta, removal of retained products, assisted vaginal delivery, and neonatal resuscitation?
+Response options: Yes / Partial / No / N/A
+Scoring instruction: Score Yes = 2 if all seven BEmONC signal functions were performed and documented during the reference period; Partial = 1 if some but not all signal functions were performed or documentation is incomplete; No = 0
+
+if the facility did not perform most required signal functions; N/A = exclude only if BEmONC functions are not expected at that facility level.
+Scoring example: Score 2 if registers confirm performance of all seven BEmONC functions during the reference period; score 1 if five or six functions were performed or if documentation for some functions is incomplete; score 0 if only a few functions were performed or staff cannot provide evidence; mark N/A only where BEmONC services are not expected.
+Evidence source: HFA-QOC, maternity register, procedure records, skills log, staff interview.
+Score entered: 	/ 2	Evidence checked: Yes / No	Gap or action required: 				
+if the facility did not perform most required signal functions; N/A = exclude only if BEmONC functions are not expected at that facility level.
+Scoring example: Score 2 if registers confirm performance of all seven BEmONC functions during the reference period; score 1 if five or six functions were performed or if documentation for some functions is incomplete; score 0 if only a few functions were performed or staff cannot provide evidence; mark N/A only where BEmONC services are not expected.
+Evidence source: HFA-QOC, maternity register, procedure records, skills log, staff interview.
+Score entered: 	/ 2	Evidence checked: Yes / No	Gap or action required: 				
+
+917892175247Item 3.6: CEmONC signal functions
+Assessment question: For Level 4/5 facilities, has the facility performed all nine CEmONC signal functions, including the seven BEmONC functions plus caesarean section and blood transfusion, with appropriate staffing, supplies, theatre readiness, and referral support?
+Response options: Yes / Partial / No / N/A
+Scoring instruction: Score Yes = 2 if all nine CEmONC signal functions, including caesarean section and blood transfusion, were performed and documented with required staffing, supplies, theatre readiness, and referral support; Partial = 1 if some CEmONC functions are available but one or more critical components are incomplete; No = 0 if CEmONC services are unavailable or largely nonfunctional; N/A = exclude for facilities below CEmONC level.
+Scoring example: Score 2 if a Level 4/5 facility has documented all seven BEmONC functions plus caesarean section and blood transfusion during the reference period; score 1 if caesarean section is
+available but blood transfusion is inconsistent, or theatre readiness is incomplete; score 0 if caesarean section or transfusion is not available; mark N/A for facilities below CEmONC level.
+Evidence source: HFA-QOC, theatre register, maternity register, transfusion register, duty roster.
+Item 3.6: CEmONC signal functions
+Assessment question: For Level 4/5 facilities, has the facility performed all nine CEmONC signal functions, including the seven BEmONC functions plus caesarean section and blood transfusion, with appropriate staffing, supplies, theatre readiness, and referral support?
+Response options: Yes / Partial / No / N/A
+Scoring instruction: Score Yes = 2 if all nine CEmONC signal functions, including caesarean section and blood transfusion, were performed and documented with required staffing, supplies, theatre readiness, and referral support; Partial = 1 if some CEmONC functions are available but one or more critical components are incomplete; No = 0 if CEmONC services are unavailable or largely nonfunctional; N/A = exclude for facilities below CEmONC level.
+Scoring example: Score 2 if a Level 4/5 facility has documented all seven BEmONC functions plus caesarean section and blood transfusion during the reference period; score 1 if caesarean section is
+available but blood transfusion is inconsistent, or theatre readiness is incomplete; score 0 if caesarean section or transfusion is not available; mark N/A for facilities below CEmONC level.
+Evidence source: HFA-QOC, theatre register, maternity register, transfusion register, duty roster.
+
+Score entered: 	/ 2	Evidence checked: Yes / No	Gap or action required: 				
+Score entered: 	/ 2	Evidence checked: Yes / No	Gap or action required: 				
+
+914717168607Item 3.7: Essential newborn care bundle
+Assessment question: Does the facility consistently provide the essential newborn care bundle, including immediate drying and warming, skin-to-skin care, early initiation of breastfeeding, cord care, neonatal resuscitation readiness, KMC for eligible babies, infection prevention, and timely PNC documentation? Response options: Yes / Partial / No / N/A
+Scoring instruction: Score Yes = 2 if all essential newborn care bundle elements are consistently provided and documented; Partial = 1 if some elements are provided but practice or documentation is inconsistent; No = 0 if the facility does not routinely provide the essential newborn care bundle; N/A = exclude only where the service is not expected at that facility level.
+Scoring example: Score 2 if observation and records show routine drying, warming, skin-to-skin care, early breastfeeding initiation, cord care, resuscitation readiness, KMC where needed, infection
+prevention, and PNC documentation; score 1 if most practices occur but KMC or documentation is inconsistent; score 0 if essential newborn care is not routinely practiced; mark N/A only where
+delivery/newborn services are not expected.
+Evidence source: Newborn register, maternity register, observation, KMC register, PNC records.
+Score entered	/ 2
+required:
+Evidence checked: Yes / No
+Gap or action
+Item 3.7: Essential newborn care bundle
+Assessment question: Does the facility consistently provide the essential newborn care bundle, including immediate drying and warming, skin-to-skin care, early initiation of breastfeeding, cord care, neonatal resuscitation readiness, KMC for eligible babies, infection prevention, and timely PNC documentation? Response options: Yes / Partial / No / N/A
+Scoring instruction: Score Yes = 2 if all essential newborn care bundle elements are consistently provided and documented; Partial = 1 if some elements are provided but practice or documentation is inconsistent; No = 0 if the facility does not routinely provide the essential newborn care bundle; N/A = exclude only where the service is not expected at that facility level.
+Scoring example: Score 2 if observation and records show routine drying, warming, skin-to-skin care, early breastfeeding initiation, cord care, resuscitation readiness, KMC where needed, infection
+prevention, and PNC documentation; score 1 if most practices occur but KMC or documentation is inconsistent; score 0 if essential newborn care is not routinely practiced; mark N/A only where
+delivery/newborn services are not expected.
+Evidence source: Newborn register, maternity register, observation, KMC register, PNC records.
+Score entered	/ 2
+required:
+Evidence checked: Yes / No
+Gap or action
+
+917892196837Item 3.8: Blood and blood product stockout prevention
+Assessment question: Did the facility have no stockout of blood or blood products during the reporting period, and is there a documented mechanism for
+Item 3.8: Blood and blood product stockout prevention
+Assessment question: Did the facility have no stockout of blood or blood products during the reporting period, and is there a documented mechanism for
+
+minimum stock monitoring, emergency replenishment, referral linkage, and escalation of blood shortages?
+Response options: Yes / Partial / No / N/A
+Scoring instruction: Score Yes = 2 if no blood or blood product stockout occurred and a documented minimum stock, replenishment, referral, and escalation mechanism is in place; Partial = 1 if no stockout occurred but the prevention mechanism is incomplete, or if documentation is incomplete; No = 0 if stockout occurred or no prevention mechanism exists; N/A = exclude only where blood products are not expected at that facility level.
+Scoring example: Score 2 if blood bank records show no stockout and there is an active minimum stock, emergency replenishment, referral, and escalation system; score 1 if no stockout occurred but escalation procedures are informal or undocumented; score 0 if blood or blood products were unavailable when
+needed or no stock monitoring mechanism exists; mark N/A only where blood products are not expected.
+Evidence source: Blood bank records, LMIS, county supply records, emergency referral records, MPDSR files.
+Score entered: 	/ 2	Evidence checked: Yes / No	Gap or action required:
+ | 
+Assessment completed by:
+ | Signature: 	
+ | 
+Facility representative:
+ | Date: 	/ 	/ 	
+ | 
+
