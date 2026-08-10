@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import {
   BarChart,
   Bar,
@@ -27,6 +27,10 @@ import {
   ChevronDown,
   ChevronUp,
   MapPin,
+  CircleCheck,
+  CircleX,
+  CircleMinus,
+  ListChecks,
 } from "lucide-react";
 import { StatusBadge } from "@/components/status-badge";
 import { useAssessments } from "@/lib/use-assessments";
@@ -215,6 +219,179 @@ function ComplianceBarList({
   );
 }
 
+// ---------------------------------------------------------------------------
+// Per-facility checklist detail — shows exactly which commodities, equipment
+// and signal functions were TICKED during data entry for each facility.
+// ---------------------------------------------------------------------------
+
+function SectionBanner({
+  icon,
+  title,
+  subtitle,
+}: {
+  icon?: ReactNode;
+  title: string;
+  subtitle: string;
+}) {
+  return (
+    <div className="bg-gradient-to-r from-emerald-50 to-teal-50 rounded-lg p-5 border border-emerald-200 text-emerald-900">
+      <div className="flex items-start gap-3">
+        {icon && (
+          <div className="w-10 h-10 rounded-lg bg-white/70 border border-emerald-200 flex items-center justify-center flex-shrink-0">
+            {icon}
+          </div>
+        )}
+        <div>
+          <h3 className="font-semibold text-lg">{title}</h3>
+          <p className="text-sm mt-1 opacity-80">{subtitle}</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/** Per-facility checklist state for one questionnaire item. */
+function facilityCheckedItems(
+  assessment: FacilityAssessment,
+  itemId: string,
+): { ticked: string[]; all: string[]; response: string } | null {
+  const def = QUESTIONNAIRE_ITEMS.find((i) => i.id === itemId);
+  if (!def?.checklist) return null;
+  const v = assessment.items[itemId];
+  if (!v) return null;
+  const checked =
+    v.checked && v.checked.length > 0
+      ? v.checked
+      : v.response === "yes"
+        ? def.checklist
+        : [];
+  return { ticked: checked, all: def.checklist, response: v.response };
+}
+
+/** Checklist chips for one item: green check = ticked, muted cross = not ticked. */
+function ChecklistChips({
+  assessment,
+  itemId,
+}: {
+  assessment: FacilityAssessment;
+  itemId: string;
+}) {
+  const info = facilityCheckedItems(assessment, itemId);
+  if (!info) return null;
+  if (info.response === "na") {
+    return (
+      <p className="text-xs text-gray-400 inline-flex items-center gap-1">
+        <CircleMinus className="w-3.5 h-3.5" />
+        Not applicable — no checklist required
+      </p>
+    );
+  }
+  return (
+    <div className="flex flex-wrap gap-1.5">
+      {info.all.map((label) => {
+        const ticked = info.ticked.includes(label);
+        return (
+          <span
+            key={label}
+            className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${
+              ticked
+                ? "bg-emerald-100 text-emerald-700"
+                : "bg-slate-100 text-slate-500 line-through decoration-slate-300"
+            }`}
+          >
+            {ticked ? (
+              <CircleCheck className="w-3 h-3" />
+            ) : (
+              <CircleX className="w-3 h-3" />
+            )}
+            {label}
+          </span>
+        );
+      })}
+    </div>
+  );
+}
+
+/** Per-facility × per-category ticked/total matrix for the 8 readiness items. */
+function FacilityCategoryMatrix({
+  assessments,
+}: {
+  assessments: FacilityAssessment[];
+}) {
+  const items = QUESTIONNAIRE_ITEMS.filter((i) => i.checklist);
+  return (
+    <div className="bg-white rounded-lg p-6 border border-slate-200 overflow-x-auto">
+      <h3 className="text-lg font-semibold text-gray-900 mb-1">
+        Category Coverage by Facility
+      </h3>
+      <p className="text-sm text-gray-500 mb-4">
+        For each facility and checklist category: number of items ticked during
+        data entry (e.g. 4/5 = 4 of 5 commodity/equipment items present). Dash =
+        marked N/A.
+      </p>
+      <table className="w-full text-sm min-w-[900px]">
+        <thead>
+          <tr className="border-b border-slate-200">
+            <th className="text-left py-2 pr-4 font-semibold text-gray-700">
+              Facility
+            </th>
+            {items.map((item) => (
+              <th
+                key={item.id}
+                className="text-center py-2 px-2 font-semibold text-gray-700 whitespace-nowrap"
+                title={item.shortLabel}
+              >
+                {item.id}
+                <p className="text-[10px] font-normal text-gray-400 max-w-[90px] mx-auto">
+                  {item.shortLabel}
+                </p>
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {assessments.map((a) => (
+            <tr key={a.id} className="border-b border-slate-100">
+              <td className="py-2 pr-4 font-medium text-gray-900 whitespace-nowrap">
+                {a.facilityName}
+              </td>
+              {items.map((item) => {
+                const info = facilityCheckedItems(a, item.id);
+                if (!info || info.response === "na") {
+                  return (
+                    <td
+                      key={item.id}
+                      className="text-center py-2 px-2 text-gray-300"
+                    >
+                      —
+                    </td>
+                  );
+                }
+                const ratio = info.ticked.length / info.all.length;
+                const color =
+                  ratio >= 0.9
+                    ? "bg-emerald-100 text-emerald-700"
+                    : ratio >= 0.5
+                      ? "bg-amber-100 text-amber-700"
+                      : "bg-red-100 text-red-700";
+                return (
+                  <td key={item.id} className="text-center py-2 px-2">
+                    <span
+                      className={`inline-block px-2 py-0.5 rounded-full text-xs font-bold ${color}`}
+                    >
+                      {info.ticked.length}/{info.all.length}
+                    </span>
+                  </td>
+                );
+              })}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
 export function AssessmentTab() {
   const allAssessments = useAssessments();
   const { filter, resetFilter } = useGeoFilter();
@@ -316,6 +493,15 @@ export function AssessmentTab() {
     [assessments],
   );
 
+  // Blood & blood product stockout prevention (item 3.8)
+  const blood = useMemo(
+    () => ({
+      rows: itemComplianceRows(assessments, "3.8"),
+      score: itemAvgScore(assessments, "3.8"),
+    }),
+    [assessments],
+  );
+
   if (assessments.length === 0) {
     const hasDataElsewhere = allAssessments.length > 0;
     return (
@@ -369,6 +555,13 @@ export function AssessmentTab() {
           </button>
         )}
       </div>
+
+      {/* Intro banner */}
+      <SectionBanner
+        icon={<ListChecks className="w-5 h-5 text-emerald-600" />}
+        title="Readiness Insights — Domain 3"
+        subtitle="Scores are computed live from the Facility Assessment Entry questionnaire. The ticked checklists (which commodities, equipment and signal functions are actually present) are shown per facility in the category matrix below and in each facility record."
+      />
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -681,11 +874,52 @@ export function AssessmentTab() {
         </div>
       </section>
 
+      {/* ============ Blood Stockout Prevention (3.8) ============ */}
+      <section className="pt-4 border-t-2 border-emerald-100">
+        <div className="flex items-center gap-3 mb-1">
+          <div className="w-10 h-10 rounded-lg bg-rose-100 flex items-center justify-center">
+            <Activity className="w-5 h-5 text-rose-600" />
+          </div>
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900">
+              Blood &amp; Blood Product Stockout Prevention
+            </h3>
+            <p className="text-sm text-gray-500">
+              Item 3.8 — zero stockout of blood/blood products and documented
+              monitoring, replenishment, referral &amp; escalation mechanisms
+            </p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+          <ItemKpi
+            title="Blood Stockout Prevention (3.8)"
+            pct={blood.score}
+            note="Avg readiness across in-scope facilities"
+          />
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+          <ComplianceBarList
+            title="Blood Stockout Prevention Measures"
+            description="% of facilities meeting each requirement (3.8)"
+            rows={blood.rows}
+          />
+        </div>
+      </section>
+
+      {/* ============ Per-facility category matrix ============ */}
+      <FacilityCategoryMatrix assessments={assessments} />
+
       {/* Facility list */}
       <div>
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">
+        <h3 className="text-lg font-semibold text-gray-900 mb-1">
           Facility Assessment Records
         </h3>
+        <p className="text-sm text-gray-500 mb-4">
+          Expand a facility to see its overall readiness plus the exact
+          commodities, equipment and signal functions ticked during data entry.
+        </p>
         <div className="space-y-4">
           {assessments.map((assessment) => (
             <FacilityCard key={assessment.id} assessment={assessment} />
@@ -835,6 +1069,41 @@ function FacilityCard({ assessment }: { assessment: FacilityAssessment }) {
               </tbody>
             </table>
           </div>
+
+          {/* Ticked checklist detail per item */}
+          <div className="mt-4 border-t border-slate-100 pt-4">
+            <p className="font-semibold text-gray-900 text-sm mb-3 inline-flex items-center gap-2">
+              <ListChecks className="w-4 h-4 text-emerald-600" />
+              Ticked Checklist Items (as entered)
+            </p>
+            <div className="space-y-3">
+              {QUESTIONNAIRE_ITEMS.filter((item) => item.checklist).map(
+                (item) => {
+                  const info = facilityCheckedItems(assessment, item.id);
+                  if (!info) return null;
+                  return (
+                    <div key={item.id}>
+                      <div className="flex items-center justify-between mb-1 gap-2">
+                        <p className="text-xs font-semibold text-gray-700">
+                          {item.id} · {item.shortLabel}
+                        </p>
+                        {info.response !== "na" && (
+                          <span className="text-[11px] text-gray-500 whitespace-nowrap">
+                            {info.ticked.length} of {info.all.length} ticked
+                          </span>
+                        )}
+                      </div>
+                      <ChecklistChips
+                        assessment={assessment}
+                        itemId={item.id}
+                      />
+                    </div>
+                  );
+                },
+              )}
+            </div>
+          </div>
+
           <p className="text-sm text-gray-600 mt-3">
             Total:{" "}
             <span className="font-bold text-gray-900">
