@@ -95,16 +95,13 @@ export interface GeoFilter {
   partner: string;
   /** "" = all counties in the partner. */
   county: string;
-  /** "" = all sub-counties in the county. */
-  subCounty: string;
-  /** "" = all facilities in the sub-county/county. */
+  /** "" = all facilities in the county. */
   facility: string;
 }
 
 export const DEFAULT_GEO_FILTER: GeoFilter = {
   partner: "jamii-tekelezi",
   county: "",
-  subCounty: "",
   facility: "",
 };
 
@@ -130,8 +127,6 @@ const norm = (s: string) => s.trim().toLowerCase();
 /** Does an assessment fall inside the given scope? */
 export function geoMatches(a: FacilityAssessment, filter: GeoFilter): boolean {
   if (filter.county && norm(a.county) !== norm(filter.county)) return false;
-  if (filter.subCounty && norm(a.subCounty) !== norm(filter.subCounty))
-    return false;
   if (filter.facility && norm(a.facilityName) !== norm(filter.facility))
     return false;
   return true;
@@ -170,12 +165,11 @@ export function facilityOptions(
   return Array.from(seen.values()).sort((x, y) => x.name.localeCompare(y.name));
 }
 
-/** Human-readable breadcrumb of the current scope, e.g. "JTP → Nakuru → Njoro". */
+/** Human-readable breadcrumb of the current scope, e.g. "Jamii Tekelezi → Nakuru". */
 export function geoScopeLabel(filter: GeoFilter): string {
   const parts = [getPartner(filter.partner)?.shortName ?? filter.partner];
   if (filter.county) {
     parts.push(filter.county);
-    if (filter.subCounty) parts.push(filter.subCounty);
     if (filter.facility) parts.push(filter.facility);
   }
   return parts.join(" → ");

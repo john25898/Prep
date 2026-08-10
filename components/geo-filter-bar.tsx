@@ -9,7 +9,6 @@ import {
   geoMatches,
   geoScopeLabel,
   getCountiesForPartner,
-  getSubCounties,
   PARTNERS,
   partnerOptionLabel,
 } from "@/lib/geo";
@@ -18,7 +17,7 @@ const selectClass =
   "w-full px-3 py-2 border border-slate-300 rounded-lg text-gray-900 text-sm bg-white focus:ring-2 focus:ring-emerald-500 focus:border-transparent";
 
 /**
- * Cascading scope filter: Partner → County → Sub-County → Facility.
+ * Cascading scope filter: Partner → County → Facility.
  * Selecting a parent resets the children; charts re-render instantly.
  */
 export function GeoFilterBar() {
@@ -29,18 +28,6 @@ export function GeoFilterBar() {
     () => getCountiesForPartner(filter.partner),
     [filter.partner],
   );
-
-  const subCounties = useMemo(() => {
-    const staticList = getSubCounties(filter.county);
-    if (staticList.length > 0) return staticList;
-    // Fallback: derive sub-counties from entered data for unmapped counties.
-    const set = new Set<string>();
-    for (const a of assessments) {
-      if (filter.county && a.county !== filter.county) continue;
-      if (a.subCounty.trim()) set.add(a.subCounty.trim());
-    }
-    return Array.from(set).sort((a, b) => a.localeCompare(b));
-  }, [assessments, filter.county]);
 
   const facilities = useMemo(
     () => facilityOptions(assessments, filter),
@@ -72,7 +59,6 @@ export function GeoFilterBar() {
             setFilter({
               partner: e.target.value,
               county: "",
-              subCounty: "",
               facility: "",
             })
           }
@@ -95,7 +81,6 @@ export function GeoFilterBar() {
           onChange={(e) =>
             setFilter({
               county: e.target.value,
-              subCounty: "",
               facility: "",
             })
           }
@@ -104,26 +89,6 @@ export function GeoFilterBar() {
           {counties.map((c) => (
             <option key={c} value={c}>
               {c}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      <div className="w-44">
-        <label className="block text-xs font-medium text-gray-500 mb-1">
-          Sub-County
-        </label>
-        <select
-          className={selectClass}
-          value={filter.subCounty}
-          onChange={(e) =>
-            setFilter({ subCounty: e.target.value, facility: "" })
-          }
-        >
-          <option value="">All Sub-Counties</option>
-          {subCounties.map((s) => (
-            <option key={s} value={s}>
-              {s}
             </option>
           ))}
         </select>
