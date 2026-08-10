@@ -15,6 +15,7 @@ import {
   Activity,
   ClipboardList,
   Database,
+  Hospital,
   ShieldCheck,
   TrendingUp,
 } from "lucide-react";
@@ -369,10 +370,16 @@ function HomeOverviewStrip() {
       sub: "Domain 4 · deaths audited",
       icon: <TrendingUp className="w-5 h-5 text-purple-600" />,
     },
+    {
+      title: "Maternity Service Facilities",
+      value: `${assessments.length}`,
+      sub: "H/F offering maternity services",
+      icon: <Hospital className="w-5 h-5 text-rose-600" />,
+    },
   ];
 
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+    <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4 mb-6">
       {cards.map((card) => (
         <div
           key={card.title}
