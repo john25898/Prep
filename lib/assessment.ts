@@ -246,7 +246,7 @@ export const RESPONSE_OPTIONS: {
   { value: "na", label: "N/A", points: null },
 ];
 
-const STORAGE_KEY = "ewene_facility_assessments_v1";
+export const STORAGE_KEY = "ewene_facility_assessments_v1";
 export const DEMO_ASSESSMENTS_SEEDED_KEY = "ewene_demo_assessments_seeded_v1";
 export const ASSESSMENTS_CHANGED_EVENT = "ewene:assessments-changed";
 
