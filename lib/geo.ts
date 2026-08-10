@@ -1,9 +1,9 @@
 // ---------------------------------------------------------------------------
-// EWENE Geo Hierarchy — JTP partners, counties, sub-counties & scope filters
+// EWENE Geo Hierarchy — implementing partners, counties, sub-counties & scope
 //
-// Default scope: JTP (Joint Transition Partnership) = Embu, Meru, Nyandarua,
-// Tharaka-Nithi. All dashboards aggregate at the partner level by default and
-// let the user cascade down: Partner → County → Sub-County → Facility.
+// Default scope: Jamii Tekelezi (Embu, Tharaka-Nithi, Meru, Nyandarua). All
+// dashboards aggregate at the partner level by default and let the user
+// cascade down: Partner → County → Sub-County → Facility.
 // ---------------------------------------------------------------------------
 
 import { FacilityAssessment, KENYA_COUNTIES } from "@/lib/assessment";
@@ -15,28 +15,48 @@ export interface Partner {
   counties: string[];
 }
 
-export const JTP_COUNTIES = ["Embu", "Meru", "Nyandarua", "Tharaka-Nithi"];
-
 export const PARTNERS: Partner[] = [
   {
-    id: "jtp",
-    name: "JTP — Joint Transition Partnership",
-    shortName: "JTP",
-    counties: JTP_COUNTIES,
-  },
-  // Additional partners default to the same JTP counties until their
-  // allocated geographies are confirmed — adjust `counties` as needed.
-  {
-    id: "stawisha",
-    name: "Stawisha",
-    shortName: "Stawisha",
-    counties: JTP_COUNTIES,
+    id: "jamii-tekelezi",
+    name: "Jamii Tekelezi",
+    shortName: "Jamii Tekelezi",
+    counties: ["Embu", "Tharaka-Nithi", "Meru", "Nyandarua"],
   },
   {
-    id: "pep",
-    name: "PEP",
-    shortName: "PEP",
-    counties: JTP_COUNTIES,
+    id: "stawisha-pwani",
+    name: "Stawisha Pwani",
+    shortName: "Stawisha Pwani",
+    counties: ["Kilifi", "Kwale", "Mombasa", "Taita-Taveta"],
+  },
+  {
+    id: "imarisha-jamii",
+    name: "Imarisha Jamii",
+    shortName: "Imarisha Jamii",
+    counties: ["Turkana"],
+  },
+  {
+    id: "ampath-uzima",
+    name: "AMPATH Uzima",
+    shortName: "AMPATH Uzima",
+    counties: ["Uasin Gishu", "West Pokot", "Elgeyo-Marakwet", "Trans-Nzoia"],
+  },
+  {
+    id: "tujenge-jamii",
+    name: "Tujenge Jamii",
+    shortName: "Tujenge Jamii",
+    counties: ["Nakuru", "Baringo", "Samburu", "Laikipia", "Kajiado"],
+  },
+  {
+    id: "dumisha-afya",
+    name: "Dumisha Afya",
+    shortName: "Dumisha Afya",
+    counties: ["Bungoma", "Busia"],
+  },
+  {
+    id: "nuru-ya-mtoto",
+    name: "Nuru Ya Mtoto",
+    shortName: "Nuru Ya Mtoto",
+    counties: ["Kakamega", "Kisumu", "Nyamira", "Vihiga"],
   },
   {
     id: "national",
@@ -62,13 +82,7 @@ export const SUB_COUNTIES: Record<string, string[]> = {
     "Tigania East",
     "Tigania West",
   ],
-  Nyandarua: [
-    "Kinangop",
-    "Kipipiri",
-    "Ndaragwa",
-    "Ol Kalou",
-    "Ol Joro Orok",
-  ],
+  Nyandarua: ["Kinangop", "Kipipiri", "Ndaragwa", "Ol Kalou", "Ol Joro Orok"],
   "Tharaka-Nithi": ["Chuka", "Igambang'ombe", "Maara", "Tharaka"],
 };
 
@@ -77,7 +91,7 @@ export const SUB_COUNTIES: Record<string, string[]> = {
 // ---------------------------------------------------------------------------
 
 export interface GeoFilter {
-  /** Partner id from PARTNERS ("jtp" | "national"). */
+  /** Partner id from PARTNERS (e.g. "jamii-tekelezi" | "national"). */
   partner: string;
   /** "" = all counties in the partner. */
   county: string;
@@ -88,7 +102,7 @@ export interface GeoFilter {
 }
 
 export const DEFAULT_GEO_FILTER: GeoFilter = {
-  partner: "jtp",
+  partner: "jamii-tekelezi",
   county: "",
   subCounty: "",
   facility: "",
@@ -153,9 +167,7 @@ export function facilityOptions(
       });
     }
   }
-  return Array.from(seen.values()).sort((x, y) =>
-    x.name.localeCompare(y.name),
-  );
+  return Array.from(seen.values()).sort((x, y) => x.name.localeCompare(y.name));
 }
 
 /** Human-readable breadcrumb of the current scope, e.g. "JTP → Nakuru → Njoro". */
@@ -169,7 +181,8 @@ export function geoScopeLabel(filter: GeoFilter): string {
   return parts.join(" → ");
 }
 
-/** "JTP" partner name for display in selects, e.g. "JTP (4 counties)". */
+/** Partner name for display in selects, e.g. "Jamii Tekelezi (4 counties)". */
 export function partnerOptionLabel(partner: Partner): string {
-  return `${partner.shortName} (${partner.counties.length} counties)`;
+  const n = partner.counties.length;
+  return `${partner.shortName} (${n} ${n === 1 ? "county" : "counties"})`;
 }
