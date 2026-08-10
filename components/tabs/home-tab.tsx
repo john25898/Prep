@@ -15,6 +15,7 @@ import {
   Activity,
   ClipboardList,
   Database,
+  HeartPulse,
   Hospital,
   ShieldCheck,
   TrendingUp,
@@ -25,12 +26,7 @@ import { StatusBadge } from "@/components/status-badge";
 import { useAssessments } from "@/lib/use-assessments";
 import { useGeoFilter } from "@/lib/geo-filter-context";
 import { applyGeoFilter } from "@/lib/geo";
-import {
-  assessmentScore,
-  averageReadiness,
-  readinessStatus,
-  yesRate,
-} from "@/lib/assessment";
+import { averageReadiness, yesRate } from "@/lib/assessment";
 
 // ---------------------------------------------------------------------------
 // Yellow-marked (home page) indicators per the EWENE Dashboard Indicators doc
@@ -44,6 +40,7 @@ interface IndicatorDef {
   y2: number;
   lowerIsBetter?: boolean;
   note?: string;
+  unit?: "percent" | "count" | "per-1000" | "per-100000";
 }
 
 const COVERAGE_INDICATORS: IndicatorDef[] = [
@@ -95,43 +92,76 @@ const COVERAGE_INDICATORS: IndicatorDef[] = [
     y2: 80,
     note: "Source: KHIS (monthly)",
   },
+  {
+    code: "2.7",
+    label: "Facility fresh stillbirth rate at supported facilities",
+    baseline: "Target ≤ 15 per 1,000 births",
+    y1: 20,
+    y2: 15,
+    lowerIsBetter: true,
+    unit: "per-1000",
+    note: "Source: KHIS (monthly) · added per dashboard review",
+  },
+  {
+    code: "2.8",
+    label:
+      "Facility maternal mortality ratio at supported facilities (per 100,000 live births)",
+    baseline: "Target ≤ 200 per 100,000 live births",
+    y1: 250,
+    y2: 200,
+    lowerIsBetter: true,
+    unit: "per-100000",
+    note: "Source: KHIS (monthly) · added per dashboard review",
+  },
 ];
 
 const MPDSR_INDICATORS: IndicatorDef[] = [
   {
-    code: "4.0",
-    label: "Combined % of maternal & neonatal deaths audited (MPDSR)",
-    baseline: "87% combined",
-    y1: 90,
-    y2: 100,
-    note: "Domain 4 combined audit · Source: KHIS / MPDSR records (monthly)",
-  },
-  {
     code: "4.1",
-    label: "% of maternal deaths audited at supported facilities",
-    baseline: "105.82% reported (KHIS, over-reporting noted)",
-    y1: 100,
-    y2: 100,
+    label: "Number of facilities reporting Maternal deaths",
+    baseline: "6 of 6 supported facilities",
+    y1: 6,
+    y2: 6,
+    unit: "count",
     note: "Source: KHIS / MPDSR records (monthly)",
   },
   {
     code: "4.2",
-    label: "% of neonatal deaths audited at supported facilities",
-    baseline: "66.76% (KHIS)",
-    y1: 85,
-    y2: 100,
+    label: "Number of facilities reporting Neonatal deaths",
+    baseline: "6 of 6 supported facilities",
+    y1: 6,
+    y2: 6,
+    unit: "count",
     note: "Source: KHIS / MPDSR records (monthly)",
   },
   {
     code: "4.3",
-    label: "% of supported facilities holding monthly MPDSR/QI review meetings",
-    baseline: "41% of counties (national)",
-    y1: 100,
-    y2: 100,
-    note: "Source: County records (monthly)",
+    label: "Number of Maternal Deaths reported",
+    baseline: "YTD",
+    y1: 42,
+    y2: 42,
+    unit: "count",
+    note: "Source: KHIS / MPDSR records (monthly)",
+  },
+  {
+    code: "4.4",
+    label: "Number of Neonatal Deaths reported",
+    baseline: "YTD",
+    y1: 58,
+    y2: 58,
+    unit: "count",
+    note: "Source: KHIS / MPDSR records (monthly)",
   },
   {
     code: "4.5",
+    label: "% of supported facilities holding monthly MPDSR/QI review meetings",
+    baseline: "4 of 6 facilities (67%)",
+    y1: 100,
+    y2: 100,
+    note: "Replaces Monthly MPDSR/QI Meeting · Source: County records (monthly)",
+  },
+  {
+    code: "4.6",
     label: "% of providers correctly diagnosing & treating PPH",
     baseline: "40% (national)",
     y1: 55,
@@ -139,7 +169,7 @@ const MPDSR_INDICATORS: IndicatorDef[] = [
     note: "Source: HFA-QOC / skills assessment (semi-annual)",
   },
   {
-    code: "4.6",
+    code: "4.7",
     label: "% of providers correctly diagnosing & treating birth asphyxia",
     baseline: "36% (national)",
     y1: 50,
@@ -273,12 +303,15 @@ const REPORTED_CURRENT: Record<string, number> = {
   "2.4": 68.4,
   "2.5": 54,
   "2.6": 65,
-  "4.0": 87,
-  "4.1": 95,
-  "4.2": 66.8,
-  "4.3": 41,
-  "4.5": 40,
-  "4.6": 36,
+  "2.7": 22,
+  "2.8": 310,
+  "4.1": 6,
+  "4.2": 6,
+  "4.3": 42,
+  "4.4": 58,
+  "4.5": 67,
+  "4.6": 40,
+  "4.7": 36,
   "5.1": 85,
   "5.2": 65,
   "5.3": 30,
@@ -341,34 +374,37 @@ function HomeOverviewStrip() {
     () => applyGeoFilter(allAssessments, filter),
     [allAssessments, filter],
   );
-  const readyCount = assessments.filter(
-    (a) => readinessStatus(assessmentScore(a).percentage) === "green",
-  ).length;
 
   const cards = [
     {
-      title: "Facilities Assessed",
-      value: assessments.length,
-      sub: "Domain 3 readiness",
-      icon: <ClipboardList className="w-5 h-5 text-emerald-600" />,
+      title: "Facilities Reporting Maternal Deaths",
+      value: 6,
+      sub: "of 6 supported facilities",
+      icon: <Activity className="w-5 h-5 text-red-600" />,
     },
     {
-      title: "Average Readiness",
-      value: `${averageReadiness(assessments).toFixed(0)}%`,
-      sub: "across assessed facilities",
-      icon: <ShieldCheck className="w-5 h-5 text-teal-600" />,
+      title: "Facilities Reporting Neonatal Deaths",
+      value: 6,
+      sub: "of 6 supported facilities",
+      icon: <HeartPulse className="w-5 h-5 text-rose-600" />,
     },
     {
-      title: "Ready Facilities",
-      value: readyCount,
-      sub: "score ≥ 80%",
-      icon: <Activity className="w-5 h-5 text-blue-600" />,
+      title: "Maternal Deaths Reported",
+      value: 42,
+      sub: "YTD across supported facilities",
+      icon: <ClipboardList className="w-5 h-5 text-red-500" />,
     },
     {
-      title: "Combined MPDSR Audit",
-      value: "87%",
-      sub: "Domain 4 · deaths audited",
-      icon: <TrendingUp className="w-5 h-5 text-purple-600" />,
+      title: "Neonatal Deaths Reported",
+      value: 58,
+      sub: "YTD across supported facilities",
+      icon: <TrendingUp className="w-5 h-5 text-rose-500" />,
+    },
+    {
+      title: "Monthly MPDSR/QI Review Meetings",
+      value: "67%",
+      sub: "4 of 6 facilities",
+      icon: <ShieldCheck className="w-5 h-5 text-emerald-600" />,
     },
     {
       title: "Maternity Service Facilities",
@@ -379,7 +415,7 @@ function HomeOverviewStrip() {
   ];
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4 mb-6">
+    <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4 mb-6">
       {cards.map((card) => (
         <div
           key={card.title}
@@ -468,7 +504,7 @@ function CoverageSection() {
 
       <div className="bg-white rounded-lg p-6 border border-slate-200">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">
-          Coverage Indicators 2.1 – 2.6 (Progress to Year 2 Targets)
+          Coverage Indicators 2.1 – 2.8 (Progress to Year 2 Targets)
         </h3>
         <div className="space-y-5">
           {COVERAGE_INDICATORS.map((ind) => (
@@ -681,51 +717,54 @@ function ReadinessSection() {
 
 function MpdsrSection() {
   const chartData = [
-    { name: "Maternal Deaths", audited: 95, target: 100 },
-    { name: "Neonatal Deaths", audited: 66.8, target: 100 },
-    { name: "MPDSR/QI Meetings", audited: 41, target: 100 },
-    { name: "PPH Treatment Skills", audited: 40, target: 70 },
-    { name: "Asphyxia Treatment Skills", audited: 36, target: 65 },
+    { name: "MPDSR/QI Review Meetings", current: 67, target: 100 },
+    { name: "PPH Treatment Skills", current: 40, target: 70 },
+    { name: "Asphyxia Treatment Skills", current: 36, target: 65 },
   ];
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
         <div className="bg-white rounded-lg p-6 border border-slate-200">
           <p className="text-sm text-gray-600 font-medium">
-            Maternal Deaths Audited (4.1)
+            Facilities Reporting Maternal Deaths (4.1)
           </p>
-          <p className="text-3xl font-bold text-emerald-600 mt-2">95%</p>
-          <p className="text-xs text-gray-500 mt-1">Target 100%</p>
+          <p className="text-3xl font-bold text-red-600 mt-2">6</p>
+          <p className="text-xs text-gray-500 mt-1">of 6 supported facilities</p>
         </div>
         <div className="bg-white rounded-lg p-6 border border-slate-200">
           <p className="text-sm text-gray-600 font-medium">
-            Neonatal Deaths Audited (4.2)
+            Facilities Reporting Neonatal Deaths (4.2)
           </p>
-          <p className="text-3xl font-bold text-amber-600 mt-2">66.8%</p>
-          <p className="text-xs text-gray-500 mt-1">Target 100%</p>
+          <p className="text-3xl font-bold text-rose-600 mt-2">6</p>
+          <p className="text-xs text-gray-500 mt-1">of 6 supported facilities</p>
         </div>
         <div className="bg-white rounded-lg p-6 border border-slate-200">
           <p className="text-sm text-gray-600 font-medium">
-            Monthly MPDSR/QI Meetings (4.3)
+            Maternal Deaths Reported (4.3)
           </p>
-          <p className="text-3xl font-bold text-red-600 mt-2">41%</p>
-          <p className="text-xs text-gray-500 mt-1">Target 100%</p>
+          <p className="text-3xl font-bold text-red-600 mt-2">42</p>
+          <p className="text-xs text-gray-500 mt-1">YTD reported</p>
         </div>
         <div className="bg-white rounded-lg p-6 border border-slate-200">
           <p className="text-sm text-gray-600 font-medium">
-            Combined MPDSR Audit (4.0)
+            Neonatal Deaths Reported (4.4)
           </p>
-          <p className="text-3xl font-bold text-emerald-600 mt-2">87%</p>
-          <p className="text-xs text-gray-500 mt-1">
-            Domain 4 · maternal + neonatal
+          <p className="text-3xl font-bold text-rose-600 mt-2">58</p>
+          <p className="text-xs text-gray-500 mt-1">YTD reported</p>
+        </div>
+        <div className="bg-white rounded-lg p-6 border border-slate-200">
+          <p className="text-sm text-gray-600 font-medium">
+            Monthly MPDSR/QI Review Meetings (4.5)
           </p>
+          <p className="text-3xl font-bold text-emerald-600 mt-2">67%</p>
+          <p className="text-xs text-gray-500 mt-1">4 of 6 facilities · Target 100%</p>
         </div>
       </div>
 
       <div className="bg-white rounded-lg p-6 border border-slate-200">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">
-          MPDSR &amp; Provider Skills — Audited % vs Target
+          MPDSR/QI Meetings &amp; Provider Skills — % vs Target
         </h3>
         <ResponsiveContainer width="100%" height={300}>
           <BarChart data={chartData} margin={{ left: 0, right: 12 }}>
@@ -742,7 +781,7 @@ function MpdsrSection() {
             <Tooltip formatter={(v) => [`${v}%`, ""]} />
             <Legend />
             <Bar
-              dataKey="audited"
+              dataKey="current"
               name="Current (%)"
               fill="#f59e0b"
               radius={[6, 6, 0, 0]}
@@ -759,7 +798,7 @@ function MpdsrSection() {
 
       <div className="bg-white rounded-lg p-6 border border-slate-200">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">
-          MPDSR &amp; Clinical Quality Indicators (4.0 – 4.6)
+          MPDSR &amp; Clinical Quality Indicators (4.1 – 4.7)
         </h3>
         <div className="space-y-5">
           {MPDSR_INDICATORS.map((ind) => (
@@ -830,17 +869,56 @@ interface IndicatorBarProps {
   current: number | null;
 }
 
+const UNIT_SUFFIX: Record<NonNullable<IndicatorDef["unit"]>, string> = {
+  percent: "%",
+  count: "",
+  "per-1000": " per 1,000 births",
+  "per-100000": " per 100,000 live births",
+};
+
 function IndicatorBar({ indicator, current }: IndicatorBarProps) {
+  const unit = indicator.unit ?? "percent";
+  const suffix = UNIT_SUFFIX[unit];
   const y2Target = indicator.y2;
+  const lowerIsBetter = indicator.lowerIsBetter ?? false;
+  const isCount = unit === "count";
+
+  const isMet =
+    current !== null &&
+    (lowerIsBetter ? current <= y2Target : current >= y2Target);
+  const isPartial =
+    current !== null &&
+    (lowerIsBetter ? current <= indicator.y1 : current >= y2Target * 0.7);
+  const barColor = isCount
+    ? "bg-slate-400"
+    : isMet
+      ? "bg-emerald-500"
+      : isPartial
+        ? "bg-amber-500"
+        : "bg-red-500";
+
+  // Progress bar: %/count indicators grow toward target; rate indicators
+  // (lower is better) shrink toward target.
   const progressWidth =
-    current === null ? 0 : Math.min((current / y2Target) * 100, 100);
-  const isMet = current !== null && current >= y2Target;
-  const isPartial = current !== null && current >= y2Target * 0.7;
-  const barColor = isMet
-    ? "bg-emerald-500"
-    : isPartial
-      ? "bg-amber-500"
-      : "bg-red-500";
+    current === null
+      ? 0
+      : lowerIsBetter
+        ? Math.min(100, (y2Target / Math.max(current, 0.0001)) * 100)
+        : Math.min((current / y2Target) * 100, 100);
+
+  const displayValue =
+    current === null
+      ? "No data"
+      : unit === "percent"
+        ? `${current.toFixed(1)}%`
+        : `${current}${suffix}`;
+
+  const targetText =
+    unit === "count"
+      ? "Reported value (YTD)"
+      : unit === "percent"
+        ? `Y1 ≥ ${indicator.y1}% · Y2 ≥ ${indicator.y2}%`
+        : `Y1 ≤ ${indicator.y1}${suffix} · Y2 ≤ ${indicator.y2}${suffix}`;
 
   return (
     <div className="border-b border-slate-100 pb-4 last:border-0 last:pb-0">
@@ -861,18 +939,18 @@ function IndicatorBar({ indicator, current }: IndicatorBarProps) {
         <div className="text-right">
           <p
             className={`text-lg font-bold ${
-              isMet
-                ? "text-emerald-600"
-                : isPartial
-                  ? "text-amber-600"
-                  : "text-red-600"
+              isCount
+                ? "text-gray-900"
+                : isMet
+                  ? "text-emerald-600"
+                  : isPartial
+                    ? "text-amber-600"
+                    : "text-red-600"
             }`}
           >
-            {current === null ? "No data" : `${current.toFixed(1)}%`}
+            {displayValue}
           </p>
-          <p className="text-xs text-gray-500">
-            Y1 ≥ {indicator.y1}% · Y2 ≥ {indicator.y2}%
-          </p>
+          <p className="text-xs text-gray-500">{targetText}</p>
         </div>
       </div>
       <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">

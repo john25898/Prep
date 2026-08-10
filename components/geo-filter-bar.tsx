@@ -105,7 +105,9 @@ export function GeoFilterBar() {
           disabled={facilities.length === 0}
         >
           <option value="">
-            {facilities.length === 0 ? "No facilities in scope" : "All Facilities"}
+            {facilities.length === 0
+              ? "No facilities in scope"
+              : "All Facilities"}
           </option>
           {facilities.map((f) => (
             <option key={f.name} value={f.name}>
