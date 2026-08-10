@@ -26,6 +26,7 @@ import {
   ClipboardList,
   ChevronDown,
   ChevronUp,
+  Download,
   MapPin,
   CircleCheck,
   CircleX,
@@ -312,23 +313,368 @@ function ChecklistChips({
   );
 }
 
-/** Per-facility × per-category ticked/total matrix for the 8 readiness items. */
+// ---------------------------------------------------------------------------
+// NEW VISUALIZATIONS — per-facility equipment detail beyond color badges
+// ---------------------------------------------------------------------------
+
+/** Flatten all checklist items into heatmap column groups (category → items). */
+function heatmapGroups(): {
+  itemId: string;
+  itemLabel: string;
+  columns: { label: string }[];
+}[] {
+  return QUESTIONNAIRE_ITEMS.filter((i) => i.checklist).map((i) => ({
+    itemId: i.id,
+    itemLabel: i.shortLabel,
+    columns: i.checklist!.map((label) => ({ label })),
+  }));
+}
+
+/** Equipment heatmap: facility × specific item. Green = ticked, grey = missing, striped = N/A. */
+function EquipmentHeatmap({
+  assessments,
+}: {
+  assessments: FacilityAssessment[];
+}) {
+  const groups = heatmapGroups();
+  return (
+    <div className="bg-white rounded-lg p-6 border border-slate-200">
+      <h3 className="text-lg font-semibold text-gray-900 mb-1">
+        Equipment &amp; Commodity Heatmap
+      </h3>
+      <p className="text-sm text-gray-500 mb-4">
+        Every specific item across all 8 checklist categories, per facility.
+        Green = ticked as present, grey = not present, striped = category N/A.
+        Hover a cell for details.
+      </p>
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm min-w-[1200px]">
+          <thead>
+            <tr className="border-b border-slate-200">
+              <th className="text-left py-2 pr-4 font-semibold text-gray-700 sticky left-0 bg-white z-10">
+                Facility
+              </th>
+              {groups.map((g) => (
+                <th
+                  key={g.itemId}
+                  colSpan={g.columns.length}
+                  className="text-center py-2 px-2 font-semibold text-gray-700 whitespace-nowrap border-l border-slate-100"
+                  title={g.itemLabel}
+                >
+                  {g.itemId}
+                  <p className="text-[10px] font-normal text-gray-400 max-w-[110px] mx-auto">
+                    {g.itemLabel}
+                  </p>
+                </th>
+              ))}
+            </tr>
+            <tr className="border-b border-slate-200">
+              <th className="py-1" />
+              {groups.flatMap((g) =>
+                g.columns.map((c) => (
+                  <th
+                    key={`${g.itemId}-${c.label}`}
+                    className="py-1 px-1 border-l border-slate-100"
+                  >
+                    <span className="[writing-mode:vertical-rl] text-[10px] font-medium text-gray-500 whitespace-nowrap">
+                      {c.label}
+                    </span>
+                  </th>
+                )),
+              )}
+            </tr>
+          </thead>
+          <tbody>
+            {assessments.map((a) => (
+              <tr key={a.id} className="border-b border-slate-100">
+                <td className="py-2 pr-4 font-medium text-gray-900 whitespace-nowrap sticky left-0 bg-white z-10">
+                  {a.facilityName}
+                </td>
+                {groups.flatMap((g) =>
+                  g.columns.map((c) => {
+                    const info = facilityCheckedItems(a, g.itemId);
+                    const state =
+                      !info || info.response === "na"
+                        ? "na"
+                        : info.ticked.includes(c.label)
+                          ? "ticked"
+                          : "missing";
+                    const title = `${a.facilityName} — ${c.label}: ${
+                      state === "ticked"
+                        ? "Present"
+                        : state === "missing"
+                          ? "Not present"
+                          : "N/A (category not assessed)"
+                    }`;
+                    return (
+                      <td
+                        key={`${a.id}-${g.itemId}-${c.label}`}
+                        className="py-1.5 px-1 border-l border-slate-100"
+                        title={title}
+                      >
+                        <div
+                          className={`w-full h-5 rounded ${
+                            state === "ticked"
+                              ? "bg-emerald-500"
+                              : state === "missing"
+                                ? "bg-slate-200"
+                                : "bg-[repeating-linear-gradient(45deg,#f1f5f9_0px,#f1f5f9_3px,#e2e8f0_3px,#e2e8f0_6px)]"
+                          }`}
+                        />
+                      </td>
+                    );
+                  }),
+                )}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <div className="flex flex-wrap items-center gap-4 mt-3 text-xs text-gray-600">
+        <span className="inline-flex items-center gap-1.5">
+          <span className="w-3 h-3 rounded bg-emerald-500" /> Present
+        </span>
+        <span className="inline-flex items-center gap-1.5">
+          <span className="w-3 h-3 rounded bg-slate-200" /> Not present
+        </span>
+        <span className="inline-flex items-center gap-1.5">
+          <span className="w-3 h-3 rounded bg-[repeating-linear-gradient(45deg,#f1f5f9_0px,#f1f5f9_3px,#e2e8f0_3px,#e2e8f0_6px)]" />
+          N/A
+        </span>
+      </div>
+    </div>
+  );
+}
+
+/** Item availability: for each specific item, in how many facilities it was ticked. */
+function ItemAvailabilityChart({
+  assessments,
+}: {
+  assessments: FacilityAssessment[];
+}) {
+  const groups = QUESTIONNAIRE_ITEMS.filter((i) => i.checklist).map((i) => ({
+    id: i.id,
+    label: i.shortLabel,
+    rows: itemComplianceRows(assessments, i.id),
+  }));
+  return (
+    <div className="bg-white rounded-lg p-6 border border-slate-200">
+      <h3 className="text-lg font-semibold text-gray-900 mb-1">
+        Item Availability Across Facilities
+      </h3>
+      <p className="text-sm text-gray-500 mb-4">
+        For each specific commodity/equipment/signal function: in how many
+        in-scope facilities it was ticked as present. Use this to spot
+        procurement gaps.
+      </p>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {groups.map((g) => (
+          <div key={g.id}>
+            <p className="font-semibold text-sm text-gray-900 mb-2">
+              {g.id} · {g.label}
+            </p>
+            <div className="space-y-2">
+              {g.rows.map((r) => (
+                <div key={r.label}>
+                  <div className="flex justify-between items-center text-xs mb-0.5">
+                    <span className="text-gray-700 truncate pr-2">
+                      {r.label}
+                    </span>
+                    <span
+                      className={`font-medium whitespace-nowrap ${
+                        r.pct >= 80
+                          ? "text-emerald-600"
+                          : r.pct >= 60
+                            ? "text-amber-600"
+                            : "text-red-600"
+                      }`}
+                    >
+                      {r.ticked}/{r.total}
+                    </span>
+                  </div>
+                  <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+                    <div
+                      className={`h-full rounded-full ${
+                        r.pct >= 80
+                          ? "bg-emerald-500"
+                          : r.pct >= 60
+                            ? "bg-amber-500"
+                            : "bg-red-500"
+                      }`}
+                      style={{ width: `${r.pct}%` }}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/** Per-facility category scores (% of items ticked per checklist category). */
+function facilityCategoryScores(
+  a: FacilityAssessment,
+): { name: string; value: number }[] {
+  return QUESTIONNAIRE_ITEMS.filter((i) => i.checklist).map((i) => {
+    const info = facilityCheckedItems(a, i.id);
+    if (!info || info.response === "na") return { name: i.id, value: 0 };
+    return {
+      name: i.id,
+      value: Math.round((info.ticked.length / info.all.length) * 100),
+    };
+  });
+}
+
+/** Grid of small radars — one per facility; shape shows strong/weak categories. */
+function FacilityRadarGrid({
+  assessments,
+}: {
+  assessments: FacilityAssessment[];
+}) {
+  return (
+    <div className="bg-white rounded-lg p-6 border border-slate-200">
+      <h3 className="text-lg font-semibold text-gray-900 mb-1">
+        Per-Facility Readiness Shape
+      </h3>
+      <p className="text-sm text-gray-500 mb-4">
+        One radar per facility: % of items ticked in each of the 8 categories (0
+        = none ticked, or category marked N/A).
+      </p>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {assessments.map((a) => (
+          <div
+            key={a.id}
+            className="border border-slate-200 rounded-lg p-3 min-w-0"
+          >
+            <p className="font-medium text-gray-900 text-sm truncate mb-1">
+              {a.facilityName}
+            </p>
+            <ResponsiveContainer width="100%" height={190}>
+              <RadarChart data={facilityCategoryScores(a)} outerRadius={70}>
+                <PolarGrid stroke="#e5e7eb" />
+                <PolarAngleAxis dataKey="name" tick={{ fontSize: 9 }} />
+                <Radar
+                  name="Items ticked %"
+                  dataKey="value"
+                  stroke="#10b981"
+                  fill="#10b981"
+                  fillOpacity={0.5}
+                />
+                <Tooltip formatter={(v) => [`${v}%`, "Ticked"]} />
+              </RadarChart>
+            </ResponsiveContainer>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/** Export per-facility × per-item detail as CSV (long format for pivot in Excel). */
+function downloadHeatmapCsv(assessments: FacilityAssessment[]) {
+  const header = [
+    "Facility",
+    "County",
+    "Sub-County",
+    "Category",
+    "CategoryLabel",
+    "Item",
+    "Present",
+  ];
+  const rows: string[][] = [];
+  assessments.forEach((a) => {
+    QUESTIONNAIRE_ITEMS.filter((i) => i.checklist).forEach((item) => {
+      const info = facilityCheckedItems(a, item.id);
+      item.checklist!.forEach((label) => {
+        rows.push([
+          a.facilityName,
+          a.county || "",
+          a.subCounty || "",
+          item.id,
+          item.shortLabel,
+          label,
+          !info || info.response === "na"
+            ? "NA"
+            : info.ticked.includes(label)
+              ? "1"
+              : "0",
+        ]);
+      });
+    });
+  });
+  const csv = [header, ...rows]
+    .map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(","))
+    .join("\n");
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = "readiness-equipment-heatmap.csv";
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
+
+/** Per-facility × per-category matrix: dot-grid per item + sort + CSV export. */
 function FacilityCategoryMatrix({
   assessments,
 }: {
   assessments: FacilityAssessment[];
 }) {
   const items = QUESTIONNAIRE_ITEMS.filter((i) => i.checklist);
+  const [sortMode, setSortMode] = useState<"readiness" | "name">("readiness");
+  const sorted = useMemo(() => {
+    const list = [...assessments];
+    if (sortMode === "name") {
+      list.sort((a, b) => a.facilityName.localeCompare(b.facilityName));
+    } else {
+      list.sort(
+        (a, b) => assessmentScore(b).percentage - assessmentScore(a).percentage,
+      );
+    }
+    return list;
+  }, [assessments, sortMode]);
+
   return (
     <div className="bg-white rounded-lg p-6 border border-slate-200 overflow-x-auto">
-      <h3 className="text-lg font-semibold text-gray-900 mb-1">
-        Category Coverage by Facility
-      </h3>
-      <p className="text-sm text-gray-500 mb-4">
-        For each facility and checklist category: number of items ticked during
-        data entry (e.g. 4/5 = 4 of 5 commodity/equipment items present). Dash =
-        marked N/A.
-      </p>
+      <div className="flex flex-wrap items-start justify-between gap-3 mb-1">
+        <div>
+          <h3 className="text-lg font-semibold text-gray-900">
+            Category Coverage by Facility
+          </h3>
+          <p className="text-sm text-gray-500">
+            Each dot is one specific item (green = ticked as present, grey =
+            not). Hover a dot for the item name. Dash = category N/A.
+          </p>
+        </div>
+        <div className="flex items-center gap-2 flex-shrink-0">
+          <label className="text-xs text-gray-500" htmlFor="matrix-sort">
+            Sort:
+          </label>
+          <select
+            id="matrix-sort"
+            value={sortMode}
+            onChange={(e) =>
+              setSortMode(e.target.value as "readiness" | "name")
+            }
+            className="text-xs border border-slate-300 rounded-md px-2 py-1 bg-white text-gray-700"
+          >
+            <option value="readiness">Readiness (high → low)</option>
+            <option value="name">Facility name</option>
+          </select>
+          <button
+            onClick={() => downloadHeatmapCsv(sorted)}
+            className="inline-flex items-center gap-1.5 text-xs font-medium text-emerald-700 border border-emerald-300 rounded-md px-2.5 py-1 hover:bg-emerald-50 transition-colors"
+          >
+            <Download className="w-3.5 h-3.5" />
+            Export CSV
+          </button>
+        </div>
+      </div>
       <table className="w-full text-sm min-w-[900px]">
         <thead>
           <tr className="border-b border-slate-200">
@@ -350,10 +696,13 @@ function FacilityCategoryMatrix({
           </tr>
         </thead>
         <tbody>
-          {assessments.map((a) => (
+          {sorted.map((a) => (
             <tr key={a.id} className="border-b border-slate-100">
               <td className="py-2 pr-4 font-medium text-gray-900 whitespace-nowrap">
                 {a.facilityName}
+                <span className="block text-[10px] text-gray-400">
+                  {assessmentScore(a).percentage.toFixed(0)}%
+                </span>
               </td>
               {items.map((item) => {
                 const info = facilityCheckedItems(a, item.id);
@@ -376,8 +725,24 @@ function FacilityCategoryMatrix({
                       : "bg-red-100 text-red-700";
                 return (
                   <td key={item.id} className="text-center py-2 px-2">
+                    <div className="flex items-center justify-center gap-1 flex-wrap">
+                      {info.all.map((label) => {
+                        const ticked = info.ticked.includes(label);
+                        return (
+                          <span
+                            key={label}
+                            title={`${label}: ${
+                              ticked ? "Present" : "Not present"
+                            }`}
+                            className={`w-2.5 h-2.5 rounded-full ${
+                              ticked ? "bg-emerald-500" : "bg-slate-300"
+                            }`}
+                          />
+                        );
+                      })}
+                    </div>
                     <span
-                      className={`inline-block px-2 py-0.5 rounded-full text-xs font-bold ${color}`}
+                      className={`inline-block mt-1 px-1.5 py-0.5 rounded-full text-[10px] font-bold ${color}`}
                     >
                       {info.ticked.length}/{info.all.length}
                     </span>
@@ -605,7 +970,7 @@ export function AssessmentTab() {
 
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-lg p-6 border border-slate-200">
+        <div className="bg-white rounded-lg p-6 border border-slate-200 min-w-0">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">
             Facility Readiness Scores
           </h3>
@@ -640,7 +1005,7 @@ export function AssessmentTab() {
           </ResponsiveContainer>
         </div>
 
-        <div className="bg-white rounded-lg p-6 border border-slate-200">
+        <div className="bg-white rounded-lg p-6 border border-slate-200 min-w-0">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">
             Readiness Status Distribution
           </h3>
@@ -683,7 +1048,7 @@ export function AssessmentTab() {
       </div>
 
       {/* Radar: average item performance */}
-      <div className="bg-white rounded-lg p-6 border border-slate-200">
+      <div className="bg-white rounded-lg p-6 border border-slate-200 min-w-0">
         <h3 className="text-lg font-semibold text-gray-900 mb-2">
           Average Domain 3 Performance by Item
         </h3>
@@ -744,7 +1109,7 @@ export function AssessmentTab() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-          <div className="bg-white rounded-lg p-6 border border-slate-200">
+          <div className="bg-white rounded-lg p-6 border border-slate-200 min-w-0">
             <h3 className="text-lg font-semibold text-gray-900 mb-1">
               BEmONC Signal Functions
             </h3>
@@ -907,6 +1272,15 @@ export function AssessmentTab() {
           />
         </div>
       </section>
+
+      {/* ============ Equipment heatmap ============ */}
+      <EquipmentHeatmap assessments={assessments} />
+
+      {/* ============ Item availability ============ */}
+      <ItemAvailabilityChart assessments={assessments} />
+
+      {/* ============ Per-facility radar grid ============ */}
+      <FacilityRadarGrid assessments={assessments} />
 
       {/* ============ Per-facility category matrix ============ */}
       <FacilityCategoryMatrix assessments={assessments} />
