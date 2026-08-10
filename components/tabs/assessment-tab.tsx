@@ -19,7 +19,9 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import {
+  Activity,
   Building2,
+  Package,
   Trash2,
   ClipboardList,
   ChevronDown,
@@ -59,6 +61,159 @@ const RESPONSE_STYLE: Record<string, string> = {
   no: "bg-red-100 text-red-700",
   na: "bg-slate-100 text-slate-500",
 };
+
+// ---------------------------------------------------------------------------
+// Live checklist-compliance helpers — all charts below derive from the
+// tick-lists entered in the Domain 3 assessment (data entry is the source).
+// ---------------------------------------------------------------------------
+
+const RADAR_SHORT: Record<string, string> = {
+  "Parenteral antibiotics": "Antibiotics",
+  "Parenteral uterotonics": "Uterotonics",
+  "Parenteral anticonvulsants": "Anticonvulsants",
+  "Manual removal of placenta": "Manual placenta",
+  "Removal of retained products": "Retained products",
+  "Assisted vaginal delivery": "Assisted delivery",
+  "Neonatal resuscitation": "Neo resuscitation",
+};
+
+function itemScoped(
+  assessments: FacilityAssessment[],
+  itemId: string,
+): FacilityAssessment[] {
+  return assessments.filter((a) => {
+    const v = a.items[itemId];
+    return v && v.response !== "na";
+  });
+}
+
+/** Average score (%) for one questionnaire item across in-scope facilities. */
+function itemAvgScore(
+  assessments: FacilityAssessment[],
+  itemId: string,
+): number {
+  const scoped = itemScoped(assessments, itemId);
+  if (scoped.length === 0) return 0;
+  const sum = scoped.reduce((acc, a) => {
+    const r = a.items[itemId].response;
+    return acc + (r === "yes" ? 100 : r === "partial" ? 50 : 0);
+  }, 0);
+  return Math.round(sum / scoped.length);
+}
+
+/** Per-checklist-sub-item: % of in-scope facilities that ticked it. */
+function itemComplianceRows(
+  assessments: FacilityAssessment[],
+  itemId: string,
+): { label: string; pct: number; ticked: number; total: number }[] {
+  const def = QUESTIONNAIRE_ITEMS.find((i) => i.id === itemId);
+  if (!def?.checklist) return [];
+  const scoped = itemScoped(assessments, itemId);
+  return def.checklist.map((label) => {
+    const ticked = scoped.filter((a) => {
+      const v = a.items[itemId];
+      const checked =
+        v?.checked && v.checked.length > 0
+          ? v.checked
+          : v?.response === "yes"
+            ? def.checklist!
+            : [];
+      return checked.includes(label);
+    }).length;
+    const pct = scoped.length ? Math.round((ticked / scoped.length) * 100) : 0;
+    return { label, pct, ticked, total: scoped.length };
+  });
+}
+
+function ItemKpi({
+  title,
+  pct,
+  note,
+}: {
+  title: string;
+  pct: number;
+  note: string;
+}) {
+  const color =
+    pct >= 80
+      ? "text-emerald-600"
+      : pct >= 60
+        ? "text-amber-600"
+        : "text-red-600";
+  return (
+    <div className="bg-white rounded-lg p-6 border border-slate-200">
+      <p className="text-sm text-gray-600 font-medium">{title}</p>
+      <p className={`text-3xl font-bold mt-2 ${color}`}>{pct}%</p>
+      <p className="text-xs text-gray-500 mt-1">{note}</p>
+    </div>
+  );
+}
+
+function ComplianceBarList({
+  title,
+  description,
+  rows,
+}: {
+  title: string;
+  description?: string;
+  rows: { label: string; pct: number; ticked: number; total: number }[];
+}) {
+  return (
+    <div className="bg-white rounded-lg p-6 border border-slate-200">
+      <h3 className="text-lg font-semibold text-gray-900 mb-1">{title}</h3>
+      {description && (
+        <p className="text-sm text-gray-500 mb-4">{description}</p>
+      )}
+      {rows.length === 0 ? (
+        <p className="text-sm text-gray-400">
+          No data for this item in the current scope yet.
+        </p>
+      ) : (
+        <div className="space-y-4">
+          {rows.map((row, idx) => {
+            const status =
+              row.pct >= 80 ? "emerald" : row.pct >= 60 ? "amber" : "red";
+            return (
+              <div key={idx}>
+                <div className="flex justify-between items-start mb-1.5 gap-2">
+                  <p className="font-medium text-gray-900 text-sm">
+                    {row.label}
+                  </p>
+                  <span
+                    className={`px-2.5 py-0.5 rounded-full text-xs font-medium whitespace-nowrap ${
+                      status === "emerald"
+                        ? "bg-emerald-100 text-emerald-700"
+                        : status === "amber"
+                          ? "bg-amber-100 text-amber-700"
+                          : "bg-red-100 text-red-700"
+                    }`}
+                  >
+                    {row.pct}%
+                  </span>
+                </div>
+                <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+                  <div
+                    className={`h-full transition-all ${
+                      status === "emerald"
+                        ? "bg-emerald-500"
+                        : status === "amber"
+                          ? "bg-amber-500"
+                          : "bg-red-500"
+                    }`}
+                    style={{ width: `${row.pct}%` }}
+                  />
+                </div>
+                <p className="text-xs text-gray-500 mt-1">
+                  {row.ticked} of {row.total} facilities in scope
+                </p>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export function AssessmentTab() {
   const allAssessments = useAssessments();
@@ -120,6 +275,47 @@ export function AssessmentTab() {
     });
   }, [assessments]);
 
+  // EmONC Compliance (items 3.5–3.7) — computed live from tick-lists
+  const emonc = useMemo(
+    () => ({
+      bemonc: itemComplianceRows(assessments, "3.5"),
+      cemonc: itemComplianceRows(assessments, "3.6"),
+      enc: itemComplianceRows(assessments, "3.7"),
+      scores: {
+        b: itemAvgScore(assessments, "3.5"),
+        c: itemAvgScore(assessments, "3.6"),
+        e: itemAvgScore(assessments, "3.7"),
+      },
+    }),
+    [assessments],
+  );
+
+  const bemoncRadar = useMemo(
+    () =>
+      emonc.bemonc.map((r) => ({
+        name: RADAR_SHORT[r.label] ?? r.label,
+        value: r.pct,
+      })),
+    [emonc],
+  );
+
+  // Equipment & Commodities (items 3.1–3.4) — computed live from tick-lists
+  const equipment = useMemo(
+    () => ({
+      commodities: itemComplianceRows(assessments, "3.1"),
+      transfusion: itemComplianceRows(assessments, "3.2"),
+      oxygen: itemComplianceRows(assessments, "3.3"),
+      device: itemComplianceRows(assessments, "3.4"),
+      scores: {
+        c1: itemAvgScore(assessments, "3.1"),
+        c2: itemAvgScore(assessments, "3.2"),
+        c3: itemAvgScore(assessments, "3.3"),
+        c4: itemAvgScore(assessments, "3.4"),
+      },
+    }),
+    [assessments],
+  );
+
   if (assessments.length === 0) {
     const hasDataElsewhere = allAssessments.length > 0;
     return (
@@ -144,9 +340,9 @@ export function AssessmentTab() {
                 App Launcher (grid icon)
               </span>{" "}
               in the top right corner to open{" "}
-              <span className="font-medium">Facility Assessment Entry</span>{" "}
-              and complete the Domain 3 questionnaire for a facility. Results
-              will appear here and on the Home dashboard automatically.
+              <span className="font-medium">Facility Assessment Entry</span> and
+              complete the Domain 3 questionnaire for a facility. Results will
+              appear here and on the Home dashboard automatically.
             </>
           )}
         </p>
@@ -318,6 +514,172 @@ export function AssessmentTab() {
           </RadarChart>
         </ResponsiveContainer>
       </div>
+
+      {/* ================= EmONC Compliance (3.5–3.7) ================= */}
+      <section className="pt-4 border-t-2 border-emerald-100">
+        <div className="flex items-center gap-3 mb-1">
+          <div className="w-10 h-10 rounded-lg bg-teal-100 flex items-center justify-center">
+            <Activity className="w-5 h-5 text-teal-600" />
+          </div>
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900">
+              EmONC Compliance
+            </h3>
+            <p className="text-sm text-gray-500">
+              BEmONC (3.5) · CEmONC (3.6) · Essential Newborn Care (3.7) —
+              computed live from the Domain 3 tick-lists
+            </p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+          <ItemKpi
+            title="BEmONC Signal Functions (3.5)"
+            pct={emonc.scores.b}
+            note="Avg readiness across in-scope facilities"
+          />
+          <ItemKpi
+            title="CEmONC Signal Functions (3.6)"
+            pct={emonc.scores.c}
+            note="Avg readiness across in-scope facilities"
+          />
+          <ItemKpi
+            title="ENC Bundle (3.7)"
+            pct={emonc.scores.e}
+            note="Avg readiness across in-scope facilities"
+          />
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+          <div className="bg-white rounded-lg p-6 border border-slate-200">
+            <h3 className="text-lg font-semibold text-gray-900 mb-1">
+              BEmONC Signal Functions
+            </h3>
+            <p className="text-sm text-gray-500 mb-4">
+              % of facilities that ticked each of the 7 signal functions
+            </p>
+            <ResponsiveContainer width="100%" height={300}>
+              <RadarChart data={bemoncRadar} outerRadius={95}>
+                <PolarGrid stroke="#e5e7eb" />
+                <PolarAngleAxis dataKey="name" tick={{ fontSize: 11 }} />
+                <Radar
+                  name="Compliance %"
+                  dataKey="value"
+                  stroke="#10b981"
+                  fill="#10b981"
+                  fillOpacity={0.55}
+                />
+                <Tooltip formatter={(v) => [`${v}%`, "Facilities"]} />
+              </RadarChart>
+            </ResponsiveContainer>
+          </div>
+
+          <div className="bg-white rounded-lg p-6 border border-slate-200">
+            <h3 className="text-lg font-semibold text-gray-900 mb-1">
+              CEmONC Signal Functions
+            </h3>
+            <p className="text-sm text-gray-500 mb-4">
+              % of facilities that ticked each of the 9 signal functions
+            </p>
+            <div className="space-y-2.5 max-h-[300px] overflow-y-auto pr-1">
+              {emonc.cemonc.map((row, idx) => (
+                <div
+                  key={idx}
+                  className="flex items-center justify-between p-3 bg-slate-50 rounded-lg gap-3"
+                >
+                  <div className="min-w-0">
+                    <p className="font-medium text-gray-900 text-sm">
+                      {row.label}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      {row.ticked} of {row.total} facilities
+                    </p>
+                  </div>
+                  <StatusBadge
+                    status={
+                      row.pct >= 80 ? "green" : row.pct >= 60 ? "amber" : "red"
+                    }
+                    label={`${row.pct}%`}
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-6">
+          <ComplianceBarList
+            title="Essential Newborn Care (ENC) Bundle Implementation"
+            description="% of facilities that ticked each bundle component (3.7)"
+            rows={emonc.enc}
+          />
+        </div>
+      </section>
+
+      {/* ============ Equipment & Commodities (3.1–3.4) ============ */}
+      <section className="pt-4 border-t-2 border-emerald-100">
+        <div className="flex items-center gap-3 mb-1">
+          <div className="w-10 h-10 rounded-lg bg-emerald-100 flex items-center justify-center">
+            <Package className="w-5 h-5 text-emerald-600" />
+          </div>
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900">
+              Equipment &amp; Commodities
+            </h3>
+            <p className="text-sm text-gray-500">
+              Tracer commodities (3.1) · Blood transfusion (3.2) · Oxygen &amp;
+              CPAP (3.3) · Equipment (3.4) — computed live from the Domain 3
+              tick-lists
+            </p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-4">
+          <ItemKpi
+            title="Tracer Commodities (3.1)"
+            pct={equipment.scores.c1}
+            note="Avg availability"
+          />
+          <ItemKpi
+            title="Blood Transfusion (3.2)"
+            pct={equipment.scores.c2}
+            note="Avg readiness"
+          />
+          <ItemKpi
+            title="Oxygen &amp; CPAP (3.3)"
+            pct={equipment.scores.c3}
+            note="Avg readiness"
+          />
+          <ItemKpi
+            title="Equipment (3.4)"
+            pct={equipment.scores.c4}
+            note="Avg functionality"
+          />
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+          <ComplianceBarList
+            title="MNH Tracer Commodities"
+            description="% of facilities with each commodity available on assessment day (3.1)"
+            rows={equipment.commodities}
+          />
+          <ComplianceBarList
+            title="Blood Transfusion Services"
+            description="% of facilities meeting each transfusion requirement (3.2)"
+            rows={equipment.transfusion}
+          />
+          <ComplianceBarList
+            title="Oxygen &amp; Neonatal CPAP Readiness"
+            description="% of facilities meeting each oxygen/CPAP requirement (3.3)"
+            rows={equipment.oxygen}
+          />
+          <ComplianceBarList
+            title="Equipment Functionality &amp; Active Use"
+            description="% of facilities meeting each equipment requirement (3.4)"
+            rows={equipment.device}
+          />
+        </div>
+      </section>
 
       {/* Facility list */}
       <div>

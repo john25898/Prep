@@ -4,7 +4,6 @@ import { useState } from "react";
 import {
   LayoutDashboard,
   Stethoscope,
-  Wrench,
   TrendingUp,
   CheckSquare,
   ShieldCheck,
@@ -12,9 +11,7 @@ import {
 } from "lucide-react";
 import { HomeTab } from "@/components/tabs/home-tab";
 import { ClinicalTab } from "@/components/tabs/clinical-tab";
-import { EquipmentTab } from "@/components/tabs/equipment-tab";
 import { MortalityTab } from "@/components/tabs/mortality-tab";
-import { ComplianceTab } from "@/components/tabs/compliance-tab";
 import { AssessmentTab } from "@/components/tabs/assessment-tab";
 import { AssessmentDialog } from "@/components/assessment-dialog";
 import { GeoFilterBar } from "@/components/geo-filter-bar";
@@ -28,9 +25,7 @@ export default function Dashboard() {
   const tabs = [
     { id: "home", label: "Home", icon: LayoutDashboard },
     { id: "clinical", label: "PMTCT & HIV Care", icon: Stethoscope },
-    { id: "equipment", label: "Equipment & Commodities", icon: Wrench },
     { id: "mortality", label: "Mortality & MPDSR", icon: TrendingUp },
-    { id: "compliance", label: "EmONC Compliance", icon: CheckSquare },
     { id: "readiness", label: "Readiness Insights", icon: ShieldCheck },
   ];
 
@@ -40,12 +35,8 @@ export default function Dashboard() {
         return <HomeTab />;
       case "clinical":
         return <ClinicalTab />;
-      case "equipment":
-        return <EquipmentTab />;
       case "mortality":
         return <MortalityTab />;
-      case "compliance":
-        return <ComplianceTab />;
       case "readiness":
         return <AssessmentTab />;
       default:
