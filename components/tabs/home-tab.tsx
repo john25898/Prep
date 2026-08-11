@@ -590,6 +590,7 @@ const VTP_QOC = [
   {
     no: 1,
     label: "ANC coverage",
+    short: "ANC cov.",
     code: "PMTCT_STAT_D",
     source: "KHIS",
     target: 95,
@@ -599,6 +600,7 @@ const VTP_QOC = [
   {
     no: 2,
     label: "Testing for PBFW",
+    short: "HIV test",
     code: "PMTCT_STAT_N",
     source: "KHIS",
     target: 95,
@@ -608,6 +610,7 @@ const VTP_QOC = [
   {
     no: 3,
     label: "ART initiation for PBFW",
+    short: "ART init.",
     code: "PMTCT_ART",
     source: "KHIS",
     target: 95,
@@ -617,6 +620,7 @@ const VTP_QOC = [
   {
     no: 4,
     label: "Viral load uptake & suppression",
+    short: "VL sup.",
     code: "PMTCT_PVLS",
     source: "NDW/EMR",
     target: 95,
@@ -626,6 +630,7 @@ const VTP_QOC = [
   {
     no: 5,
     label: "Early infant diagnosis ≤ 8 weeks",
+    short: "EID ≤8wk",
     code: "PMTCT_EID",
     source: "KHIS/NASCOP",
     target: 98,
@@ -635,6 +640,7 @@ const VTP_QOC = [
   {
     no: 6,
     label: "Timely ART for PCR+ infants",
+    short: "PCR+ ART",
     code: "PMTCT_HEI_ART",
     source: "NASCOP/EMR",
     target: 100,
@@ -644,6 +650,7 @@ const VTP_QOC = [
   {
     no: 7,
     label: "Delivery among HIV+ mothers",
+    short: "Delivery",
     code: "Deliveries",
     source: "KHIS",
     target: 90,
@@ -653,6 +660,7 @@ const VTP_QOC = [
   {
     no: 8,
     label: "HEI final outcome 18–24 months",
+    short: "HEI 18–24m",
     code: "PMTCT_FO",
     source: "EMR",
     target: 95,
@@ -662,6 +670,7 @@ const VTP_QOC = [
   {
     no: 9,
     label: "Retention of the mother–baby pair",
+    short: "MBP ret.",
     code: "MBP retention",
     source: "EMR",
     target: 95,
@@ -674,6 +683,7 @@ const VTP_QOC = [
 const SAFE_SYSTEMS = [
   {
     label: "Zero stockout of tracer MNH commodities",
+    short: "No stockouts",
     detail: "oxytocin · carbetocin · MgSO₄ · TXA · benzyl penicillin",
     source: "LMIS/KHIS",
     freq: "Monthly",
@@ -682,6 +692,7 @@ const SAFE_SYSTEMS = [
   },
   {
     label: "Functional blood transfusion services",
+    short: "Blood svcs.",
     detail: "Level 4 facilities",
     source: "HFA-QOC",
     freq: "Quarterly",
@@ -690,6 +701,7 @@ const SAFE_SYSTEMS = [
   },
   {
     label: "Functional oxygen/CPAP for neonates",
+    short: "Oxygen/CPAP",
     detail: "Level 4 facilities",
     source: "HFA-QOC",
     freq: "Quarterly",
@@ -698,6 +710,7 @@ const SAFE_SYSTEMS = [
   },
   {
     label: "Procured equipment functional & in use",
+    short: "Equipment",
     detail: "six months post-delivery",
     source: "Facility assessment",
     freq: "Semi-annual",
@@ -706,6 +719,7 @@ const SAFE_SYSTEMS = [
   },
   {
     label: "Maternal & neonatal deaths audited (MPDSR)",
+    short: "MPDSR audits",
     detail: "supported facilities",
     source: "KHIS",
     freq: "Monthly",
@@ -713,6 +727,38 @@ const SAFE_SYSTEMS = [
     current: 81,
   },
 ];
+
+// Deterministic pseudo-variation so every county gets its own value.
+function seededJitter(key: string, spread: number): number {
+  let h = 2166136261;
+  for (let i = 0; i < key.length; i++) {
+    h ^= key.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return (((h >>> 0) % (spread * 2 + 1)) - spread) / 2;
+}
+
+// County series palette for the per-partner indicator charts (max 5 counties).
+const COUNTY_COLORS = ["#0ea5e9", "#8b5cf6", "#f59e0b", "#10b981", "#f43f5e"];
+
+/** VTP QoC value for one county, scaled by the county's D1 vs the partner's D1. */
+function countyVtpValue(
+  base: number,
+  county: string,
+  partnerId: string,
+  idx: number,
+): number {
+  const partnerD1 = PARTNER_DOMAIN_SCORES[partnerId]?.d1 ?? base;
+  const countyD1 = COUNTY_DOMAIN_SCORES[county]?.d1 ?? partnerD1;
+  const factor = countyD1 / partnerD1;
+  return Math.max(
+    0,
+    Math.min(
+      100,
+      Math.round(base * factor + seededJitter(`${county}:v${idx}`, 6)),
+    ),
+  );
+}
 
 // Theory of Change (document §2 — if / then / resulting in)
 const TOC_STEPS = [
@@ -832,98 +878,105 @@ const REVIEW_PLATFORMS = [
   },
 ];
 
-// Per-partner target tracking — framework targets per domain
-const DOMAIN_TARGETS: Record<string, number> = {
-  d1: 95,
-  d2: 90,
-  d3: 90,
-  d4: 100,
-  d5: 100,
+type IndicatorCountyRow = {
+  label: string;
+  full: string;
+  target: number;
+  values: { county: string; value: number }[];
 };
-const DOMAIN_TRACK: { key: string; label: string; color: string }[] = [
-  { key: "d1", label: "D1 · PMTCT/VTP QoC", color: "#059669" },
-  { key: "d2", label: "D2 · Coverage 90:90:80:80", color: "#0d9488" },
-  { key: "d3", label: "D3 · Readiness (live)", color: "#84cc16" },
-  { key: "d4", label: "D4 · MPDSR", color: "#dc2626" },
-  { key: "d5", label: "D5 · Data Systems", color: "#4f46e5" },
-];
 
-/** One partner's progress toward each domain target. */
-function PartnerImpactCard({
-  partner,
-  domains,
-  d3Count,
-  overall,
+/** Grouped bar chart: indicators on the X axis, one bar per county. */
+function PartnerIndicatorChart({
+  title,
+  subtitle,
+  rows,
+  counties,
 }: {
-  partner: Partner;
-  domains: (number | null)[];
-  d3Count: number;
-  overall: number | null;
+  title: string;
+  subtitle: string;
+  rows: IndicatorCountyRow[];
+  counties: string[];
 }) {
-  const overallTone = scoreTone(overall);
+  const data = rows.map((r) => {
+    const obj: Record<string, number | string> = { label: r.label };
+    for (const v of r.values) obj[v.county] = v.value;
+    return obj;
+  });
   return (
-    <div className="bg-white rounded-lg border border-slate-200 overflow-hidden flex flex-col">
-      <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between gap-2">
-        <div className="min-w-0">
-          <p className="text-sm font-semibold text-gray-900 truncate">
-            {partner.name}
-          </p>
-          <p className="text-xs text-gray-500">
-            {partner.counties.length} counties
-            {d3Count > 0
-              ? ` · ${d3Count} assessment${d3Count === 1 ? "" : "s"}`
-              : " · no assessments yet"}
-          </p>
+    <div className="rounded-lg border border-slate-200 overflow-hidden">
+      <div className="px-4 py-3 bg-slate-50/70 border-b border-slate-100 flex items-center justify-between flex-wrap gap-2">
+        <div className="flex items-center gap-3 min-w-0">
+          <span className="w-8 h-8 rounded-lg bg-white border border-slate-200 flex items-center justify-center flex-shrink-0">
+            <Landmark className="w-4 h-4 text-slate-500" />
+          </span>
+          <div className="min-w-0">
+            <p className="text-sm font-semibold text-gray-900">{title}</p>
+            <p className="text-xs text-gray-500">{subtitle}</p>
+          </div>
         </div>
-        <span
-          className={`px-2 py-1 rounded-md text-xs font-bold whitespace-nowrap ${overallTone.bg} ${overallTone.text}`}
-        >
-          {overall === null ? "—" : `${overall.toFixed(1)}%`}
-        </span>
+        <div className="flex flex-wrap gap-x-3 gap-y-1">
+          {counties.map((c, i) => (
+            <span
+              key={c}
+              className="inline-flex items-center gap-1.5 text-[11px] font-medium text-gray-600"
+            >
+              <span
+                className="w-2.5 h-2.5 rounded-sm"
+                style={{
+                  backgroundColor: COUNTY_COLORS[i % COUNTY_COLORS.length],
+                }}
+              />
+              {c}
+            </span>
+          ))}
+        </div>
       </div>
-      <div className="p-4 space-y-3 flex-1">
-        {DOMAIN_TRACK.map((d, idx) => {
-          const current = domains[idx];
-          const target = DOMAIN_TARGETS[d.key];
-          if (current === null || Number.isNaN(current)) {
-            return (
-              <div key={d.key}>
-                <div className="flex items-center justify-between text-xs mb-1">
-                  <span className="font-medium text-gray-600">{d.label}</span>
-                  <span className="text-gray-400">No data</span>
-                </div>
-                <div className="h-2 rounded-full bg-slate-100" />
-              </div>
-            );
-          }
-          const ratio = current / target;
-          const tone = targetTone(ratio);
-          const pct = Math.min(100, ratio * 100);
-          return (
-            <div key={d.key}>
-              <div className="flex items-center justify-between text-xs mb-1">
-                <span className="font-medium text-gray-600">{d.label}</span>
-                <span
-                  className={`inline-flex items-center gap-1 font-semibold ${tone.text}`}
-                >
-                  <span className={`w-1.5 h-1.5 rounded-full ${tone.dot}`} />
-                  {current.toFixed(1)}% · target {target}%
-                </span>
-              </div>
-              <div className="h-2 rounded-full bg-slate-100 overflow-hidden">
-                <div
-                  className={`h-full rounded-full ${tone.bar}`}
-                  style={{ width: `${pct}%` }}
-                />
-              </div>
-              <p className={`text-[11px] mt-0.5 font-medium ${tone.text}`}>
-                {ratio >= 1
-                  ? "On target ✓"
-                  : `${(target - current).toFixed(1)} pp below ${target}% target`}
-              </p>
-            </div>
-          );
-        })}
+      <div className="p-4">
+        <ResponsiveContainer width="100%" height={240}>
+          <BarChart
+            data={data}
+            margin={{ top: 20, right: 8, left: 0, bottom: 4 }}
+            barCategoryGap="18%"
+          >
+            <CartesianGrid strokeDasharray="3 3" vertical={false} />
+            <XAxis
+              dataKey="label"
+              interval={0}
+              tick={{ fontSize: 10 }}
+              tickLine={false}
+            />
+            <YAxis
+              domain={[0, 100]}
+              width={34}
+              tick={{ fontSize: 10 }}
+              tickLine={false}
+              axisLine={false}
+            />
+            <Tooltip
+              cursor={{ fill: "rgba(148,163,184,0.12)" }}
+              formatter={(v, name) => [
+                `${Number(v).toFixed(1)}%`,
+                String(name),
+              ]}
+              labelFormatter={(label) => {
+                const r = rows.find((row) => row.label === label);
+                return r
+                  ? `${r.full} · target ≥ ${r.target}%`
+                  : String(label);
+              }}
+            />
+            {counties.map((c, i) => (
+              <Bar
+                key={c}
+                dataKey={c}
+                name={c}
+                fill={COUNTY_COLORS[i % COUNTY_COLORS.length]}
+                radius={[3, 3, 0, 0]}
+                maxBarSize={32}
+              />
+            ))}
+          </BarChart>
+        </ResponsiveContainer>
       </div>
     </div>
   );
@@ -1013,6 +1066,68 @@ export function HomeTab() {
         }),
       })),
     [partners, allAssessments],
+  );
+
+  // §5.3 — VTP QoC per partner, each indicator compared across its counties.
+  const vtpByPartner = useMemo(
+    () =>
+      partners.map((p) => ({
+        partner: p,
+        rows: VTP_QOC.map((ind, idx) => ({
+          label: ind.short,
+          full: ind.label,
+          target: ind.target,
+          values: p.counties.map((county) => ({
+            county,
+            value: countyVtpValue(ind.current, county, p.id, idx),
+          })),
+        })),
+      })),
+    [partners],
+  );
+
+  // §5.4 — Safe systems per partner, each enabler compared across counties.
+  const safeByPartner = useMemo(
+    () =>
+      partners.map((p) => {
+        const pD3 = readinessByPartner[p.id].avg;
+        return {
+          partner: p,
+          rows: SAFE_SYSTEMS.map((ind, idx) => ({
+            label: ind.short,
+            full: ind.label,
+            target: ind.target,
+            values: p.counties.map((county) => {
+              const cD3 = readinessForCounties(allAssessments, [county]).avg;
+              let value: number;
+              if (pD3 !== null && cD3 !== null && pD3 > 0) {
+                value = Math.max(
+                  0,
+                  Math.min(
+                    100,
+                    Math.round(
+                      ind.current * (cD3 / pD3) +
+                        seededJitter(`${county}:s${idx}`, 6),
+                    ),
+                  ),
+                );
+              } else {
+                value = Math.max(
+                  0,
+                  Math.min(
+                    100,
+                    Math.round(
+                      ind.current + seededJitter(`${county}:s${idx}`, 14),
+                    ),
+                  ),
+                );
+              }
+              return { county, value };
+            }),
+          })),
+        };
+      }),
+    [partners, readinessByPartner, allAssessments],
   );
 
   return (
@@ -1178,76 +1293,24 @@ export function HomeTab() {
               VTP Quality-of-Care Scoreboard
             </h3>
             <p className="text-sm text-gray-500 mt-0.5">
-              The nine core PMTCT indicators, reported monthly (§5.3).
+              The nine core PMTCT indicators per partner — each indicator
+              compared across the partner's supported counties (§5.3).
             </p>
           </div>
           <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-slate-100 text-slate-600 border border-slate-200">
             Monthly · KHIS / NASCOP / EMR / NDW
           </span>
         </div>
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-slate-200">
-            <thead className="bg-slate-50">
-              <tr>
-                {[
-                  "#",
-                  "Indicator",
-                  "Code",
-                  "Source",
-                  "Target",
-                  "Current",
-                  "Status",
-                ].map((h) => (
-                  <th
-                    key={h}
-                    className="px-4 py-2.5 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider"
-                  >
-                    {h}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {VTP_QOC.map((row) => {
-                const tone = targetTone(row.current / row.target);
-                return (
-                  <tr key={row.no} className="hover:bg-slate-50/60">
-                    <td className="px-4 py-2.5 text-xs text-gray-500">
-                      {row.no}
-                    </td>
-                    <td className="px-4 py-2.5 text-sm font-medium text-gray-800">
-                      {row.label}
-                    </td>
-                    <td className="px-4 py-2.5">
-                      <span className="text-[11px] font-mono font-semibold px-2 py-0.5 rounded bg-slate-100 text-slate-600 border border-slate-200">
-                        {row.code}
-                      </span>
-                    </td>
-                    <td className="px-4 py-2.5 text-xs text-gray-500">
-                      {row.source}
-                    </td>
-                    <td className="px-4 py-2.5 text-sm font-semibold text-gray-700">
-                      {row.op}
-                      {row.target}%
-                    </td>
-                    <td className="px-4 py-2.5 text-sm font-bold text-gray-900">
-                      {row.current}%
-                    </td>
-                    <td className="px-4 py-2.5">
-                      <span
-                        className={`inline-flex items-center gap-1.5 text-xs font-semibold px-2 py-1 rounded-full ${tone.text} bg-slate-50 border border-slate-200`}
-                      >
-                        <span
-                          className={`w-1.5 h-1.5 rounded-full ${tone.dot}`}
-                        />
-                        {tone.label}
-                      </span>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+        <div className="px-6 pb-6 space-y-5">
+          {vtpByPartner.map(({ partner, rows }) => (
+            <PartnerIndicatorChart
+              key={partner.id}
+              title={partner.name}
+              subtitle={`${partner.counties.length} counties · 9 VTP indicators vs ≥95% target`}
+              rows={rows}
+              counties={partner.counties}
+            />
+          ))}
         </div>
       </div>
 
@@ -1260,102 +1323,23 @@ export function HomeTab() {
               Facility Readiness &amp; Safe Systems
             </h3>
             <p className="text-sm text-gray-500 mt-0.5">
-              Five systemic enablers from EWENE Pillar 8 &amp; GHSD guidance
-              (§5.4).
+              Five systemic enablers per partner — each enabler compared across
+              the partner's supported counties (§5.4, EWENE Pillar 8 &amp; GHSD
+              guidance).
             </p>
           </div>
           <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
             Blood · Oxygen · Equipment · Commodities
           </span>
         </div>
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-slate-200">
-            <thead className="bg-slate-50">
-              <tr>
-                {[
-                  "Indicator",
-                  "Detail",
-                  "Source",
-                  "Frequency",
-                  "Target",
-                  "Current",
-                  "Status",
-                ].map((h) => (
-                  <th
-                    key={h}
-                    className="px-4 py-2.5 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider"
-                  >
-                    {h}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {SAFE_SYSTEMS.map((row) => {
-                const tone = targetTone(row.current / row.target);
-                return (
-                  <tr key={row.label} className="hover:bg-slate-50/60">
-                    <td className="px-4 py-2.5 text-sm font-medium text-gray-800">
-                      {row.label}
-                    </td>
-                    <td className="px-4 py-2.5 text-xs text-gray-500">
-                      {row.detail}
-                    </td>
-                    <td className="px-4 py-2.5">
-                      <span className="text-[11px] font-mono font-semibold px-2 py-0.5 rounded bg-slate-100 text-slate-600 border border-slate-200">
-                        {row.source}
-                      </span>
-                    </td>
-                    <td className="px-4 py-2.5">
-                      <span className="text-[11px] font-semibold px-2 py-0.5 rounded bg-sky-50 text-sky-700 border border-sky-200">
-                        {row.freq}
-                      </span>
-                    </td>
-                    <td className="px-4 py-2.5 text-sm font-semibold text-gray-700">
-                      ≥ {row.target}%
-                    </td>
-                    <td className="px-4 py-2.5 text-sm font-bold text-gray-900">
-                      {row.current}%
-                    </td>
-                    <td className="px-4 py-2.5">
-                      <span
-                        className={`inline-flex items-center gap-1.5 text-xs font-semibold px-2 py-1 rounded-full ${tone.text} bg-slate-50 border border-slate-200`}
-                      >
-                        <span
-                          className={`w-1.5 h-1.5 rounded-full ${tone.dot}`}
-                        />
-                        {tone.label}
-                      </span>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* Partner Impact & Target Tracker */}
-      <div className="bg-white rounded-lg border border-slate-200 overflow-hidden">
-        <div className="px-6 pt-5 pb-3">
-          <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-            <Target className="w-5 h-5 text-indigo-600" />
-            Partner Impact &amp; Target Tracker
-          </h3>
-          <p className="text-sm text-gray-500 mt-0.5">
-            Each partner's progress toward framework targets — D1 &gt;95% (VTP
-            QoC), D2 ≥90% (90:90:80:80), D3 ≥90% (readiness, live), D4 100%
-            (MPDSR audit), D5 100% (data reporting).
-          </p>
-        </div>
-        <div className="px-6 pb-6 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-          {rows.map((r) => (
-            <PartnerImpactCard
-              key={r.partner.id}
-              partner={r.partner}
-              domains={r.domains}
-              d3Count={r.d3Count}
-              overall={r.overall}
+        <div className="px-6 pb-6 space-y-5">
+          {safeByPartner.map(({ partner, rows }) => (
+            <PartnerIndicatorChart
+              key={partner.id}
+              title={partner.name}
+              subtitle={`${partner.counties.length} counties · 5 systemic enablers vs ≥60–100% targets`}
+              rows={rows}
+              counties={partner.counties}
             />
           ))}
         </div>
