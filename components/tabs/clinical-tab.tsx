@@ -357,6 +357,54 @@ const heiOutcomeData = [
   { stage: "HEI discharged HIV-negative", count: HEI_COHORT_NEGATIVE },
 ];
 
+// ---- Mother–baby pair pathway (§4 tracking approach) ----
+const MBP_PATHWAY = [
+  {
+    stage: "ANC",
+    services: "ANC visits · HIV testing · PrEP screening",
+    focus: "Early identification, linkage, adherence monitoring",
+    expanded:
+      "SHA enrollment at ANC; risk stratification for high-burden counties",
+    color: "bg-emerald-50 border-emerald-200 text-emerald-900",
+    chip: "bg-emerald-100 text-emerald-800",
+  },
+  {
+    stage: "Delivery",
+    services: "Skilled birth attendance; HIV-positive mothers",
+    focus: "Quality of intrapartum care; safe delivery outcomes",
+    expanded:
+      "Safe blood availability; oxygen/CPAP readiness; equipment functionality verification",
+    color: "bg-teal-50 border-teal-200 text-teal-900",
+    chip: "bg-teal-100 text-teal-800",
+  },
+  {
+    stage: "PNC ≤ 48 hrs",
+    services: "Postnatal checks for mother & newborn; early infant testing",
+    focus: "Continuity of care; early maternal-newborn outcomes",
+    expanded:
+      "Breastfeeding initiation; respectful maternity care documentation",
+    color: "bg-cyan-50 border-cyan-200 text-cyan-900",
+    chip: "bg-cyan-100 text-cyan-800",
+  },
+  {
+    stage: "ART/MCH",
+    services: "ART for HIV+ mothers; PMTCT; PrEP for PBFW",
+    focus: "Treatment initiation, adherence, viral suppression",
+    expanded: "Integration with SHA claims data for outcome tracking",
+    color: "bg-blue-50 border-blue-200 text-blue-900",
+    chip: "bg-blue-100 text-blue-800",
+  },
+  {
+    stage: "Community",
+    services: "Follow-up, tracing, appointment adherence, psychosocial support",
+    focus: "Linkage, retention, continuity beyond the facility",
+    expanded:
+      "eCHIS-linked community death reporting; CHP-led danger sign surveillance",
+    color: "bg-violet-50 border-violet-200 text-violet-900",
+    chip: "bg-violet-100 text-violet-800",
+  },
+];
+
 // ---- Domain 1 target framework (EWENE DA 6/26/2026) ----
 type TargetIndicator = {
   code: string;
@@ -792,6 +840,50 @@ function Subtab2B() {
               · target &gt;95%
             </p>
           </div>
+        </div>
+      </div>
+
+      {/* Mother–baby pair pathway — the tracking approach (§4) */}
+      <div className="bg-white rounded-lg p-6 border border-slate-200">
+        <div className="flex flex-wrap items-center justify-between gap-2 mb-1">
+          <h3 className="text-lg font-semibold text-gray-900">
+            The Mother–Baby Pair Pathway — longitudinal tracking
+          </h3>
+          <span className="px-2 py-1 rounded-md bg-violet-50 text-violet-700 text-xs font-bold">
+            §4 Tracking Approach
+          </span>
+        </div>
+        <p className="text-sm text-gray-500 mb-5">
+          The framework follows each mother–baby pair from ANC through delivery,
+          PNC, ART/MCH and community follow-up — with safe blood, oxygen/CPAP
+          and equipment functionality woven into the delivery stage.
+        </p>
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-4">
+          {MBP_PATHWAY.map((p, idx) => (
+            <div key={p.stage} className="relative">
+              <div className={`h-full rounded-lg border p-4 ${p.color}`}>
+                <div className="flex items-center justify-between gap-2">
+                  <span
+                    className={`px-2 py-0.5 rounded-md text-xs font-bold ${p.chip}`}
+                  >
+                    {p.stage}
+                  </span>
+                  {idx < MBP_PATHWAY.length - 1 && (
+                    <span className="hidden xl:block text-slate-300 font-bold">
+                      →
+                    </span>
+                  )}
+                </div>
+                <p className="text-xs mt-2 text-gray-700">{p.services}</p>
+                <p className="text-[11px] mt-2 opacity-80">
+                  <b>Focus:</b> {p.focus}
+                </p>
+                <p className="text-[11px] mt-1.5 pt-1.5 border-t border-white/50 opacity-80">
+                  <b>Expanded:</b> {p.expanded}
+                </p>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
 

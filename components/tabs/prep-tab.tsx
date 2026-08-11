@@ -171,7 +171,9 @@ export function PrepTab() {
           title="Initiated on PrEP"
           value={PREP_INITIATED.toLocaleString()}
           sub={`${PREP_COVERAGE_PCT}% of eligible (target ≥ 90%)`}
-          accent={PREP_COVERAGE_PCT >= 90 ? "text-emerald-600" : "text-amber-600"}
+          accent={
+            PREP_COVERAGE_PCT >= 90 ? "text-emerald-600" : "text-amber-600"
+          }
         />
         <Kpi
           title="Continuing at 3 months"
@@ -354,15 +356,17 @@ export function PrepTab() {
             <HeartPulse className="w-5 h-5 text-violet-600" />
           </div>
           <div>
-            <h3 className="font-semibold">Why the prevention cascade matters</h3>
+            <h3 className="font-semibold">
+              Why the prevention cascade matters
+            </h3>
             <p className="text-sm mt-1 opacity-80">
               <ShieldCheck className="inline w-3.5 h-3.5" /> PrEP protects
               HIV-negative pregnant and breastfeeding women during the period of
               highest transmission risk. Screening happens at the first ANC
               visit (the same visit as HIV testing); women who are eligible
-              start immediately, and continuation is monitored at 3 and 6
-              months so that <Users className="inline w-3.5 h-3.5" /> every
-              mother–baby pair stays protected across the continuum.
+              start immediately, and continuation is monitored at 3 and 6 months
+              so that <Users className="inline w-3.5 h-3.5" /> every mother–baby
+              pair stays protected across the continuum.
             </p>
           </div>
         </div>

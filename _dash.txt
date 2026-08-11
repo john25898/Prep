@@ -1,0 +1,836 @@
+
+4. Tracking Approach
+The framework follows a longitudinal mother baby pair pathway from ANC through delivery, PNC, ART/MCH services, and community follow-up. Three other critical additions are incorporated at the delivery and newborn care stage: safe blood availability, oxygen/CPAP readiness, and equipment functionality.
+Stage
+Key Services
+Tracking Focus
+Expanded Elements
+ANC
+ANC visits, HIV testing, PrEP screening
+Early identification, linkage, adherence monitoring
+SHA enrollment at ANC; risk stratification for high-burden counties
+Delivery
+Skilled birth attendance; HIV-positive mothers
+Quality of intrapartum care; safe delivery outcomes
+Safe blood availability; oxygen/CPAP readiness; equipment functionality verification
+PNC ≤48 hours
+Postnatal checks for mother and newborn; early infant testing
+Continuity of care; early maternal-newborn outcomes
+Breastfeeding initiation; respectful maternity care documentation
+ART/MCH
+ART for HIV-positive mothers; PMTCT; PrEP for PBFW
+Treatment initiation, adherence, viral suppression
+Integration with SHA claims data for outcome tracking
+Community
+Follow-up, tracing, appointment adherence, psychosocial support
+Linkage, retention, continuity beyond the facility
+eCHIS-linked community death reporting; CHP-led danger sign surveillance
+
+5. Key Indicators
+5.1 Core Impact Indicators
+Indicator
+Baseline
+Target
+Maternal mortality ratio
+355 per 100,000 live births
+≤140 per 100,000 live births
+Neonatal mortality rate
+21 per 1,000 live births
+≤12 per 1,000 live births
+Stillbirth rate
+19 per 1,000 births
+≤12 per 1,000 births
+5.2 EWENE 90:90:80:80 Tracking Indicators
+Domain
+Indicator
+Target
+Pillar
+ANC coverage
+At least four ANC visits
+≥90%
+90
+Skilled delivery
+Skilled birth attendance coverage
+≥90%
+90
+Early PNC
+Postnatal care within 48 hours
+≥80%
+80
+Continuity of care
+Retention of the mother–baby pair
+≥80%
+80
+5.3 VTP Quality-of-Care Indicators 
+No.
+Indicator
+Data Source
+Target
+Frequency
+1
+ANC coverage — PMTCT_STAT_D
+KHIS
+>95%
+Monthly
+2
+Testing for PBFW — PMTCT_STAT_N
+KHIS
+>95%
+Monthly
+3
+ART initiation for PBFW — PMTCT_ART
+KHIS
+>95%
+Monthly
+4
+Viral load uptake and suppression — PMTCT_PVLS
+NDW/EMR
+>95%
+Monthly
+5
+Early infant diagnosis within eight weeks, including birth testing — PMTCT_EID
+KHIS/NASCOP
+>98%
+Monthly
+6
+Timely ART initiation for PCR-positive infants — PMTCT_HEI_ART
+NASCOP/EMR
+100%
+Monthly
+7
+Delivery among HIV-positive mothers
+KHIS
+>90%
+Monthly
+8
+HEI final outcome at 18–24 months — PMTCT_FO
+EMR
+>95%
+Monthly
+9
+Retention of the mother–baby pair
+EMR
+>95%
+Quarterly
+5.4 New: Facility Readiness and Safe Systems Indicators
+These indicators drawn from EWENE Pillar 8 (Commodities & Technologies) and GHSD guidance are critical additions for DoS IPs to track at supported facilities. They address the systemic gaps most directly linked to preventable maternal and newborn deaths.
+Indicator
+Data Source
+Target
+Frequency
+% of supported facilities with zero stockout of tracer MNH commodities (oxytocin, carbetocin, MgSO₄, TXA, benzyl penicillin)
+LMIS/KHIS
+100%
+Monthly
+% of supported facilities with functional blood transfusion services
+HFA-QOC
+≥75% (L4)
+Quarterly
+% of supported facilities with functional oxygen/CPAP for neonates
+HFA-QOC
+≥60% (L4)
+Quarterly
+% of procured equipment that is functional and in use at six months post-delivery
+Facility assessment
+≥90%
+Semi-annual
+% of maternal and neonatal deaths audited (MPDSR) at supported facilities
+KHIS
+100%
+Monthly
+
+6. Data Flow and Reporting Mechanism
+The framework integrates DHIS2/KHIS, EMR, eCHIS, and LMIS to enable end-to-end visibility across the continuum of care, feeding into the EWENE real-time dashboard and the RRI national performance tracking system.
+Reporting cadence:
+Monthly: Facility-level PMTCT/VTP indicators; commodity stockout reports; MPDSR death audits; RRI dashboard updates.
+Quarterly: County scorecards; mother baby pair retention; blood system and oxygen readiness assessments.
+Semi-annual: Equipment functionality assessments; DoS IP contribution reports aligned to PEPFAR and EWENE targets.
+Annual: National EWENE performance review; lessons learned and best practice documentation.
+Review platforms:
+Monthly facility CQI meetings and MPDSR committees.
+Monthly DoS VTP TWG review meetings.
+Bi-weekly RRI national county coordination meetings, per RRI governance structure.
+County EWENE Technical Committee reviews.
+7. Critical Additions: Equipment, Blood, and Oxygen
+The three systemic enablers that Department of State (DoS) implementing partners are required to integrate into their monitoring and investment scope under the EWENE Acceleration Plan and which are also recognized in the GHSD guidance as essential for reducing preventable deaths include;
+Equipment Due Diligence: Before procuring or supporting procurement of medical equipment at supported facilities, IPs must verify: (1) facility readiness — power, space, and water quality; (2) existence of a maintenance contract and spare parts supply chain; (3) a sustained training and capacity-building plan that accounts for staff turnover; and (4) a tracking system to prevent diversion or loss. More than 8 in 10 devices in global studies did not meet product specifications before use, and 10–30% of donated equipment in LMICs never becomes operational. The guiding question is not "Can we buy this?" but "Are the conditions in place to make it work?"
+
+Safe Blood Systems: Postpartum hemorrhage is the leading direct cause of maternal death in Kenya therefore it requires safe blood on the shelf at the moment of need. Twenty-six percent of PPH deaths are attributable to a lack of safe blood. DoS IPs should track blood availability at supported facilities, and advocate for SHA reimbursement of blood transfusion services. 
+
+Oxygen Ecosystems: Respiratory distress syndrome contributes to approximately 45% of deaths among preterm infants in LMICs. Currently, only 1% of Level 3 and 20% of Level 4 facilities in Kenya have all requirements to provide oxygen and CPAP for neonates. DoS IPs should assess oxygen and CPAP availability and functionality at supported facilities particularly for small and sick newborns and flag gaps for county and national escalation. Investments in oxygen must be assessed against national readiness, system readiness (maintenance, workforce, monitoring), and clinical readiness (service packages, referral systems, respiratory care technologies).
+
+8. Accountability and Governance
+DoS IPs operate within the multi-level governance structure established under the EWENE Acceleration Plan and MNH RRI:
+Facility level: Facility in-charges, MNH teams, MPDSR/QI committees, and sub-county health management teams.
+County level: County Executive Committee Members, County Directors of Health, County Health Management Teams, and County RRI Technical Committees.
+National and partner level: EWENE Delivery Unit (Ministry of Health), VTP Technical Working Groups, DoS IP coordination platforms, and national MPDSR review mechanisms.
+Following the Presidential Launch of the EWENE Acceleration Plan and MNH RRI on 28 May 2026, the Ministry of Health Director General has formally requested all partners to: align technical and financial support with EWENE and RRI priorities; support high-impact interventions at national and county levels; actively participate in EWENE governance and review mechanisms; and support resource mobilization, capacity strengthening, and knowledge sharing.
+9. Expected Outcomes
+Service Coverage and Access:
+Improved ANC4+ coverage and timely identification of PBFW across DoS IP-supported facilities and counties.
+Improved skilled birth attendance among HIV-positive mothers.
+Improved continuum-of-care tracking and real-time performance visibility on the EWENE dashboard.
+HIV, PMTCT, and Mother–Baby Pair:
+Reduced missed opportunities for HIV testing and ART initiation among PBFW.
+Improved viral load uptake and suppression among pregnant and breastfeeding women.
+Timely early infant diagnosis, including birth testing within 24 hours of birth.
+Timely ART initiation for PCR-positive infants.
+Improved retention of the mother–baby pair and favorable final outcomes at 18–24 months.
+Facility Readiness and Safe Systems:
+Zero stockouts of tracer MNH commodities at DoS IP-supported facilities.
+Improved blood availability and oxygen/CPAP functionality at supported facilities.
+All procured equipment’s are functional and in active use at six months post-delivery.
+Strengthened MPDSR compliance, with 100% of maternal and neonatal deaths audited monthly.
+Data Use and Accountability:
+Enhanced accountability across facility, county, national, and partner levels through real-time dashboard reporting.
+Contribution to reduced maternal and neonatal mortality in line with EWENE 2026–2028 targets and RRI six-month milestones.
+
+10. Conclusion
+This revised integrated monitoring and tracking framework strengthens the original concept by embedding three critical dimensions absent from the initial draft: safe blood system readiness, oxygen ecosystem integration, and equipment due diligence. These additions align DoS IP monitoring scope with the full breadth of the EWENE Acceleration Plan and GHSD guidance on smart, durable health investment in low-resource settings.
+By linking facility, community, county, national, and partner reporting systems and by ensuring that investments in commodities, equipment, and technology are paired with the conditions required to make them work the framework will support timely action, improved service quality, and better outcomes for women, newborns, and mother baby pairs across Kenya's 26 high-burden counties.
+
+Integrated Monitoring Framework
+EWENE VTP & MNCH — Department of State Implementing Partners, Kenya
+1. Purpose and Scope
+This monitoring framework operationalizes the Integrated Monitoring and Tracking Framework for EWENE Indicators concept note. It provides DoS implementing partners (IPs) with a structured, results-oriented tool to track performance across five domains: PMTCT/VTP quality of care, EWENE 90:90:80:80 coverage, facility readiness and safe systems, MPDSR and accountability, and data systems functionality. The framework aligns with EWENE Pillar 4 (Data, Monitoring & Evaluation), the MNH RRI bi-weekly reporting cycle, and PEPFAR VTP reporting requirements.
+2. Results Framework
+Theory of Change Summary
+If DoS IPs strengthen real-time monitoring of VTP/MNCH indicators, ensure facility readiness (blood, oxygen, commodities, equipment), and actively participate in EWENE and RRI governance and review mechanisms, then supported facilities will deliver higher-quality, uninterrupted care to HIV-positive pregnant and breastfeeding women, mother baby pairs, and HIV-exposed infants, resulting in reduced missed service opportunities, improved PMTCT outcomes, and a measurable contribution to Kenya's EWENE targets for maternal and neonatal mortality reduction.
+
+
+3. Monitoring Framework Matrix
+Domain 1: PMTCT / VTP Quality of Care
+#
+Indicator
+Disaggregation
+Baseline
+Year 1 Target
+Year 2 Target
+Data Source
+Reporting Frequency
+Responsible Party
+1.1
+ANC coverage (PMTCT_STAT_D) — denominator: pregnant women with known HIV status
+County; facility level
+Facility-specific
+>95%
+>95%
+KHIS
+Monthly
+IP M&E / Facility
+1.2
+HIV testing coverage among PBFW (PMTCT_STAT_N)
+County; facility level
+Facility-specific
+>95%
+>95%
+KHIS
+Monthly
+IP M&E / Facility
+1.3
+ART initiation among HIV-positive PBFW (PMTCT_ART)
+County; facility level
+Facility-specific
+>95%
+>95%
+KHIS
+Monthly
+IP M&E / Facility
+1.4
+Viral load uptake and suppression among PBFW (PMTCT_PVLS)
+Suppressed vs. unsuppressed
+Facility-specific
+>95%
+>95%
+NDW / EMR
+Monthly
+IP M&E / Facility
+1.5
+Early infant diagnosis within 8 weeks, including birth testing (PMTCT_EID)
+Birth testing vs. 6-week testing
+Facility-specific
+>98%
+>98%
+KHIS / NASCOP
+Monthly
+IP M&E / Facility
+1.6
+Timely ART initiation for PCR-positive HIV-exposed infants (PMTCT_HEI_ART)
+Age at initiation
+Facility-specific
+100%
+100%
+NASCOP / EMR
+Monthly
+IP M&E / Facility
+1.7
+Delivery among HIV-positive mothers at supported facilities
+County; facility level
+Facility-specific
+>90%
+>95%
+KHIS
+Monthly
+IP M&E / Facility
+1.8
+HEI final outcome at 18–24 months (PMTCT_FO) — HIV-free survival
+Outcome category
+Facility-specific
+>95%
+>95%
+EMR
+Monthly
+IP M&E / Facility
+1.9
+Retention of the mother–baby pair across the continuum of care
+County; facility level
+Facility-specific
+>95%
+>95%
+EMR
+Quarterly
+IP M&E / Facility
+
+
+
+
+Domain 2: EWENE 90:90:80:80 Coverage Indicators
+#
+Indicator
+Disaggregation
+Baseline
+Year 1 Target
+Year 2 Target
+Data Source
+Reporting Frequency
+Responsible Party
+2.1
+% of pregnant women attending 4+ ANC visits at supported facilities
+County; HIV status
+52% (national)
+≥70%
+≥90%
+KHIS
+Monthly
+IP M&E / County
+2.2
+% of deliveries conducted by skilled birth attendants at supported facilities
+County; HIV status
+70% (national)
+≥90%
+≥95%
+KHIS
+Monthly
+IP M&E / Facility
+2.3
+% of mothers receiving postnatal care within 48 hours
+County; HIV status
+66.55% (KHIS)
+≥70%
+≥80%
+KHIS
+Monthly
+IP M&E / Facility
+2.4
+% of newborns receiving postnatal care within 48 hours
+County; HIV-exposed vs. unexposed
+68.40% (KHIS)
+≥70%
+≥80%
+KHIS
+Monthly
+IP M&E / Facility
+2.5
+% of preterm/LBW babies initiated on Kangaroo Mother Care (KMC)
+Facility level
+54% (national)
+≥60%
+≥70%
+KHIS
+Monthly
+IP M&E / Facility
+2.6
+% of newborns receiving chlorhexidine cord care at birth
+Facility level
+65% (national)
+≥70%
+≥80%
+KHIS
+Monthly
+IP M&E / Facility
+2.7
+Facility fresh stillbirth rate at supported facilities
+County; facility level
+7.64% (KHIS)
+≤5%
+≤4%
+KHIS
+Monthly
+IP M&E / Facility
+2.8
+Facility maternal mortality ratio at supported facilities (per 100,000 live births)
+County; facility level
+91 (KHIS)
+≤70
+≤50
+KHIS
+Quarterly
+IP M&E / County
+
+
+
+
+Domain 3: Facility Readiness and Safe Systems
+#
+Indicator
+Disaggregation
+Baseline
+Year 1 Target
+Year 2 Target
+Data Source
+Reporting Frequency
+Responsible Party
+3.1
+% of supported facilities with zero stockout of tracer MNH commodities (oxytocin, carbetocin, MgSO₄, TXA, benzyl penicillin)
+Commodity type; facility level
+Facility-specific
+80%
+100%
+LMIS / KHIS
+Monthly
+IP Supply Chain / Facility
+3.2
+% of supported Level 4 facilities with functional blood transfusion services
+Facility level
+66% (national L4)
+≥75%
+≥85%
+HFA-QOC
+Quarterly
+IP M&E / County
+3.3
+% of supported facilities with functional oxygen supply and CPAP for neonates
+Facility level; CPAP vs. oxygen only
+20% L4 (national)
+≥40%
+≥60%
+HFA-QOC
+Quarterly
+IP M&E / Facility
+3.4
+% of IP-procured equipment functional and in active use at 6 months post-delivery
+Equipment type; facility level
+To be established at baseline
+≥90%
+≥90%
+Facility assessment
+Semi-annual
+IP M&E
+3.5
+% of supported facilities with all 7 BEmONC signal functions
+Facility level
+37% (national)
+≥50%
+≥65%
+HFA-QOC
+Quarterly
+IP M&E / County
+3.6
+% of supported Level 4/5 facilities with all 9 CEmONC signal functions
+Facility level
+46% (national)
+≥60%
+≥75%
+HFA-QOC
+Quarterly
+IP M&E / County
+3.7
+% of supported facilities with essential newborn health services (ENC bundle)
+Facility level
+34% (national)
+≥45%
+≥60%
+HFA-QOC
+Quarterly
+IP M&E / Facility
+3.8
+% of supported facilities with no stockout of blood or blood products in the reporting period
+Facility level
+Facility-specific
+≥80%
+≥95%
+LMIS / County
+Monthly
+IP Supply Chain / County
+
+
+Domain 4: MPDSR, Clinical Quality, and Accountability
+#
+Indicator
+Disaggregation
+Baseline
+Year 1 Target
+Year 2 Target
+Data Source
+Reporting Frequency
+Responsible Party
+4.1
+% of maternal deaths audited at supported facilities (MPDSR)
+County; cause of death
+105.82% reported (KHIS)
+100%
+100%
+KHIS / MPDSR records
+Monthly
+IP M&E / Facility
+4.2
+% of neonatal deaths audited at supported facilities
+County; cause of death
+66.76% (KHIS)
+≥85%
+100%
+KHIS / MPDSR records
+Monthly
+IP M&E / Facility
+4.3
+% of supported facilities holding monthly MPDSR/QI review meetings
+Facility level
+41% counties (national)
+100%
+100%
+County records
+Monthly
+IP M&E / Facility
+4.4
+% of MPDSR recommendations implemented within 3 months at supported facilities
+Recommendation category
+To be established at baseline
+≥70%
+≥90%
+MPDSR action tracker
+Quarterly
+IP M&E / Facility
+4.5
+% of healthcare providers at supported facilities correctly diagnosing and treating PPH
+Facility level
+40% (national)
+≥55%
+≥70%
+HFA-QOC / skills assessment
+Semi-annual
+IP Capacity Building
+4.6
+% of healthcare providers at supported facilities correctly diagnosing and treating birth asphyxia
+Facility level
+36% (national)
+≥50%
+≥65%
+HFA-QOC / skills assessment
+Semi-annual
+IP Capacity Building
+4.7
+% of health workers at supported facilities trained on EmONC within the last 2 years
+Cadre; county
+28% (national)
+≥50%
+≥75%
+MOH training records
+Quarterly
+IP Capacity Building
+4.8
+% of supported facilities with functional MPDSR/QI teams established
+Facility level
+63% (national)
+≥85%
+100%
+HFA-QOC
+Quarterly
+IP M&E / County
+
+
+
+Domain 5: Data Systems and Reporting Functionality
+#
+Indicator
+Disaggregation
+Baseline
+Year 1 Target
+Year 2 Target
+Data Source
+Reporting Frequency
+Responsible Party
+5.1
+% of supported facilities submitting complete and timely KHIS/DHIS2 monthly reports
+Facility level; county
+Facility-specific
+≥90%
+100%
+KHIS
+Monthly
+IP M&E / Facility
+5.2
+% of supported facilities with active EMR capturing mother–baby pair data
+Facility level
+Facility-specific
+≥70%
+≥90%
+EMR system audit
+Quarterly
+IP M&E / DHA
+5.3
+% of supported facilities reporting community maternal and neonatal deaths via eCHIS
+County; facility level
+Not yet functional (national)
+≥50%
+≥80%
+eCHIS / KHIS
+Quarterly
+IP M&E / County
+5.4
+% of supported facilities with data uploaded to the EWENE real-time dashboard
+County; facility level
+Not yet functional (national)
+100%
+100%
+EWENE dashboard
+Monthly
+IP M&E / MOH
+5.5
+% of supported facilities conducting monthly data quality audits (DQA)
+Facility level
+Facility-specific
+≥75%
+100%
+DQA records
+Monthly
+IP M&E / Facility
+5.6
+Number of DoS VTP TWG review meetings held using real-time dashboard data
+—
+Facility-specific
+12/year
+12/year
+Meeting minutes
+Monthly
+IP M&E / MOH
+
+
+4. Reporting Architecture
+4.1 Reporting Flow
+Community (eCHIS / CHP reports) ↓ Facility (EMR / KHIS monthly upload / MPDSR records) ↓ Sub-County Health Management Team (data verification / DQA) ↓ County Health Management Team (county scorecard / RRI bi-weekly report) ↓ DoS IP TWG Review (monthly VTP TWG / quarterly IP performance review) ↓ National EWENE Dashboard / MOH RRI Performance Brief ↓ EWENE Delivery Unit / National Steering Committee 
+4.2 Reporting Cadence Summary
+Frequency
+Reports / Activities
+Monthly
+PMTCT/VTP indicator upload to KHIS; commodity stockout report; MPDSR death audit completion; EWENE dashboard update; DQA; DoS VTP TWG review meeting
+Bi-weekly
+RRI national–county coordination meeting inputs; RRI performance brief contribution
+Quarterly
+County scorecard; mother–baby pair retention; blood and oxygen readiness assessment; BEmONC/CEmONC functionality; MPDSR recommendation implementation tracking; EMR audit
+Semi-annual
+Equipment functionality assessment; EmONC skills assessment; DoS IP contribution report to PEPFAR and EWENE
+Annual
+National EWENE performance review; lessons learned documentation; best practice dissemination
+
+5. Data Quality Assurance
+To ensure data used for decision-making is accurate, complete, and timely, DoS IPs will implement the following data quality assurance (DQA) measures:
+DQA Activity
+Frequency
+Responsible Party
+Facility-level data verification against source registers (EMR, paper registers)
+Monthly
+IP M&E Officer / Facility data clerk
+Routine data quality audit (DQA) at supported facilities
+Monthly
+IP M&E Officer
+Cross-verification of KHIS data against EMR and NASCOP data
+Quarterly
+IP M&E Officer / County HIS team
+National DQA participation (MOH-led)
+As scheduled
+IP M&E Officer
+LMIS stock data reconciliation against physical counts
+Monthly
+IP Supply Chain Officer / Facility
+Equipment functionalities spot-check
+Semi-annual
+IP Technical Officer / Facility in-charge
+
+6. Governance and Review Mechanisms
+DoS IPs will embed this monitoring framework within the EWENE and RRI governance structures at all levels:
+Level
+Forum
+Frequency
+IP Role
+Facility
+CQI meeting / MPDSR committee
+Monthly
+Provide data; support action planning
+Sub-county
+SCHMT review
+Monthly
+Share facility performance data
+County
+County EWENE Technical Committee / RRI Technical Committee
+Monthly
+Present IP scorecard; flag bottlenecks
+County
+County RRI Steering Committee
+Monthly
+Support governor-level MPDSR review
+National
+DoS VTP TWG
+Monthly
+Lead review of PMTCT/VTP indicators
+National
+RRI bi-weekly national–county coordination meeting
+Bi-weekly
+Contribute IP performance data
+National
+EWENE Delivery Unit review
+Monthly
+Submit IP dashboard data
+National
+National MPDSR review
+As scheduled
+Contribute facility-level audit data
+
+7. Equipment, Blood, and Oxygen Monitoring Protocol
+Given the critical role of facility readiness in preventing maternal and neonatal deaths, DoS IPs will apply a structured pre-investment and post-investment monitoring protocol for equipment, blood systems, and oxygen ecosystems.
+Pre-Investment Checklist (to be completed before any equipment procurement decision)
+Verification Step
+Yes / No / Partial
+Notes / Action Required
+Epidemiologic need confirmed equipment addresses a documented gap in mortality or morbidity
+
+
+Facility has reliable power supply appropriate for the equipment
+
+
+Physical space and infrastructure requirements met
+
+
+Maintenance contract and spare parts supply chain identified and budgeted
+
+
+Sustained training plan developed, accounting for staff turnover
+
+
+Consumables supply chain confirmed and budgeted
+
+
+Equipment tracking system in place to prevent diversion or loss
+
+
+Procurement aligned with national MoH norms and county plans
+
+
+Alternative investments considered (human resources, consumables, maintenance, systems strengthening)
+
+
+
+Post-Procurement Equipment Monitoring
+Milestone
+Timepoint
+Indicator
+Target
+Delivery and installation confirmed
+At delivery
+% of procured items delivered and installed
+100%
+Staff trained on use
+Within 30 days
+% of relevant staff trained
+100%
+Equipment in active clinical use
+3 months post-delivery
+% of equipment in use
+≥90%
+Equipment functional and maintained
+6 months post-delivery
+% of equipment functional
+≥90%
+Consumables available
+Ongoing (monthly)
+Zero stockout of required consumables
+100%
+Blood System Monitoring (Monthly, at Supported Facilities)
+Indicator
+Target
+Data Source
+Blood available on-site (units in stock)
+≥ facility-specific minimum stock level
+Facility blood bank records
+% of obstetric emergencies requiring transfusion where blood was available
+100%
+MPDSR / clinical records
+% of supported L4 facilities with functional cold storage for blood
+≥75%
+Facility assessment
+Participation in county blood drive (monthly)
+Active participation
+County KNBTS records
+Oxygen Ecosystem Monitoring (Quarterly, at Supported Facilities)
+Indicator
+Target
+Data Source
+% of supported facilities with functional oxygen supply (cylinders or concentrators)
+≥80%
+Facility assessment
+% of supported L4 facilities with functional CPAP for neonates
+≥60%
+HFA-QOC
+% of biomedical engineers or technicians trained on oxygen equipment maintenance
+≥80%
+Training records
+Oxygen stockout events in the reporting period
+Zero
+Facility records
+
+
+8. Baseline Assessment and Target-Setting Protocol
+DoS IPs will conduct a structured baseline assessment at all supported facilities within the first 60 days of implementation. The baseline will establish facility-specific starting points for all indicators in Domains 1–5 and inform realistic, county-contextualized annual targets.
+Baseline Activity
+Timeframe
+Tool / Method
+PMTCT/VTP indicator review (12-month historical KHIS/EMR data)
+Days 1–30
+KHIS data pull; EMR audit
+Facility readiness assessment (BEmONC/CEmONC, blood, oxygen, equipment)
+Days 1–45
+HFA-QOC tool; facility walk-through
+MPDSR compliance review (audit completion rates, committee functionality)
+Days 1–30
+MPDSR records review
+Data systems audit (KHIS completeness, EMR functionality, eCHIS status)
+Days 1–30
+KHIS reporting dashboard; EMR system check
+Commodity stockout history (12-month LMIS data)
+Days 1–30
+LMIS data pull
+Baseline report and target validation with county and MOH
+Days 45–60
+Stakeholder review meeting
+9. Learning and Adaptive Management
+This framework is designed to support adaptive management — using data not only to report results but to drive course correction in real time.
+Mechanism
+Frequency
+Purpose
+IP internal performance review (all five domains)
+Monthly
+Identify underperforming indicators; trigger corrective action
+Bottleneck analysis (for indicators below target)
+Quarterly
+Diagnose root causes; develop targeted responses
+Peer learning exchange (across DoS IP-supported counties)
+Quarterly
+Share effective practices; accelerate improvement
+Best practice documentation
+Semi-annual
+Capture and disseminate replicable models
+Annual learning review and framework update
+Annual
+Assess framework relevance; update targets and indicators as needed
+
+
+

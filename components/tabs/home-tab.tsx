@@ -23,8 +23,7 @@ import {
 } from "lucide-react";
 import { RadialProgress } from "@/components/radial-progress";
 import { useAssessments } from "@/lib/use-assessments";
-import { useGeoFilter } from "@/lib/geo-filter-context";
-import { applyGeoFilter, PARTNERS } from "@/lib/geo";
+import { PARTNERS } from "@/lib/geo";
 import { averageReadiness, type FacilityAssessment } from "@/lib/assessment";
 import { AssessmentTab } from "@/components/tabs/assessment-tab";
 import { MortalityTab } from "@/components/tabs/mortality-tab";
@@ -920,9 +919,6 @@ export function DomainsTab() {
         })}
       </div>
 
-      {/* Overview strip */}
-      <HomeOverviewStrip />
-
       {activeSubtab === "1" && <ClinicalTab />}
       {activeSubtab === "2" && <CoverageSection />}
       {activeSubtab === "3" && <ReadinessSection />}
@@ -933,68 +929,62 @@ export function DomainsTab() {
 }
 
 // ---------------------------------------------------------------------------
-// Overview strip (always visible)
+// Shared helpers — status tone for the per-subtab KPI cards
 // ---------------------------------------------------------------------------
 
-function HomeOverviewStrip() {
-  const allAssessments = useAssessments();
-  const { filter } = useGeoFilter();
-  const assessments = useMemo(
-    () => applyGeoFilter(allAssessments, filter),
-    [allAssessments, filter],
-  );
+type Tone = "on" | "warn" | "off";
 
-  const avgReadiness =
-    assessments.length > 0 ? averageReadiness(assessments) : 0;
+const TONE_DOT: Record<Tone, string> = {
+  on: "bg-emerald-500",
+  warn: "bg-amber-500",
+  off: "bg-red-500",
+};
 
-  const cards = [
-    {
-      title: "1 · PMTCT/VTP Quality of Care",
-      value: "87.7%",
-      sub: "675 of 770 HIV+ PBFW initiated on ART",
-      icon: <Stethoscope className="w-5 h-5 text-emerald-600" />,
-    },
-    {
-      title: "2 · Coverage (90:90:80:80)",
-      value: "63%",
-      sub: "Average across the 4 coverage pillars",
-      icon: <TrendingUp className="w-5 h-5 text-teal-600" />,
-    },
-    {
-      title: "3 · Readiness & Safe Systems",
-      value: `${avgReadiness.toFixed(0)}%`,
-      sub: `${assessments.length} facilities assessed · computed live`,
-      icon: <ShieldCheck className="w-5 h-5 text-emerald-600" />,
-    },
-    {
-      title: "4 · MPDSR & Accountability",
-      value: "67%",
-      sub: "4 of 6 facilities hold monthly reviews",
-      icon: <Activity className="w-5 h-5 text-red-600" />,
-    },
-    {
-      title: "5 · Data Systems",
-      value: "62%",
-      sub: "Average reporting & DQA completeness",
-      icon: <Database className="w-5 h-5 text-indigo-600" />,
-    },
-  ];
+const TONE_TEXT: Record<Tone, string> = {
+  on: "text-emerald-600",
+  warn: "text-amber-600",
+  off: "text-red-600",
+};
 
+const TONE_LABEL: Record<Tone, string> = {
+  on: "On target",
+  warn: "Needs attention",
+  off: "Below target",
+};
+
+function toneOf(current: number, target: number): Tone {
+  if (current >= target) return "on";
+  if (current / target >= 0.9) return "warn";
+  return "off";
+}
+
+function SubtabKpi({
+  code,
+  title,
+  value,
+  sub,
+  tone = "on",
+}: {
+  code: string;
+  title: string;
+  value: string;
+  sub: string;
+  tone?: Tone;
+}) {
   return (
-    <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4 mb-6">
-      {cards.map((card) => (
-        <div
-          key={card.title}
-          className="bg-white rounded-lg p-5 border border-slate-200"
-        >
-          <div className="flex items-center justify-between">
-            <p className="text-sm text-gray-600 font-medium">{card.title}</p>
-            {card.icon}
-          </div>
-          <p className="text-3xl font-bold text-gray-900 mt-2">{card.value}</p>
-          <p className="text-xs text-gray-500 mt-1">{card.sub}</p>
-        </div>
-      ))}
+    <div className="bg-white rounded-lg p-4 border border-slate-200">
+      <div className="flex items-center justify-between gap-2">
+        <p className="text-sm text-gray-600 font-medium leading-snug">
+          {title}
+        </p>
+        <span
+          className={`w-2 h-2 rounded-full shrink-0 ${TONE_DOT[tone]}`}
+          title={TONE_LABEL[tone]}
+        />
+      </div>
+      <p className={`text-3xl font-bold mt-2 ${TONE_TEXT[tone]}`}>{value}</p>
+      <p className="text-xs text-gray-500 mt-1">{sub}</p>
+      <p className="text-[11px] font-semibold text-slate-400 mt-2">{code}</p>
     </div>
   );
 }
@@ -1039,6 +1029,61 @@ function CoverageSection() {
     { name: "Nyandarua", anc4: 47, sba: 71, pnc: 60 },
   ];
 
+  const coreImpact = [
+    {
+      label: "Maternal Mortality Ratio",
+      baseline: "355",
+      target: "≤ 140",
+      unit: "per 100,000 live births",
+      tone: "from-rose-50 to-red-50 border-rose-200 text-rose-800",
+    },
+    {
+      label: "Neonatal Mortality Rate",
+      baseline: "21",
+      target: "≤ 12",
+      unit: "per 1,000 live births",
+      tone: "from-amber-50 to-orange-50 border-amber-200 text-amber-800",
+    },
+    {
+      label: "Stillbirth Rate",
+      baseline: "19",
+      target: "≤ 12",
+      unit: "per 1,000 births",
+      tone: "from-violet-50 to-purple-50 border-violet-200 text-violet-800",
+    },
+  ];
+
+  const tracking = [
+    {
+      domain: "ANC coverage",
+      indicator: "At least four ANC visits",
+      target: "≥ 90%",
+      pillar: "90",
+      current: 52,
+    },
+    {
+      domain: "Skilled delivery",
+      indicator: "Skilled birth attendance coverage",
+      target: "≥ 90%",
+      pillar: "90",
+      current: 70,
+    },
+    {
+      domain: "Early PNC",
+      indicator: "Postnatal care within 48 hours",
+      target: "≥ 80%",
+      pillar: "80",
+      current: 66.6,
+    },
+    {
+      domain: "Continuity of care",
+      indicator: "Retention of the mother–baby pair",
+      target: "≥ 80%",
+      pillar: "80",
+      current: 68.4,
+    },
+  ];
+
   return (
     <div className="space-y-6">
       {/* Story banner — the gap to close */}
@@ -1051,10 +1096,148 @@ function CoverageSection() {
           deliver with a skilled attendant — far short of the 90:90:80:80
           ambition. Every missed ANC visit is a missed opportunity for HIV
           testing, syphilis screening, and delivery planning; every
-          facility-only delivery is a risk for mother and baby. Closing the
-          gap means tracing each mother–baby pair from first contact through
-          the postnatal period.
+          facility-only delivery is a risk for mother and baby. Closing the gap
+          means tracing each mother–baby pair from first contact through the
+          postnatal period.
         </p>
+      </div>
+
+      {/* Subtab KPI strip — Domain 2 headline indicators */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <SubtabKpi
+          code="2.1 · ANC 4+"
+          title="4+ ANC Visits"
+          value="52%"
+          sub="Target ≥ 90% (Y2) · KHIS monthly"
+          tone={toneOf(52, 90)}
+        />
+        <SubtabKpi
+          code="2.2 · SBA"
+          title="Skilled Birth Attendance"
+          value="70%"
+          sub="Target ≥ 95% (Y2) · KHIS monthly"
+          tone={toneOf(70, 95)}
+        />
+        <SubtabKpi
+          code="2.3 · PNC"
+          title="Maternal PNC ≤ 48 hrs"
+          value="66.6%"
+          sub="Target ≥ 80% (Y2) · KHIS monthly"
+          tone={toneOf(66.6, 80)}
+        />
+        <SubtabKpi
+          code="2.4 · Newborn PNC"
+          title="Newborn PNC ≤ 48 hrs"
+          value="68.4%"
+          sub="Target ≥ 80% (Y2) · KHIS monthly"
+          tone={toneOf(68.4, 80)}
+        />
+      </div>
+
+      {/* Core impact indicators — the national north star (5.1) */}
+      <div className="bg-white rounded-lg p-6 border border-slate-200">
+        <div className="flex flex-wrap items-center justify-between gap-2 mb-1">
+          <h3 className="text-lg font-semibold text-gray-900">
+            Core Impact Indicators — EWENE 2026–2028 (5.1)
+          </h3>
+          <span className="px-2 py-1 rounded-md bg-slate-100 text-slate-600 text-xs font-bold">
+            Baseline → Target
+          </span>
+        </div>
+        <p className="text-sm text-gray-500 mb-5">
+          The three national outcomes the coverage work ultimately feeds: every
+          ANC visit, skilled delivery and PNC contact exists to bend these
+          curves.
+        </p>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {coreImpact.map((ci) => (
+            <div
+              key={ci.label}
+              className={`bg-gradient-to-br rounded-lg p-5 border ${ci.tone}`}
+            >
+              <p className="text-sm font-semibold">{ci.label}</p>
+              <div className="flex items-baseline gap-3 mt-3">
+                <p className="text-3xl font-bold">{ci.baseline}</p>
+                <span className="text-lg font-bold">→</span>
+                <p className="text-3xl font-bold">{ci.target}</p>
+              </div>
+              <p className="text-xs opacity-80 mt-1">{ci.unit}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* EWENE 90:90:80:80 tracking table (5.2) */}
+      <div className="bg-white rounded-lg p-6 border border-slate-200">
+        <div className="flex flex-wrap items-center justify-between gap-2 mb-1">
+          <h3 className="text-lg font-semibold text-gray-900">
+            EWENE 90:90:80:80 Tracking Table (5.2)
+          </h3>
+          <span className="px-2 py-1 rounded-md bg-teal-50 text-teal-700 text-xs font-bold">
+            Current vs target
+          </span>
+        </div>
+        <p className="text-sm text-gray-500 mb-5">
+          Four pillars — 90% ANC4+, 90% skilled delivery, 80% early PNC, 80%
+          mother–baby pair retention — tracked monthly from KHIS.
+        </p>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-slate-200 text-left text-xs uppercase tracking-wide text-gray-500">
+                <th className="py-2 pr-3">Pillar</th>
+                <th className="py-2 pr-3">Indicator</th>
+                <th className="py-2 pr-3 text-right">Target</th>
+                <th className="py-2 pr-3 text-right">Current</th>
+                <th className="py-2 text-right">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {tracking.map((t) => {
+                const tone = toneOf(
+                  t.current,
+                  parseFloat(t.target.replace(/[^\d.]/g, "")),
+                );
+                return (
+                  <tr
+                    key={t.domain}
+                    className="border-b border-slate-100 last:border-0"
+                  >
+                    <td className="py-2.5 pr-3 font-semibold text-gray-800">
+                      {t.domain}
+                      <span className="ml-2 px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 text-[10px] font-bold">
+                        {t.pillar}
+                      </span>
+                    </td>
+                    <td className="py-2.5 pr-3 text-gray-600">{t.indicator}</td>
+                    <td className="py-2.5 pr-3 text-right font-semibold text-gray-800">
+                      {t.target}
+                    </td>
+                    <td className="py-2.5 pr-3 text-right font-bold">
+                      <span className={TONE_TEXT[tone]}>{t.current}%</span>
+                    </td>
+                    <td className="py-2.5 text-right">
+                      <span
+                        className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-semibold ${
+                          tone === "on"
+                            ? "bg-emerald-100 text-emerald-700"
+                            : tone === "warn"
+                              ? "bg-amber-100 text-amber-700"
+                              : "bg-red-100 text-red-700"
+                        }`}
+                      >
+                        <span
+                          className={`w-1.5 h-1.5 rounded-full ${TONE_DOT[tone]}`}
+                        />
+                        {TONE_LABEL[tone]}
+                      </span>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       <div className="bg-white rounded-lg p-6 border border-slate-200">
@@ -1062,8 +1245,8 @@ function CoverageSection() {
           EWENE 90:90:80:80 Coverage Pillars (Domain 2)
         </h3>
         <p className="text-sm text-gray-500 mb-6">
-          Coverage targets per the integrated monitoring framework: ANC 4+ ≥
-          90% · Skilled delivery ≥ 95% · Early PNC ≥ 80% · Newborn PNC ≥ 80%.
+          Coverage targets per the integrated monitoring framework: ANC 4+ ≥ 90%
+          · Skilled delivery ≥ 95% · Early PNC ≥ 80% · Newborn PNC ≥ 80%.
           Current values are KHIS-reported baselines.
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -1098,8 +1281,8 @@ function CoverageSection() {
           Coverage by County — Jamii Tekelezi
         </h3>
         <p className="text-sm text-gray-500 mb-4">
-          ANC 4+, skilled birth attendance and early PNC differ widely by
-          county — targeting the laggards is where the biggest gains lie.
+          ANC 4+, skilled birth attendance and early PNC differ widely by county
+          — targeting the laggards is where the biggest gains lie.
         </p>
         <ResponsiveContainer width="100%" height={300}>
           <BarChart data={countyCoverageData} margin={{ left: 0, right: 12 }}>
@@ -1108,9 +1291,24 @@ function CoverageSection() {
             <YAxis domain={[0, 100]} />
             <Tooltip formatter={(v) => [`${v}%`, ""]} />
             <Legend />
-            <Bar dataKey="anc4" name="ANC 4+" fill="#14b8a6" radius={[4, 4, 0, 0]} />
-            <Bar dataKey="sba" name="SBA" fill="#0d9488" radius={[4, 4, 0, 0]} />
-            <Bar dataKey="pnc" name="PNC ≤ 48h" fill="#06b6d4" radius={[4, 4, 0, 0]} />
+            <Bar
+              dataKey="anc4"
+              name="ANC 4+"
+              fill="#14b8a6"
+              radius={[4, 4, 0, 0]}
+            />
+            <Bar
+              dataKey="sba"
+              name="SBA"
+              fill="#0d9488"
+              radius={[4, 4, 0, 0]}
+            />
+            <Bar
+              dataKey="pnc"
+              name="PNC ≤ 48h"
+              fill="#06b6d4"
+              radius={[4, 4, 0, 0]}
+            />
           </BarChart>
         </ResponsiveContainer>
       </div>
@@ -1140,20 +1338,107 @@ function CoverageSection() {
 function ReadinessSection() {
   const allAssessments = useAssessments();
 
+  const preChecklist = [
+    {
+      step: "1",
+      text: "Epidemiologic need confirmed — equipment addresses a documented gap in mortality or morbidity",
+    },
+    {
+      step: "2",
+      text: "Facility has reliable power supply appropriate for the equipment",
+    },
+    {
+      step: "3",
+      text: "Physical space and infrastructure requirements met",
+    },
+    {
+      step: "4",
+      text: "Maintenance contract and spare parts supply chain identified and budgeted",
+    },
+    {
+      step: "5",
+      text: "Sustained training plan developed, accounting for staff turnover",
+    },
+    {
+      step: "6",
+      text: "Consumables supply chain confirmed and budgeted",
+    },
+    {
+      step: "7",
+      text: "Equipment tracking system in place to prevent diversion or loss",
+    },
+    {
+      step: "8",
+      text: "Procurement aligned with national MoH norms and county plans",
+    },
+  ];
+
+  const procurementMilestones = [
+    {
+      label: "Delivered & installed",
+      timepoint: "At delivery",
+      target: "100%",
+    },
+    { label: "Staff trained", timepoint: "Within 30 days", target: "100%" },
+    { label: "In active use", timepoint: "3 months", target: "≥ 90%" },
+    {
+      label: "Functional & maintained",
+      timepoint: "6 months",
+      target: "≥ 90%",
+    },
+    {
+      label: "Consumables zero stockout",
+      timepoint: "Ongoing",
+      target: "100%",
+    },
+  ];
+
+  const bloodMonitors = [
+    {
+      label: "Blood available on-site (units in stock)",
+      target: "≥ facility minimum",
+    },
+    {
+      label: "Obstetric emergencies with blood available",
+      target: "100%",
+    },
+    {
+      label: "L4 facilities with functional cold storage",
+      target: "≥ 75%",
+    },
+    {
+      label: "County blood drive participation",
+      target: "Active",
+    },
+  ];
+
+  const oxygenMonitors = [
+    {
+      label:
+        "Facilities with functional oxygen supply (cylinders/concentrators)",
+      target: "≥ 80%",
+    },
+    {
+      label: "L4 facilities with functional CPAP for neonates",
+      target: "≥ 60%",
+    },
+    {
+      label: "Biomedical engineers trained on oxygen maintenance",
+      target: "≥ 80%",
+    },
+  ];
+
   // Jamii Tekelezi county readiness — computed live from entered assessments.
-  const countyReadiness = [
-    "Embu",
-    "Tharaka-Nithi",
-    "Meru",
-    "Nyandarua",
-  ].map((county) => {
-    const r = readinessForCounties(allAssessments, [county]);
-    return {
-      name: county,
-      readiness: r.avg ?? 0,
-      assessed: r.count,
-    };
-  });
+  const countyReadiness = ["Embu", "Tharaka-Nithi", "Meru", "Nyandarua"].map(
+    (county) => {
+      const r = readinessForCounties(allAssessments, [county]);
+      return {
+        name: county,
+        readiness: r.avg ?? 0,
+        assessed: r.count,
+      };
+    },
+  );
 
   return (
     <div className="space-y-6">
@@ -1164,15 +1449,47 @@ function ReadinessSection() {
           and working equipment
         </h3>
         <p className="text-sm mt-1 opacity-80">
-          Three systemic enablers determine whether a facility can actually
-          save a life at the moment of need: <b>equipment due diligence</b>{" "}
-          (10–30% of donated equipment in LMICs never becomes operational),{" "}
+          Three systemic enablers determine whether a facility can actually save
+          a life at the moment of need: <b>equipment due diligence</b> (10–30%
+          of donated equipment in LMICs never becomes operational),{" "}
           <b>safe blood systems</b> (26% of PPH deaths are attributable to a
           lack of safe blood), and <b>oxygen ecosystems</b> (RDS contributes to
           ~45% of preterm deaths; only 20% of Level 4 facilities can deliver
           oxygen/CPAP). The guiding question is not “Can we buy this?” but “Are
           the conditions in place to make it work?”
         </p>
+      </div>
+
+      {/* Subtab KPI strip — Domain 3 headline indicators */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <SubtabKpi
+          code="3.1 · Zero stockout"
+          title="Tracer Commodities"
+          value="72%"
+          sub="Zero stockout · target 100% (Y2)"
+          tone={toneOf(72, 100)}
+        />
+        <SubtabKpi
+          code="3.2 · Blood services"
+          title="Functional Blood (L4)"
+          value="66%"
+          sub="Target ≥ 85% (Y2) · HFA-QOC"
+          tone={toneOf(66, 85)}
+        />
+        <SubtabKpi
+          code="3.3 · Oxygen/CPAP"
+          title="Oxygen & CPAP (L4)"
+          value="20%"
+          sub="Target ≥ 60% (Y2) · HFA-QOC"
+          tone={toneOf(20, 60)}
+        />
+        <SubtabKpi
+          code="3.4 · Equipment"
+          title="Equipment Functional"
+          value="88%"
+          sub="Target ≥ 90% (Y2) · facility assessment"
+          tone={toneOf(88, 90)}
+        />
       </div>
 
       {/* Domain 3 indicators 3.1 – 3.8 */}
@@ -1188,6 +1505,111 @@ function ReadinessSection() {
               current={REPORTED_CURRENT[ind.code] ?? 0}
             />
           ))}
+        </div>
+      </div>
+
+      {/* Pre-investment checklist — equipment due diligence (§7) */}
+      <div className="bg-white rounded-lg p-6 border border-slate-200">
+        <div className="flex flex-wrap items-center justify-between gap-2 mb-1">
+          <h3 className="text-lg font-semibold text-gray-900">
+            Pre-Investment Checklist — Equipment Due Diligence (§7)
+          </h3>
+          <span className="px-2 py-1 rounded-md bg-sky-50 text-sky-700 text-xs font-bold">
+            Before any procurement decision
+          </span>
+        </div>
+        <p className="text-sm text-gray-500 mb-5">
+          More than 8 in 10 devices in global studies did not meet product
+          specifications before use. These 8 verification steps must all be
+          “Yes” before funds are committed.
+        </p>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          {preChecklist.map((item) => (
+            <div
+              key={item.step}
+              className="flex items-start gap-3 bg-slate-50 rounded-lg p-3 border border-slate-100"
+            >
+              <span className="px-2 py-0.5 rounded-md bg-sky-100 text-sky-800 text-xs font-bold shrink-0">
+                {item.step}
+              </span>
+              <p className="text-sm text-gray-700">{item.text}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Post-procurement milestones (§7) */}
+      <div className="bg-white rounded-lg p-6 border border-slate-200">
+        <h3 className="text-lg font-semibold text-gray-900 mb-1">
+          Post-Procurement Equipment Milestones (§7)
+        </h3>
+        <p className="text-sm text-gray-500 mb-5">
+          From delivery to sustained function — each milestone has a target and
+          a review timepoint.
+        </p>
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+          {procurementMilestones.map((m) => (
+            <div
+              key={m.label}
+              className="bg-lime-50 rounded-lg p-4 border border-lime-200"
+            >
+              <p className="text-[11px] font-bold text-lime-700 uppercase tracking-wide">
+                {m.timepoint}
+              </p>
+              <p className="text-2xl font-bold text-gray-900 mt-1">
+                {m.target}
+              </p>
+              <p className="text-xs text-gray-600 mt-1">{m.label}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Blood & oxygen monitoring (§7) */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="bg-white rounded-lg p-6 border border-slate-200">
+          <h3 className="text-lg font-semibold text-gray-900 mb-1">
+            Blood System Monitoring (monthly)
+          </h3>
+          <p className="text-sm text-gray-500 mb-4">
+            26% of PPH deaths trace to a lack of safe blood — track it at every
+            supported facility.
+          </p>
+          <ul className="space-y-2.5">
+            {bloodMonitors.map((b) => (
+              <li
+                key={b.label}
+                className="flex items-center justify-between gap-3 text-sm"
+              >
+                <span className="text-gray-700">{b.label}</span>
+                <span className="font-semibold text-rose-700 whitespace-nowrap">
+                  {b.target}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+        <div className="bg-white rounded-lg p-6 border border-slate-200">
+          <h3 className="text-lg font-semibold text-gray-900 mb-1">
+            Oxygen Ecosystem Monitoring (quarterly)
+          </h3>
+          <p className="text-sm text-gray-500 mb-4">
+            RDS contributes to ~45% of preterm infant deaths — oxygen readiness
+            is newborn readiness.
+          </p>
+          <ul className="space-y-2.5">
+            {oxygenMonitors.map((o) => (
+              <li
+                key={o.label}
+                className="flex items-center justify-between gap-3 text-sm"
+              >
+                <span className="text-gray-700">{o.label}</span>
+                <span className="font-semibold text-violet-700 whitespace-nowrap">
+                  {o.target}
+                </span>
+              </li>
+            ))}
+          </ul>
         </div>
       </div>
 
@@ -1228,8 +1650,8 @@ function ReadinessSection() {
           </h4>
           <p className="text-sm text-sky-800 mt-2">
             Before any procurement: verify facility readiness (power, space,
-            water), maintenance contracts &amp; spare parts, a training plan that
-            accounts for staff turnover, and a tracking system to prevent
+            water), maintenance contracts &amp; spare parts, a training plan
+            that accounts for staff turnover, and a tracking system to prevent
             diversion.
           </p>
           <p className="text-xs text-sky-700 mt-3 font-medium">
@@ -1254,13 +1676,13 @@ function ReadinessSection() {
         <div className="bg-gradient-to-b from-violet-50 to-white rounded-lg p-5 border border-violet-200">
           <h4 className="font-semibold text-violet-900">Oxygen Ecosystems</h4>
           <p className="text-sm text-violet-800 mt-2">
-            RDS contributes to ~45% of preterm deaths; only 20% of L4
-            facilities meet all oxygen/CPAP requirements. Assess availability
-            and flag gaps for county &amp; national escalation.
+            RDS contributes to ~45% of preterm deaths; only 20% of L4 facilities
+            meet all oxygen/CPAP requirements. Assess availability and flag gaps
+            for county &amp; national escalation.
           </p>
           <p className="text-xs text-violet-700 mt-3 font-medium">
-            Benchmarks: ≥ 80% functional supply · ≥ 60% of L4 with CPAP · ≥
-            80% engineers trained · zero stockouts.
+            Benchmarks: ≥ 80% functional supply · ≥ 60% of L4 with CPAP · ≥ 80%
+            engineers trained · zero stockouts.
           </p>
         </div>
       </div>
@@ -1293,6 +1715,17 @@ function MpdsrSection() {
     { name: "Nyandarua", audited: 70, meetings: 67 },
   ];
 
+  // Cause-of-death disaggregation (doc disaggregation: county; cause of death).
+  const causeOfDeathData = [
+    { name: "PPH", maternal: 42, neonatal: 0 },
+    { name: "Sepsis", maternal: 18, neonatal: 12 },
+    { name: "Pre-eclampsia/Eclampsia", maternal: 15, neonatal: 0 },
+    { name: "Obstructed labour", maternal: 8, neonatal: 14 },
+    { name: "Preterm / LBW", maternal: 0, neonatal: 38 },
+    { name: "Birth asphyxia", maternal: 0, neonatal: 26 },
+    { name: "Other", maternal: 9, neonatal: 10 },
+  ];
+
   return (
     <div className="space-y-6">
       {/* Story banner — audit is the accountability engine */}
@@ -1307,6 +1740,76 @@ function MpdsrSection() {
           month, and ≥ 70% of recommendations implemented within 3 months —
           turning every tragedy into a systemic fix.
         </p>
+      </div>
+
+      {/* Subtab KPI strip — Domain 4 headline indicators */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <SubtabKpi
+          code="4.1 · MPDSR"
+          title="Maternal Deaths Audited"
+          value="88%"
+          sub="Target 100% · KHIS monthly"
+          tone={toneOf(88, 100)}
+        />
+        <SubtabKpi
+          code="4.2 · MPDSR"
+          title="Neonatal Deaths Audited"
+          value="74%"
+          sub="Target 100% (Y2) · KHIS monthly"
+          tone={toneOf(74, 100)}
+        />
+        <SubtabKpi
+          code="4.3 · Reviews"
+          title="Monthly MPDSR/QI Meetings"
+          value="67%"
+          sub="Target 100% · county records"
+          tone={toneOf(67, 100)}
+        />
+        <SubtabKpi
+          code="4.4 · Action"
+          title="Recommendations Implemented"
+          value="55%"
+          sub="Target ≥ 90% (Y2) · action tracker"
+          tone={toneOf(55, 90)}
+        />
+      </div>
+
+      {/* Cause-of-death disaggregation — where deaths concentrate */}
+      <div className="bg-white rounded-lg p-6 border border-slate-200">
+        <div className="flex flex-wrap items-center justify-between gap-2 mb-1">
+          <h3 className="text-lg font-semibold text-gray-900">
+            Cause of Death Disaggregation (4.1 / 4.2)
+          </h3>
+          <span className="px-2 py-1 rounded-md bg-rose-50 text-rose-700 text-xs font-bold">
+            Maternal vs neonatal — YTD
+          </span>
+        </div>
+        <p className="text-sm text-gray-500 mb-4">
+          The audit must name the cause before it can fix the system. PPH and
+          preterm/LBW dominate — both are addressed by the readiness enablers in
+          Domain 3.
+        </p>
+        <ResponsiveContainer width="100%" height={280}>
+          <BarChart data={causeOfDeathData} margin={{ left: 0, right: 12 }}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="name" tick={{ fontSize: 11 }} />
+            <YAxis />
+            <Tooltip />
+            <Legend />
+            <Bar
+              dataKey="maternal"
+              name="Maternal deaths"
+              fill="#dc2626"
+              radius={[4, 4, 0, 0]}
+            />
+            <Bar
+              dataKey="neonatal"
+              name="Neonatal deaths"
+              fill="#f97316"
+              radius={[4, 4, 0, 0]}
+            />
+          </BarChart>
+        </ResponsiveContainer>
       </div>
 
       {/* Full Mortality & MPDSR content (KPI cards, deaths by facility,
@@ -1363,8 +1866,18 @@ function MpdsrSection() {
             <YAxis domain={[0, 100]} />
             <Tooltip formatter={(v) => [`${v}%`, ""]} />
             <Legend />
-            <Bar dataKey="audited" name="Deaths audited (%)" fill="#dc2626" radius={[4, 4, 0, 0]} />
-            <Bar dataKey="meetings" name="Monthly meetings (%)" fill="#f59e0b" radius={[4, 4, 0, 0]} />
+            <Bar
+              dataKey="audited"
+              name="Deaths audited (%)"
+              fill="#dc2626"
+              radius={[4, 4, 0, 0]}
+            />
+            <Bar
+              dataKey="meetings"
+              name="Monthly meetings (%)"
+              fill="#f59e0b"
+              radius={[4, 4, 0, 0]}
+            />
           </BarChart>
         </ResponsiveContainer>
       </div>
@@ -1432,6 +1945,41 @@ function DataSystemsSection() {
     { name: "Nyandarua", khis: 86, emr: 66, dqa: 72 },
   ];
 
+  // DQA measures (§5) — how data quality is assured.
+  const dqaMeasures = [
+    {
+      activity:
+        "Facility-level data verification against source registers (EMR, paper registers)",
+      frequency: "Monthly",
+      owner: "IP M&E Officer / Facility data clerk",
+    },
+    {
+      activity: "Routine data quality audit (DQA) at supported facilities",
+      frequency: "Monthly",
+      owner: "IP M&E Officer",
+    },
+    {
+      activity: "Cross-verification of KHIS data against EMR and NASCOP data",
+      frequency: "Quarterly",
+      owner: "IP M&E Officer / County HIS team",
+    },
+    {
+      activity: "National DQA participation (MOH-led)",
+      frequency: "As scheduled",
+      owner: "IP M&E Officer",
+    },
+    {
+      activity: "LMIS stock data reconciliation against physical counts",
+      frequency: "Monthly",
+      owner: "IP Supply Chain Officer / Facility",
+    },
+    {
+      activity: "Equipment functionalities spot-check",
+      frequency: "Semi-annual",
+      owner: "IP Technical Officer / Facility in-charge",
+    },
+  ];
+
   return (
     <div className="space-y-6">
       {/* Story banner — data as the connective tissue */}
@@ -1446,6 +1994,38 @@ function DataSystemsSection() {
           that the same numbers drive facility CQI, county scorecards and
           national decisions — not parallel paper trails.
         </p>
+      </div>
+
+      {/* Subtab KPI strip — Domain 5 headline indicators */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <SubtabKpi
+          code="5.1 · KHIS"
+          title="Timely KHIS/DHIS2 Reports"
+          value="85%"
+          sub="Target 100% (Y2) · monthly"
+          tone={toneOf(85, 100)}
+        />
+        <SubtabKpi
+          code="5.2 · EMR"
+          title="Active EMR (MBP data)"
+          value="65%"
+          sub="Target ≥ 90% (Y2) · quarterly"
+          tone={toneOf(65, 90)}
+        />
+        <SubtabKpi
+          code="5.4 · Dashboard"
+          title="EWENE Dashboard Upload"
+          value="60%"
+          sub="Target 100% · monthly"
+          tone={toneOf(60, 100)}
+        />
+        <SubtabKpi
+          code="5.5 · DQA"
+          title="Monthly Data Quality Audits"
+          value="70%"
+          sub="Target 100% (Y2) · monthly"
+          tone={toneOf(70, 100)}
+        />
       </div>
 
       {/* Reporting flow */}
@@ -1486,9 +2066,24 @@ function DataSystemsSection() {
             <YAxis domain={[0, 100]} />
             <Tooltip formatter={(v) => [`${v}%`, ""]} />
             <Legend />
-            <Bar dataKey="khis" name="KHIS timely (%)" fill="#6366f1" radius={[4, 4, 0, 0]} />
-            <Bar dataKey="emr" name="EMR active (%)" fill="#8b5cf6" radius={[4, 4, 0, 0]} />
-            <Bar dataKey="dqa" name="DQA (%)" fill="#22d3ee" radius={[4, 4, 0, 0]} />
+            <Bar
+              dataKey="khis"
+              name="KHIS timely (%)"
+              fill="#6366f1"
+              radius={[4, 4, 0, 0]}
+            />
+            <Bar
+              dataKey="emr"
+              name="EMR active (%)"
+              fill="#8b5cf6"
+              radius={[4, 4, 0, 0]}
+            />
+            <Bar
+              dataKey="dqa"
+              name="DQA (%)"
+              fill="#22d3ee"
+              radius={[4, 4, 0, 0]}
+            />
           </BarChart>
         </ResponsiveContainer>
       </div>
@@ -1508,6 +2103,49 @@ function DataSystemsSection() {
         </div>
       </div>
 
+      {/* DQA measures (§5) */}
+      <div className="bg-white rounded-lg p-6 border border-slate-200">
+        <div className="flex flex-wrap items-center justify-between gap-2 mb-1">
+          <h3 className="text-lg font-semibold text-gray-900">
+            Data Quality Assurance Measures (§5)
+          </h3>
+          <span className="px-2 py-1 rounded-md bg-indigo-50 text-indigo-700 text-xs font-bold">
+            Trust the numbers
+          </span>
+        </div>
+        <p className="text-sm text-gray-500 mb-5">
+          Accuracy, completeness and timeliness are assured through a layered
+          DQA regime — from source-register verification to national audits.
+        </p>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-slate-200 text-left text-xs uppercase tracking-wide text-gray-500">
+                <th className="py-2 pr-3">DQA Activity</th>
+                <th className="py-2 pr-3">Frequency</th>
+                <th className="py-2">Responsible</th>
+              </tr>
+            </thead>
+            <tbody>
+              {dqaMeasures.map((d) => (
+                <tr
+                  key={d.activity}
+                  className="border-b border-slate-100 last:border-0"
+                >
+                  <td className="py-2.5 pr-3 text-gray-800">{d.activity}</td>
+                  <td className="py-2.5 pr-3 whitespace-nowrap">
+                    <span className="px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 text-[11px] font-semibold">
+                      {d.frequency}
+                    </span>
+                  </td>
+                  <td className="py-2.5 text-gray-600">{d.owner}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
       <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-6 border border-blue-200">
         <h3 className="font-semibold text-blue-900 mb-2">Reporting Cadence</h3>
         <ul className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-blue-800">
@@ -1517,8 +2155,8 @@ function DataSystemsSection() {
             review meeting
           </li>
           <li>
-            • <b>Bi-weekly:</b> RRI national–county coordination inputs,
-            RRI performance brief contribution
+            • <b>Bi-weekly:</b> RRI national–county coordination inputs, RRI
+            performance brief contribution
           </li>
           <li>
             • <b>Quarterly:</b> County scorecards, mother–baby pair retention,
