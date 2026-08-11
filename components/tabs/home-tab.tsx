@@ -10,6 +10,7 @@ import {
   CartesianGrid,
   Tooltip,
   Legend,
+  LabelList,
   ResponsiveContainer,
 } from "recharts";
 import {
@@ -613,16 +614,17 @@ export function HomeTab() {
         </div>
       </div>
 
-      {/* County comparison by partner — bar charts */}
+      {/* County comparison by partner — vertical, one chart per domain */}
       <div className="space-y-6">
         <div className="bg-white rounded-lg p-6 border border-slate-200">
           <h3 className="text-lg font-semibold text-gray-900 mb-1">
-            County Comparison by Partner — Bar Charts
+            County Comparison by Partner — One Domain per Chart
           </h3>
           <p className="text-sm text-gray-500">
-            For each implementing partner, the counties they support compared
-            across the five domains (colored bars) and the overall score (dark
-            bar).
+            For each implementing partner, every domain is compared across its
+            supported counties in its own vertical bar chart. E.g. Jamii
+            Tekelezi — Domain 3 (Readiness) across Embu, Tharaka-Nithi, Meru
+            &amp; Nyandarua. Charts with no bars have no data entered yet.
           </p>
         </div>
         {countyRows.map((group) => {
@@ -641,66 +643,78 @@ export function HomeTab() {
               key={group.partner.id}
               className="bg-white rounded-lg p-6 border border-slate-200"
             >
-              <div className="flex items-center justify-between flex-wrap gap-2 mb-4">
-                <div>
-                  <h4 className="font-semibold text-gray-900">
-                    {group.partner.name}
-                  </h4>
-                  <p className="text-sm text-gray-500">
-                    {group.partner.counties.length} counties · five-domain
-                    comparison
-                  </p>
-                </div>
-                <div className="flex flex-wrap items-center gap-3 text-xs">
-                  {BAR_SERIES.map((s) => (
-                    <span
-                      key={s.key}
-                      className="flex items-center gap-1.5 text-gray-600"
-                    >
+              <div className="mb-5">
+                <h4 className="font-semibold text-gray-900">
+                  {group.partner.name}
+                </h4>
+                <p className="text-sm text-gray-500">
+                  {group.partner.counties.length} counties · comparing each
+                  domain across counties
+                </p>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+                {BAR_SERIES.map((s) => (
+                  <div
+                    key={s.key}
+                    className="rounded-lg border border-slate-200 p-4"
+                  >
+                    <div className="flex items-center gap-2 mb-3">
                       <span
                         className="w-3 h-3 rounded-sm"
                         style={{ backgroundColor: s.color }}
                       />
-                      {s.name}
-                    </span>
-                  ))}
-                </div>
+                      <p className="text-sm font-semibold text-gray-700">
+                        {s.name}
+                      </p>
+                    </div>
+                    <ResponsiveContainer width="100%" height={190}>
+                      <BarChart
+                        data={data}
+                        margin={{ top: 20, right: 8, left: 0, bottom: 4 }}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                        <XAxis
+                          dataKey="name"
+                          interval={0}
+                          tick={{ fontSize: 10 }}
+                          tickLine={false}
+                        />
+                        <YAxis
+                          domain={[0, 100]}
+                          width={34}
+                          tick={{ fontSize: 10 }}
+                          tickLine={false}
+                          axisLine={false}
+                        />
+                        <Tooltip
+                          cursor={{ fill: "rgba(148,163,184,0.12)" }}
+                          formatter={(v, name) =>
+                            v == null
+                              ? ["No data", name]
+                              : [`${Number(v).toFixed(1)}%`, name]
+                          }
+                        />
+                        <Bar
+                          dataKey={s.key}
+                          name={s.name}
+                          fill={s.color}
+                          radius={[4, 4, 0, 0]}
+                          maxBarSize={44}
+                        >
+                          <LabelList
+                            dataKey={s.key}
+                            position="top"
+                            formatter={(v) =>
+                              v == null ? "" : `${Number(v).toFixed(0)}%`
+                            }
+                            style={{ fontSize: 10, fill: "#475569" }}
+                          />
+                        </Bar>
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                ))}
               </div>
-              <ResponsiveContainer
-                width="100%"
-                height={Math.max(220, group.counties.length * 64)}
-              >
-                <BarChart
-                  data={data}
-                  layout="vertical"
-                  margin={{ left: 0, right: 24 }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis type="number" domain={[0, 100]} />
-                  <YAxis
-                    type="category"
-                    dataKey="name"
-                    width={110}
-                    tick={{ fontSize: 12 }}
-                  />
-                  <Tooltip
-                    formatter={(v, name) =>
-                      v === null
-                        ? ["No data", name]
-                        : [`${Number(v).toFixed(1)}%`, name]
-                    }
-                  />
-                  {BAR_SERIES.map((s) => (
-                    <Bar
-                      key={s.key}
-                      dataKey={s.key}
-                      name={s.name}
-                      fill={s.color}
-                      radius={s.key === "overall" ? [0, 4, 4, 0] : 0}
-                    />
-                  ))}
-                </BarChart>
-              </ResponsiveContainer>
             </div>
           );
         })}
@@ -717,19 +731,32 @@ export function HomeTab() {
         <ResponsiveContainer width="100%" height={300}>
           <BarChart
             data={overallChartData}
-            layout="vertical"
-            margin={{ left: 0, right: 24 }}
+            margin={{ top: 20, right: 16, left: 0, bottom: 8 }}
           >
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis type="number" domain={[0, 100]} />
-            <YAxis
-              type="category"
+            <CartesianGrid strokeDasharray="3 3" vertical={false} />
+            <XAxis
               dataKey="name"
-              width={140}
-              tick={{ fontSize: 12 }}
+              interval={0}
+              tick={{ fontSize: 11, angle: -30, textAnchor: "end" }}
+              tickLine={false}
             />
-            <Tooltip formatter={(v) => [`${v}%`, "Overall"]} />
-            <Bar dataKey="overall" name="Overall" radius={[0, 6, 6, 0]}>
+            <YAxis
+              domain={[0, 100]}
+              width={40}
+              tick={{ fontSize: 11 }}
+              tickLine={false}
+              axisLine={false}
+            />
+            <Tooltip
+              formatter={(v) => [`${v}%`, "Overall"]}
+              cursor={{ fill: "rgba(148,163,184,0.12)" }}
+            />
+            <Bar
+              dataKey="overall"
+              name="Overall"
+              radius={[6, 6, 0, 0]}
+              maxBarSize={48}
+            >
               {overallChartData.map((entry, idx) => (
                 <Cell
                   key={`cell-${idx}`}
@@ -742,6 +769,12 @@ export function HomeTab() {
                   }
                 />
               ))}
+              <LabelList
+                dataKey="overall"
+                position="top"
+                formatter={(v) => (v == null ? "" : `${Number(v).toFixed(0)}%`)}
+                style={{ fontSize: 10, fill: "#475569" }}
+              />
             </Bar>
           </BarChart>
         </ResponsiveContainer>
