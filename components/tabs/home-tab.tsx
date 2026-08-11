@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import {
   BarChart,
   Bar,
+  Cell,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -14,6 +15,7 @@ import {
 import {
   Activity,
   Database,
+  LayoutDashboard,
   ShieldCheck,
   Stethoscope,
   TrendingUp,
@@ -21,7 +23,7 @@ import {
 import { RadialProgress } from "@/components/radial-progress";
 import { useAssessments } from "@/lib/use-assessments";
 import { useGeoFilter } from "@/lib/geo-filter-context";
-import { applyGeoFilter } from "@/lib/geo";
+import { applyGeoFilter, PARTNERS } from "@/lib/geo";
 import { averageReadiness } from "@/lib/assessment";
 import { AssessmentTab } from "@/components/tabs/assessment-tab";
 import { MortalityTab } from "@/components/tabs/mortality-tab";
@@ -248,7 +250,334 @@ const REPORTED_CURRENT: Record<string, number> = {
   "5.5": 70,
 };
 
+// ---------------------------------------------------------------------------
+// Home — 5-Domain summary across the 7 implementing partners
+// ---------------------------------------------------------------------------
+
+// Illustrative KHIS/EMR baselines per partner (Domains 1, 2, 4 & 5).
+// Domain 3 (Readiness) is computed live from entered facility assessments.
+const PARTNER_DOMAIN_SCORES: Record<
+  string,
+  { d1: number; d2: number; d4: number; d5: number }
+> = {
+  "jamii-tekelezi": { d1: 87.7, d2: 63, d4: 67, d5: 62 },
+  "stawisha-pwani": { d1: 84.2, d2: 58, d4: 71, d5: 58 },
+  "imarisha-jamii": { d1: 76.5, d2: 51, d4: 62, d5: 54 },
+  "ampath-uzima": { d1: 89.1, d2: 66, d4: 74, d5: 66 },
+  "tujenge-jamii": { d1: 81.0, d2: 55, d4: 60, d5: 57 },
+  "dumisha-afya": { d1: 79.8, d2: 54, d4: 64, d5: 52 },
+  "nuru-ya-mtoto": { d1: 86.3, d2: 61, d4: 69, d5: 60 },
+};
+
+const DOMAIN_COLUMNS: {
+  key: "d1" | "d2" | "d3" | "d4" | "d5";
+  label: string;
+  icon: React.ReactNode;
+}[] = [
+  {
+    key: "d1",
+    label: "1 · PMTCT/VTP Quality of Care",
+    icon: <Stethoscope className="w-4 h-4 text-emerald-600" />,
+  },
+  {
+    key: "d2",
+    label: "2 · Coverage (90:90:80:80)",
+    icon: <TrendingUp className="w-4 h-4 text-teal-600" />,
+  },
+  {
+    key: "d3",
+    label: "3 · Readiness & Safe Systems",
+    icon: <ShieldCheck className="w-4 h-4 text-emerald-600" />,
+  },
+  {
+    key: "d4",
+    label: "4 · MPDSR & Accountability",
+    icon: <Activity className="w-4 h-4 text-red-600" />,
+  },
+  {
+    key: "d5",
+    label: "5 · Data Systems",
+    icon: <Database className="w-4 h-4 text-indigo-600" />,
+  },
+];
+
+function scoreTone(value: number | null) {
+  if (value === null || Number.isNaN(value)) {
+    return { bg: "bg-slate-50", text: "text-slate-400" };
+  }
+  if (value >= 80) return { bg: "bg-emerald-50", text: "text-emerald-700" };
+  if (value >= 60) return { bg: "bg-amber-50", text: "text-amber-700" };
+  return { bg: "bg-red-50", text: "text-red-700" };
+}
+
 export function HomeTab() {
+  const allAssessments = useAssessments();
+
+  const partners = useMemo(
+    () => PARTNERS.filter((p) => p.id !== "national"),
+    [],
+  );
+
+  // Domain 3 readiness per partner — computed live from entered assessments
+  // scoped to the partner's counties.
+  const readinessByPartner = useMemo(() => {
+    const map: Record<string, { count: number; avg: number | null }> = {};
+    for (const p of partners) {
+      const scoped = allAssessments.filter((a) =>
+        p.counties.some(
+          (c) =>
+            c.trim().toLowerCase() === (a.county ?? "").trim().toLowerCase(),
+        ),
+      );
+      map[p.id] = {
+        count: scoped.length,
+        avg: scoped.length > 0 ? averageReadiness(scoped) : null,
+      };
+    }
+    return map;
+  }, [allAssessments, partners]);
+
+  const rows = useMemo(
+    () =>
+      partners.map((p) => {
+        const s = PARTNER_DOMAIN_SCORES[p.id];
+        const d3 = readinessByPartner[p.id];
+        const domains: (number | null)[] = [s.d1, s.d2, d3.avg, s.d4, s.d5];
+        const available = domains.filter(
+          (v): v is number => v !== null && !Number.isNaN(v),
+        );
+        const overall =
+          available.length > 0
+            ? available.reduce((a, b) => a + b, 0) / available.length
+            : null;
+        return { partner: p, domains, overall, d3Count: d3.count };
+      }),
+    [partners, readinessByPartner],
+  );
+
+  const columnAverages = useMemo(
+    () =>
+      DOMAIN_COLUMNS.map((_col, idx) => {
+        const values = rows
+          .map((r) => r.domains[idx])
+          .filter((v): v is number => v !== null && !Number.isNaN(v));
+        return values.length > 0
+          ? values.reduce((a, b) => a + b, 0) / values.length
+          : null;
+      }),
+    [rows],
+  );
+
+  const overallChartData = useMemo(
+    () =>
+      rows.map((r) => ({
+        name: r.partner.shortName,
+        overall: r.overall === null ? 0 : Math.round(r.overall),
+      })),
+    [rows],
+  );
+
+  return (
+    <div className="space-y-6">
+      {/* Banner */}
+      <div className="bg-gradient-to-r from-emerald-50 to-teal-50 rounded-lg p-5 border border-emerald-200">
+        <div className="flex items-start gap-3">
+          <div className="w-10 h-10 rounded-lg bg-white/70 border border-emerald-200 flex items-center justify-center flex-shrink-0">
+            <LayoutDashboard className="w-5 h-5 text-emerald-600" />
+          </div>
+          <div>
+            <h3 className="font-semibold text-emerald-900 text-lg">
+              Partner Performance Summary — 5 Domains × 7 Partners
+            </h3>
+            <p className="text-sm mt-1 opacity-80">
+              Headline score for each implementing partner across the five EWENE
+              result domains. Use the scope filter above to drill into a single
+              partner, county or facility — the{" "}
+              <span className="font-semibold">Domains</span> tab carries the
+              full indicator detail.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Aggregate strip: all-partner averages */}
+      <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4">
+        {DOMAIN_COLUMNS.map((col, idx) => {
+          const avg = columnAverages[idx];
+          const tone = scoreTone(avg);
+          return (
+            <div
+              key={col.key}
+              className="bg-white rounded-lg p-5 border border-slate-200"
+            >
+              <div className="flex items-center justify-between">
+                <p className="text-sm text-gray-600 font-medium">{col.label}</p>
+                {col.icon}
+              </div>
+              <p className={`text-3xl font-bold mt-2 ${tone.text}`}>
+                {avg === null ? "—" : `${avg.toFixed(1)}%`}
+              </p>
+              <p className="text-xs text-gray-500 mt-1">
+                All 7 partners · average of partner scores
+              </p>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Partner × Domain matrix */}
+      <div className="bg-white rounded-lg border border-slate-200 overflow-hidden">
+        <div className="px-6 pt-6 pb-3">
+          <h3 className="text-lg font-semibold text-gray-900">
+            Partner Scores by Domain
+          </h3>
+          <p className="text-sm text-gray-500 mt-1">
+            Green ≥ 80% (on track) · Amber 60–79% (needs attention) · Red &lt;
+            60% (off track) · Gray — no data.
+          </p>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-slate-200">
+            <thead className="bg-slate-50">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                  Partner
+                </th>
+                {DOMAIN_COLUMNS.map((col) => (
+                  <th
+                    key={col.key}
+                    className="px-4 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider"
+                  >
+                    {col.label}
+                  </th>
+                ))}
+                <th className="px-4 py-3 text-center text-xs font-semibold text-gray-900 uppercase tracking-wider">
+                  Overall
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {rows.map((r) => {
+                const overallTone = scoreTone(r.overall);
+                return (
+                  <tr key={r.partner.id} className="hover:bg-slate-50/60">
+                    <td className="px-6 py-3">
+                      <p className="text-sm font-semibold text-gray-900">
+                        {r.partner.name}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        {r.partner.counties.length} counties
+                        {r.d3Count > 0
+                          ? ` · ${r.d3Count} assessment${r.d3Count === 1 ? "" : "s"}`
+                          : ""}
+                      </p>
+                    </td>
+                    {r.domains.map((v, idx) => {
+                      const tone = scoreTone(v);
+                      return (
+                        <td
+                          key={DOMAIN_COLUMNS[idx].key}
+                          className={`px-4 py-3 text-center text-sm font-bold whitespace-nowrap ${tone.bg} ${tone.text}`}
+                        >
+                          {v === null ? "—" : `${v.toFixed(1)}%`}
+                        </td>
+                      );
+                    })}
+                    <td
+                      className={`px-4 py-3 text-center text-sm font-bold whitespace-nowrap ${overallTone.bg} ${overallTone.text}`}
+                    >
+                      {r.overall === null ? "—" : `${r.overall.toFixed(1)}%`}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+            <tfoot className="bg-slate-50">
+              <tr>
+                <td className="px-6 py-3 text-sm font-semibold text-gray-700">
+                  All-partner average
+                </td>
+                {columnAverages.map((avg, idx) => {
+                  const tone = scoreTone(avg);
+                  return (
+                    <td
+                      key={DOMAIN_COLUMNS[idx].key}
+                      className={`px-4 py-3 text-center text-sm font-bold whitespace-nowrap ${tone.bg} ${tone.text}`}
+                    >
+                      {avg === null ? "—" : `${avg.toFixed(1)}%`}
+                    </td>
+                  );
+                })}
+                <td className="px-4 py-3 text-center text-sm font-bold whitespace-nowrap bg-white">
+                  {(() => {
+                    const values = rows
+                      .map((r) => r.overall)
+                      .filter((v): v is number => v !== null);
+                    return values.length
+                      ? `${(values.reduce((a, b) => a + b, 0) / values.length).toFixed(1)}%`
+                      : "—";
+                  })()}
+                </td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+        <div className="px-6 pb-5 pt-2 text-xs text-gray-500">
+          Domain 3 (Readiness) is computed live from entered facility
+          assessments (N/A excluded); Domains 1, 2, 4 &amp; 5 are
+          KHIS/EMR-illustrative baselines pending live data entry.
+        </div>
+      </div>
+
+      {/* Overall score by partner */}
+      <div className="bg-white rounded-lg p-6 border border-slate-200">
+        <h3 className="text-lg font-semibold text-gray-900 mb-1">
+          Overall 5-Domain Score by Partner
+        </h3>
+        <p className="text-sm text-gray-500 mb-4">
+          Average of the five domain scores per implementing partner.
+        </p>
+        <ResponsiveContainer width="100%" height={300}>
+          <BarChart
+            data={overallChartData}
+            layout="vertical"
+            margin={{ left: 0, right: 24 }}
+          >
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis type="number" domain={[0, 100]} />
+            <YAxis
+              type="category"
+              dataKey="name"
+              width={140}
+              tick={{ fontSize: 12 }}
+            />
+            <Tooltip formatter={(v) => [`${v}%`, "Overall"]} />
+            <Bar dataKey="overall" name="Overall" radius={[0, 6, 6, 0]}>
+              {overallChartData.map((entry, idx) => (
+                <Cell
+                  key={`cell-${idx}`}
+                  fill={
+                    entry.overall >= 80
+                      ? "#10b981"
+                      : entry.overall >= 60
+                        ? "#f59e0b"
+                        : "#ef4444"
+                  }
+                />
+              ))}
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Domains — replica of the Home tab, with full per-domain subtabs
+// ---------------------------------------------------------------------------
+
+export function DomainsTab() {
   const [activeSubtab, setActiveSubtab] = useState("2");
 
   const subtabs = [
