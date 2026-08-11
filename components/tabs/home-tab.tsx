@@ -28,6 +28,7 @@ import { applyGeoFilter, PARTNERS } from "@/lib/geo";
 import { averageReadiness, type FacilityAssessment } from "@/lib/assessment";
 import { AssessmentTab } from "@/components/tabs/assessment-tab";
 import { MortalityTab } from "@/components/tabs/mortality-tab";
+import { ClinicalTab } from "@/components/tabs/clinical-tab";
 
 // ---------------------------------------------------------------------------
 // Yellow-marked (home page) indicators per the EWENE Dashboard Indicators doc
@@ -788,9 +789,10 @@ export function HomeTab() {
 // ---------------------------------------------------------------------------
 
 export function DomainsTab() {
-  const [activeSubtab, setActiveSubtab] = useState("2");
+  const [activeSubtab, setActiveSubtab] = useState("1");
 
   const subtabs = [
+    { id: "1", label: "1 · PMTCT/HIV CARE", icon: Stethoscope },
     { id: "2", label: "2 · Coverage (90:90:80:80)", icon: TrendingUp },
     { id: "3", label: "3 · Readiness & Safe Systems", icon: ShieldCheck },
     { id: "4", label: "4 · MPDSR & Accountability", icon: Activity },
@@ -823,6 +825,7 @@ export function DomainsTab() {
       {/* Overview strip */}
       <HomeOverviewStrip />
 
+      {activeSubtab === "1" && <ClinicalTab />}
       {activeSubtab === "2" && <CoverageSection />}
       {activeSubtab === "3" && <ReadinessSection />}
       {activeSubtab === "4" && <MpdsrSection />}

@@ -19,8 +19,8 @@ import {
 
 // ---------------------------------------------------------------------------
 // PMTCT & HIV Care — two clearly separated tracks:
-//   2.A  Intake & Screening   (1st ANC → HIV testing, SHA enrollment)
-//   2.B  PMTCT & HIV Care     (HIV+ PBFW cascade, SBA among HIV+, HEI follow-up)
+//   1.A  Intake & Screening   (1st ANC → HIV testing, SHA enrollment)
+//   1.B  PMTCT & HIV Care     (HIV+ PBFW cascade, SBA among HIV+, HEI follow-up)
 // PrEP now lives in its own top-level tab (components/tabs/prep-tab.tsx).
 // Values are KHIS/EMR-illustrative until live data entry is wired in.
 // ---------------------------------------------------------------------------
@@ -68,11 +68,11 @@ function SectionBanner({
 }
 
 export function ClinicalTab() {
-  const [activeSubtab, setActiveSubtab] = useState("2.a");
+  const [activeSubtab, setActiveSubtab] = useState("1.a");
 
   const subtabs = [
-    { id: "2.a", label: "2.A: Intake & Screening" },
-    { id: "2.b", label: "2.B: PMTCT & HIV Care" },
+    { id: "1.a", label: "1.A: Intake & Screening" },
+    { id: "1.b", label: "1.B: PMTCT & HIV Care" },
   ];
 
   return (
@@ -94,15 +94,15 @@ export function ClinicalTab() {
       </div>
 
       <div>
-        {activeSubtab === "2.a" && <Subtab2A />}
-        {activeSubtab === "2.b" && <Subtab2B />}
+        {activeSubtab === "1.a" && <Subtab2A />}
+        {activeSubtab === "1.b" && <Subtab2B />}
       </div>
     </div>
   );
 }
 
 // ===========================================================================
-// 2.A — Intake & Screening
+// 1.A — Intake & Screening
 // ===========================================================================
 
 const ancVsShaData = [
@@ -189,7 +189,7 @@ function Subtab2A() {
 }
 
 // ===========================================================================
-// 2.B — PMTCT & HIV Care (HIV+ cascade + HEI follow-up)
+// 1.B — PMTCT & HIV Care (HIV+ cascade + HEI follow-up)
 // ===========================================================================
 
 // Domain 1 — PMTCT / VTP Quality of Care: indicator collection (per review)
@@ -339,7 +339,7 @@ function Subtab2B() {
         </h3>
         <p className="text-sm text-gray-500 mb-4">
           1st ANC attendance (PMTCT_STAT_D) and HIV testing at 1st ANC
-          (PMTCT_STAT_N) are shown under 2.A Intake &amp; Screening.
+          (PMTCT_STAT_N) are shown under 1.A Intake &amp; Screening.
         </p>
         <IndicatorRow
           code="NP"
