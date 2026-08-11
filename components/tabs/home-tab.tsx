@@ -15,15 +15,24 @@ import {
 } from "recharts";
 import {
   Activity,
+  ArrowRight,
+  CalendarDays,
+  CheckCircle2,
   Database,
+  Flag,
+  HeartPulse,
+  Landmark,
   LayoutDashboard,
+  RefreshCw,
   ShieldCheck,
+  Sparkles,
   Stethoscope,
+  Target,
   TrendingUp,
 } from "lucide-react";
 import { RadialProgress } from "@/components/radial-progress";
 import { useAssessments } from "@/lib/use-assessments";
-import { PARTNERS } from "@/lib/geo";
+import { PARTNERS, type Partner } from "@/lib/geo";
 import { averageReadiness, type FacilityAssessment } from "@/lib/assessment";
 import { AssessmentTab } from "@/components/tabs/assessment-tab";
 import { MortalityTab } from "@/components/tabs/mortality-tab";
@@ -474,6 +483,365 @@ function readinessForCounties(
   };
 }
 
+// ---------------------------------------------------------------------------
+// Results & Impact executive layer — §5.1, §5.2, §5.3, §5.4, §6, §8, §9
+// ---------------------------------------------------------------------------
+
+/** Progress ratio → status tone for target tracking. */
+function targetTone(ratio: number) {
+  if (ratio >= 1)
+    return {
+      dot: "bg-emerald-500",
+      text: "text-emerald-700",
+      label: "On target",
+      bar: "bg-emerald-500",
+    };
+  if (ratio >= 0.9)
+    return {
+      dot: "bg-amber-500",
+      text: "text-amber-700",
+      label: "Near target",
+      bar: "bg-amber-500",
+    };
+  return {
+    dot: "bg-red-500",
+    text: "text-red-700",
+    label: "Below target",
+    bar: "bg-red-500",
+  };
+}
+
+// §5.1 — Core Impact Indicators (the three headline mortality outcomes)
+const CORE_IMPACT: {
+  key: string;
+  label: string;
+  baseline: string;
+  target: string;
+  unit: string;
+  gradient: string;
+  ring: string;
+  note: string;
+}[] = [
+  {
+    key: "MMR",
+    label: "Maternal Mortality Ratio",
+    baseline: "355",
+    target: "≤140",
+    unit: "per 100,000 live births",
+    gradient: "from-rose-50 to-red-50 border-rose-200",
+    ring: "text-rose-700",
+    note: "Baseline 355 → target ≤140 by 2028",
+  },
+  {
+    key: "NMR",
+    label: "Neonatal Mortality Rate",
+    baseline: "21",
+    target: "≤12",
+    unit: "per 1,000 live births",
+    gradient: "from-amber-50 to-orange-50 border-amber-200",
+    ring: "text-amber-700",
+    note: "Baseline 21 → target ≤12 by 2028",
+  },
+  {
+    key: "SB",
+    label: "Stillbirth Rate",
+    baseline: "19",
+    target: "≤12",
+    unit: "per 1,000 births",
+    gradient: "from-teal-50 to-emerald-50 border-teal-200",
+    ring: "text-teal-700",
+    note: "Baseline 19 → target ≤12 by 2028",
+  },
+];
+
+// §5.2 — EWENE 90:90:80:80 coverage pillars
+const PILLARS = [
+  {
+    pillar: "90",
+    label: "ANC Coverage",
+    indicator: "At least four ANC visits",
+    target: 90,
+    current: 52,
+  },
+  {
+    pillar: "90",
+    label: "Skilled Delivery",
+    indicator: "Skilled birth attendance coverage",
+    target: 90,
+    current: 70,
+  },
+  {
+    pillar: "80",
+    label: "Early PNC",
+    indicator: "Postnatal care within 48 hours",
+    target: 80,
+    current: 66.6,
+  },
+  {
+    pillar: "80",
+    label: "Continuity of Care",
+    indicator: "Retention of the mother–baby pair",
+    target: 80,
+    current: 68.4,
+  },
+];
+
+// §5.3 — VTP Quality-of-Care scoreboard (nine core PMTCT indicators)
+const VTP_QOC = [
+  { no: 1, label: "ANC coverage", code: "PMTCT_STAT_D", source: "KHIS", target: 95, op: ">", current: 94 },
+  { no: 2, label: "Testing for PBFW", code: "PMTCT_STAT_N", source: "KHIS", target: 95, op: ">", current: 96 },
+  { no: 3, label: "ART initiation for PBFW", code: "PMTCT_ART", source: "KHIS", target: 95, op: ">", current: 87.7 },
+  { no: 4, label: "Viral load uptake & suppression", code: "PMTCT_PVLS", source: "NDW/EMR", target: 95, op: ">", current: 94 },
+  { no: 5, label: "Early infant diagnosis ≤ 8 weeks", code: "PMTCT_EID", source: "KHIS/NASCOP", target: 98, op: ">", current: 88 },
+  { no: 6, label: "Timely ART for PCR+ infants", code: "PMTCT_HEI_ART", source: "NASCOP/EMR", target: 100, op: "=", current: 92.3 },
+  { no: 7, label: "Delivery among HIV+ mothers", code: "Deliveries", source: "KHIS", target: 90, op: ">", current: 92 },
+  { no: 8, label: "HEI final outcome 18–24 months", code: "PMTCT_FO", source: "EMR", target: 95, op: ">", current: 96.6 },
+  { no: 9, label: "Retention of the mother–baby pair", code: "MBP retention", source: "EMR", target: 95, op: ">", current: 91 },
+];
+
+// §5.4 — Facility Readiness & Safe Systems (five systemic enablers)
+const SAFE_SYSTEMS = [
+  {
+    label: "Zero stockout of tracer MNH commodities",
+    detail: "oxytocin · carbetocin · MgSO₄ · TXA · benzyl penicillin",
+    source: "LMIS/KHIS",
+    freq: "Monthly",
+    target: 100,
+    current: 72,
+  },
+  {
+    label: "Functional blood transfusion services",
+    detail: "Level 4 facilities",
+    source: "HFA-QOC",
+    freq: "Quarterly",
+    target: 75,
+    current: 66,
+  },
+  {
+    label: "Functional oxygen/CPAP for neonates",
+    detail: "Level 4 facilities",
+    source: "HFA-QOC",
+    freq: "Quarterly",
+    target: 60,
+    current: 20,
+  },
+  {
+    label: "Procured equipment functional & in use",
+    detail: "six months post-delivery",
+    source: "Facility assessment",
+    freq: "Semi-annual",
+    target: 90,
+    current: 88,
+  },
+  {
+    label: "Maternal & neonatal deaths audited (MPDSR)",
+    detail: "supported facilities",
+    source: "KHIS",
+    freq: "Monthly",
+    target: 100,
+    current: 81,
+  },
+];
+
+// Theory of Change (document §2 — if / then / resulting in)
+const TOC_STEPS = [
+  {
+    title: "If",
+    icon: RefreshCw,
+    tone: "from-sky-50 to-blue-50 border-sky-200",
+    iconTone: "text-sky-600",
+    text: "DoS IPs strengthen real-time monitoring of VTP/MNCH indicators, ensure facility readiness (blood, oxygen, commodities, equipment), and actively participate in EWENE and RRI governance and review mechanisms.",
+  },
+  {
+    title: "Then",
+    icon: TrendingUp,
+    tone: "from-indigo-50 to-violet-50 border-indigo-200",
+    iconTone: "text-indigo-600",
+    text: "Supported facilities deliver higher-quality, uninterrupted care to HIV-positive pregnant & breastfeeding women, mother–baby pairs, and HIV-exposed infants.",
+  },
+  {
+    title: "Resulting in",
+    icon: Flag,
+    tone: "from-emerald-50 to-teal-50 border-emerald-200",
+    iconTone: "text-emerald-600",
+    text: "Reduced missed service opportunities, improved PMTCT outcomes, and a measurable contribution to Kenya's EWENE 2026–2028 maternal & neonatal mortality targets.",
+  },
+];
+
+// §9 — Expected Outcomes clusters
+const EXPECTED_OUTCOMES = [
+  {
+    icon: Stethoscope,
+    tone: "text-sky-600 bg-sky-50",
+    title: "Service Coverage & Access",
+    items: [
+      "Improved ANC4+ coverage and timely identification of PBFW",
+      "Improved skilled birth attendance among HIV-positive mothers",
+      "Improved continuum-of-care tracking & real-time dashboard visibility",
+    ],
+  },
+  {
+    icon: HeartPulse,
+    tone: "text-rose-600 bg-rose-50",
+    title: "HIV · PMTCT · Mother–Baby Pair",
+    items: [
+      "Reduced missed opportunities for HIV testing & ART initiation among PBFW",
+      "Improved viral load uptake and suppression",
+      "Timely early infant diagnosis, incl. birth testing within 24 hours; timely ART for PCR+ infants",
+      "Improved mother–baby pair retention & favorable 18–24 month outcomes",
+    ],
+  },
+  {
+    icon: ShieldCheck,
+    tone: "text-emerald-600 bg-emerald-50",
+    title: "Facility Readiness & Safe Systems",
+    items: [
+      "Zero stockouts of tracer MNH commodities at supported facilities",
+      "Improved blood availability and oxygen/CPAP functionality",
+      "All procured equipment functional and in active use at six months post-delivery",
+      "100% of maternal and neonatal deaths audited monthly",
+    ],
+  },
+  {
+    icon: Activity,
+    tone: "text-violet-600 bg-violet-50",
+    title: "Data Use & Accountability",
+    items: [
+      "Enhanced accountability across facility, county, national & partner levels",
+      "Real-time dashboard reporting feeding EWENE & RRI review platforms",
+      "Contribution to reduced maternal & neonatal mortality (EWENE 2026–2028 targets)",
+    ],
+  },
+];
+
+// §6 — Reporting cadence
+const CADENCE = [
+  {
+    freq: "Monthly",
+    tone: "bg-emerald-50 text-emerald-700 border-emerald-200",
+    items: "Facility-level PMTCT/VTP indicators · commodity stockout reports · MPDSR death audits · RRI dashboard updates",
+  },
+  {
+    freq: "Quarterly",
+    tone: "bg-teal-50 text-teal-700 border-teal-200",
+    items: "County scorecards · mother–baby pair retention · blood & oxygen readiness assessments",
+  },
+  {
+    freq: "Semi-annual",
+    tone: "bg-sky-50 text-sky-700 border-sky-200",
+    items: "Equipment functionality assessments · DoS IP contribution reports (PEPFAR & EWENE targets)",
+  },
+  {
+    freq: "Annual",
+    tone: "bg-violet-50 text-violet-700 border-violet-200",
+    items: "National EWENE performance review · lessons learned & best-practice documentation",
+  },
+];
+
+// §6 — Review platforms
+const REVIEW_PLATFORMS = [
+  { icon: CalendarDays, label: "Bi-weekly", text: "RRI national county coordination meetings" },
+  { icon: CalendarDays, label: "Monthly", text: "Facility CQI & MPDSR committees; DoS VTP TWG review meetings" },
+  { icon: CalendarDays, label: "Quarterly", text: "County EWENE Technical Committee reviews" },
+];
+
+// Per-partner target tracking — framework targets per domain
+const DOMAIN_TARGETS: Record<string, number> = {
+  d1: 95,
+  d2: 90,
+  d3: 90,
+  d4: 100,
+  d5: 100,
+};
+const DOMAIN_TRACK: { key: string; label: string; color: string }[] = [
+  { key: "d1", label: "D1 · PMTCT/VTP QoC", color: "#059669" },
+  { key: "d2", label: "D2 · Coverage 90:90:80:80", color: "#0d9488" },
+  { key: "d3", label: "D3 · Readiness (live)", color: "#84cc16" },
+  { key: "d4", label: "D4 · MPDSR", color: "#dc2626" },
+  { key: "d5", label: "D5 · Data Systems", color: "#4f46e5" },
+];
+
+/** One partner's progress toward each domain target. */
+function PartnerImpactCard({
+  partner,
+  domains,
+  d3Count,
+  overall,
+}: {
+  partner: Partner;
+  domains: (number | null)[];
+  d3Count: number;
+  overall: number | null;
+}) {
+  const overallTone = scoreTone(overall);
+  return (
+    <div className="bg-white rounded-lg border border-slate-200 overflow-hidden flex flex-col">
+      <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between gap-2">
+        <div className="min-w-0">
+          <p className="text-sm font-semibold text-gray-900 truncate">
+            {partner.name}
+          </p>
+          <p className="text-xs text-gray-500">
+            {partner.counties.length} counties
+            {d3Count > 0
+              ? ` · ${d3Count} assessment${d3Count === 1 ? "" : "s"}`
+              : " · no assessments yet"}
+          </p>
+        </div>
+        <span
+          className={`px-2 py-1 rounded-md text-xs font-bold whitespace-nowrap ${overallTone.bg} ${overallTone.text}`}
+        >
+          {overall === null ? "—" : `${overall.toFixed(1)}%`}
+        </span>
+      </div>
+      <div className="p-4 space-y-3 flex-1">
+        {DOMAIN_TRACK.map((d, idx) => {
+          const current = domains[idx];
+          const target = DOMAIN_TARGETS[d.key];
+          if (current === null || Number.isNaN(current)) {
+            return (
+              <div key={d.key}>
+                <div className="flex items-center justify-between text-xs mb-1">
+                  <span className="font-medium text-gray-600">{d.label}</span>
+                  <span className="text-gray-400">No data</span>
+                </div>
+                <div className="h-2 rounded-full bg-slate-100" />
+              </div>
+            );
+          }
+          const ratio = current / target;
+          const tone = targetTone(ratio);
+          const pct = Math.min(100, ratio * 100);
+          return (
+            <div key={d.key}>
+              <div className="flex items-center justify-between text-xs mb-1">
+                <span className="font-medium text-gray-600">{d.label}</span>
+                <span
+                  className={`inline-flex items-center gap-1 font-semibold ${tone.text}`}
+                >
+                  <span className={`w-1.5 h-1.5 rounded-full ${tone.dot}`} />
+                  {current.toFixed(1)}% · target {target}%
+                </span>
+              </div>
+              <div className="h-2 rounded-full bg-slate-100 overflow-hidden">
+                <div
+                  className={`h-full rounded-full ${tone.bar}`}
+                  style={{ width: `${pct}%` }}
+                />
+              </div>
+              <p className={`text-[11px] mt-0.5 font-medium ${tone.text}`}>
+                {ratio >= 1
+                  ? "On target ✓"
+                  : `${(target - current).toFixed(1)} pp below ${target}% target`}
+              </p>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 export function HomeTab() {
   const allAssessments = useAssessments();
 
@@ -562,6 +930,318 @@ export function HomeTab() {
 
   return (
     <div className="space-y-6">
+      {/* Theory of Change — §2 */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
+        {TOC_STEPS.map((s, i) => {
+          const Icon = s.icon;
+          return (
+            <div
+              key={s.title}
+              className={`relative rounded-lg border bg-gradient-to-r ${s.tone} p-4 flex items-start gap-3`}
+            >
+              <div className="w-9 h-9 rounded-lg bg-white/80 border border-white/60 flex items-center justify-center flex-shrink-0">
+                <Icon className={`w-5 h-5 ${s.iconTone}`} />
+              </div>
+              <div>
+                <p className="text-[11px] font-bold uppercase tracking-widest text-gray-500">
+                  {s.title}
+                </p>
+                <p className="text-[13px] font-medium mt-1 leading-snug text-gray-700">
+                  {s.text}
+                </p>
+              </div>
+              {i < 2 && (
+                <span className="hidden lg:flex absolute left-full top-1/2 -translate-y-1/2 -translate-x-1/2 z-10 w-6 h-6 rounded-full bg-white border border-slate-200 items-center justify-center shadow-sm">
+                  <ArrowRight className="w-3.5 h-3.5 text-slate-500" />
+                </span>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Core Impact Indicators — §5.1 */}
+      <div className="bg-white rounded-lg border border-slate-200 overflow-hidden">
+        <div className="px-6 pt-5 pb-3 flex items-center justify-between flex-wrap gap-2">
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+              <Target className="w-5 h-5 text-rose-600" />
+              Core Impact Indicators — EWENE 2026–2028
+            </h3>
+            <p className="text-sm text-gray-500 mt-0.5">
+              The three mortality outcomes the entire framework is designed to
+              move (§5.1).
+            </p>
+          </div>
+          <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-rose-50 text-rose-700 border border-rose-200">
+            Presidential Launch · 28 May 2026
+          </span>
+        </div>
+        <div className="px-6 pb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+          {CORE_IMPACT.map((c) => (
+            <div
+              key={c.key}
+              className={`rounded-xl border p-4 bg-gradient-to-br ${c.gradient}`}
+            >
+              <div className="flex items-center justify-between">
+                <p className="text-xs font-bold text-gray-600 uppercase tracking-wide">
+                  {c.key}
+                </p>
+                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-white/80 text-gray-600 border border-white">
+                  2028 target
+                </span>
+              </div>
+              <p className="text-sm font-semibold text-gray-800 mt-1">
+                {c.label}
+              </p>
+              <div className="flex items-end gap-2 mt-3">
+                <p className={`text-3xl font-extrabold ${c.ring}`}>
+                  {c.target}
+                </p>
+                <p className="text-xs text-gray-500 pb-1">{c.unit}</p>
+              </div>
+              <div className="flex items-center gap-2 mt-3 text-xs text-gray-600">
+                <span className="px-2 py-1 rounded-md bg-white/70 border border-slate-200 font-semibold">
+                  Baseline {c.baseline}
+                </span>
+                <ArrowRight className="w-3.5 h-3.5 text-slate-400" />
+                <span className="px-2 py-1 rounded-md bg-white/70 border border-slate-200 font-semibold">
+                  {c.target}
+                </span>
+              </div>
+              <p className="text-[11px] mt-3 text-gray-500">{c.note}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* EWENE 90:90:80:80 Pillars — §5.2 */}
+      <div className="bg-white rounded-lg border border-slate-200 overflow-hidden">
+        <div className="px-6 pt-5 pb-3">
+          <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+            <TrendingUp className="w-5 h-5 text-teal-600" />
+            EWENE 90:90:80:80 Pillar Status
+          </h3>
+          <p className="text-sm text-gray-500 mt-0.5">
+            Four coverage pillars — current reported vs 2028 target (§5.2).
+          </p>
+        </div>
+        <div className="px-6 pb-6 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+          {PILLARS.map((p) => {
+            const tone = targetTone(p.current / p.target);
+            const pct = Math.min(100, (p.current / p.target) * 100);
+            return (
+              <div
+                key={p.label}
+                className="rounded-xl border border-slate-200 p-4 relative overflow-hidden"
+              >
+                <div className="absolute top-0 right-0 px-2.5 py-1 rounded-bl-lg text-xs font-extrabold bg-teal-50 text-teal-700 border-b border-l border-teal-200">
+                  Pillar {p.pillar}
+                </div>
+                <p className="text-sm font-semibold text-gray-800">{p.label}</p>
+                <p className="text-xs text-gray-500 mt-0.5">{p.indicator}</p>
+                <div className="flex items-end gap-1.5 mt-3">
+                  <p className="text-3xl font-extrabold text-gray-900">
+                    {p.current}%
+                  </p>
+                  <p className="text-xs text-gray-500 pb-1">
+                    target ≥ {p.target}%
+                  </p>
+                </div>
+                <div className="h-2 rounded-full bg-slate-100 mt-3 overflow-hidden">
+                  <div
+                    className={`h-full rounded-full ${tone.bar}`}
+                    style={{ width: `${pct}%` }}
+                  />
+                </div>
+                <p
+                  className={`text-[11px] font-semibold mt-1.5 inline-flex items-center gap-1 ${tone.text}`}
+                >
+                  <span className={`w-1.5 h-1.5 rounded-full ${tone.dot}`} />
+                  {tone.label}
+                </p>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* VTP Quality-of-Care Scoreboard — §5.3 */}
+      <div className="bg-white rounded-lg border border-slate-200 overflow-hidden">
+        <div className="px-6 pt-5 pb-3 flex items-center justify-between flex-wrap gap-2">
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+              <HeartPulse className="w-5 h-5 text-rose-600" />
+              VTP Quality-of-Care Scoreboard
+            </h3>
+            <p className="text-sm text-gray-500 mt-0.5">
+              The nine core PMTCT indicators, reported monthly (§5.3).
+            </p>
+          </div>
+          <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-slate-100 text-slate-600 border border-slate-200">
+            Monthly · KHIS / NASCOP / EMR / NDW
+          </span>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-slate-200">
+            <thead className="bg-slate-50">
+              <tr>
+                {["#", "Indicator", "Code", "Source", "Target", "Current", "Status"].map(
+                  (h) => (
+                    <th
+                      key={h}
+                      className="px-4 py-2.5 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider"
+                    >
+                      {h}
+                    </th>
+                  ),
+                )}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {VTP_QOC.map((row) => {
+                const tone = targetTone(row.current / row.target);
+                return (
+                  <tr key={row.no} className="hover:bg-slate-50/60">
+                    <td className="px-4 py-2.5 text-xs text-gray-500">
+                      {row.no}
+                    </td>
+                    <td className="px-4 py-2.5 text-sm font-medium text-gray-800">
+                      {row.label}
+                    </td>
+                    <td className="px-4 py-2.5">
+                      <span className="text-[11px] font-mono font-semibold px-2 py-0.5 rounded bg-slate-100 text-slate-600 border border-slate-200">
+                        {row.code}
+                      </span>
+                    </td>
+                    <td className="px-4 py-2.5 text-xs text-gray-500">
+                      {row.source}
+                    </td>
+                    <td className="px-4 py-2.5 text-sm font-semibold text-gray-700">
+                      {row.op}
+                      {row.target}%
+                    </td>
+                    <td className="px-4 py-2.5 text-sm font-bold text-gray-900">
+                      {row.current}%
+                    </td>
+                    <td className="px-4 py-2.5">
+                      <span
+                        className={`inline-flex items-center gap-1.5 text-xs font-semibold px-2 py-1 rounded-full ${tone.text} bg-slate-50 border border-slate-200`}
+                      >
+                        <span className={`w-1.5 h-1.5 rounded-full ${tone.dot}`} />
+                        {tone.label}
+                      </span>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Facility Readiness & Safe Systems — §5.4 */}
+      <div className="bg-white rounded-lg border border-slate-200 overflow-hidden">
+        <div className="px-6 pt-5 pb-3 flex items-center justify-between flex-wrap gap-2">
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+              <ShieldCheck className="w-5 h-5 text-emerald-600" />
+              Facility Readiness &amp; Safe Systems
+            </h3>
+            <p className="text-sm text-gray-500 mt-0.5">
+              Five systemic enablers from EWENE Pillar 8 &amp; GHSD guidance
+              (§5.4).
+            </p>
+          </div>
+          <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+            Blood · Oxygen · Equipment · Commodities
+          </span>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-slate-200">
+            <thead className="bg-slate-50">
+              <tr>
+                {["Indicator", "Detail", "Source", "Frequency", "Target", "Current", "Status"].map(
+                  (h) => (
+                    <th
+                      key={h}
+                      className="px-4 py-2.5 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider"
+                    >
+                      {h}
+                    </th>
+                  ),
+                )}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {SAFE_SYSTEMS.map((row) => {
+                const tone = targetTone(row.current / row.target);
+                return (
+                  <tr key={row.label} className="hover:bg-slate-50/60">
+                    <td className="px-4 py-2.5 text-sm font-medium text-gray-800">
+                      {row.label}
+                    </td>
+                    <td className="px-4 py-2.5 text-xs text-gray-500">
+                      {row.detail}
+                    </td>
+                    <td className="px-4 py-2.5">
+                      <span className="text-[11px] font-mono font-semibold px-2 py-0.5 rounded bg-slate-100 text-slate-600 border border-slate-200">
+                        {row.source}
+                      </span>
+                    </td>
+                    <td className="px-4 py-2.5">
+                      <span className="text-[11px] font-semibold px-2 py-0.5 rounded bg-sky-50 text-sky-700 border border-sky-200">
+                        {row.freq}
+                      </span>
+                    </td>
+                    <td className="px-4 py-2.5 text-sm font-semibold text-gray-700">
+                      ≥ {row.target}%
+                    </td>
+                    <td className="px-4 py-2.5 text-sm font-bold text-gray-900">
+                      {row.current}%
+                    </td>
+                    <td className="px-4 py-2.5">
+                      <span
+                        className={`inline-flex items-center gap-1.5 text-xs font-semibold px-2 py-1 rounded-full ${tone.text} bg-slate-50 border border-slate-200`}
+                      >
+                        <span className={`w-1.5 h-1.5 rounded-full ${tone.dot}`} />
+                        {tone.label}
+                      </span>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Partner Impact & Target Tracker */}
+      <div className="bg-white rounded-lg border border-slate-200 overflow-hidden">
+        <div className="px-6 pt-5 pb-3">
+          <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+            <Target className="w-5 h-5 text-indigo-600" />
+            Partner Impact &amp; Target Tracker
+          </h3>
+          <p className="text-sm text-gray-500 mt-0.5">
+            Each partner's progress toward framework targets — D1 &gt;95%
+            (VTP QoC), D2 ≥90% (90:90:80:80), D3 ≥90% (readiness, live), D4
+            100% (MPDSR audit), D5 100% (data reporting).
+          </p>
+        </div>
+        <div className="px-6 pb-6 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+          {rows.map((r) => (
+            <PartnerImpactCard
+              key={r.partner.id}
+              partner={r.partner}
+              domains={r.domains}
+              d3Count={r.d3Count}
+              overall={r.overall}
+            />
+          ))}
+        </div>
+      </div>
+
       {/* Banner */}
       <div className="bg-gradient-to-r from-emerald-50 to-teal-50 rounded-lg p-5 border border-emerald-200">
         <div className="flex items-start gap-3">
@@ -876,6 +1556,122 @@ export function HomeTab() {
             </Bar>
           </BarChart>
         </ResponsiveContainer>
+      </div>
+
+      {/* Expected Outcomes — §9 */}
+      <div className="bg-white rounded-lg border border-slate-200 overflow-hidden">
+        <div className="px-6 pt-5 pb-3">
+          <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+            <Sparkles className="w-5 h-5 text-amber-500" />
+            Expected Outcomes — what the EWENE Acceleration Plan delivers
+          </h3>
+          <p className="text-sm text-gray-500 mt-0.5">
+            Four result areas from §9 of the monitoring framework.
+          </p>
+        </div>
+        <div className="px-6 pb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+          {EXPECTED_OUTCOMES.map((o) => {
+            const Icon = o.icon;
+            return (
+              <div
+                key={o.title}
+                className="rounded-xl border border-slate-200 p-4"
+              >
+                <div className="flex items-center gap-2.5 mb-2.5">
+                  <span
+                    className={`w-9 h-9 rounded-lg flex items-center justify-center ${o.tone}`}
+                  >
+                    <Icon className="w-5 h-5" />
+                  </span>
+                  <p className="font-semibold text-gray-900 text-sm">
+                    {o.title}
+                  </p>
+                </div>
+                <ul className="space-y-1.5">
+                  {o.items.map((it) => (
+                    <li
+                      key={it}
+                      className="flex items-start gap-2 text-xs text-gray-600"
+                    >
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 mt-0.5 flex-shrink-0" />
+                      {it}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Governance & Reporting Cadence — §6 / §8 */}
+      <div className="bg-white rounded-lg border border-slate-200 overflow-hidden">
+        <div className="px-6 pt-5 pb-3 flex items-center justify-between flex-wrap gap-2">
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+              <Landmark className="w-5 h-5 text-slate-700" />
+              Governance &amp; Reporting Cadence
+            </h3>
+            <p className="text-sm text-gray-500 mt-0.5">
+              How EWENE data flows through review platforms across facility,
+              county, national &amp; partner levels (§6 &amp; §8).
+            </p>
+          </div>
+          <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-slate-100 text-slate-600 border border-slate-200">
+            EWENE Acceleration Plan · RRI
+          </span>
+        </div>
+        <div className="px-6 pb-6 space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
+            {CADENCE.map((c) => (
+              <div
+                key={c.freq}
+                className="rounded-xl border border-slate-200 p-4"
+              >
+                <span
+                  className={`inline-block text-xs font-bold px-2.5 py-1 rounded-full border ${c.tone}`}
+                >
+                  {c.freq}
+                </span>
+                <p className="text-xs text-gray-600 mt-2.5 leading-relaxed">
+                  {c.items}
+                </p>
+              </div>
+            ))}
+          </div>
+          <div className="rounded-xl bg-slate-50 border border-slate-200 p-4">
+            <p className="text-xs font-bold uppercase tracking-wide text-gray-500 mb-2">
+              Review platforms
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              {REVIEW_PLATFORMS.map((r) => {
+                const Icon = r.icon;
+                return (
+                  <div key={r.label} className="flex items-start gap-2">
+                    <span className="w-7 h-7 rounded-md bg-white border border-slate-200 flex items-center justify-center flex-shrink-0">
+                      <Icon className="w-4 h-4 text-slate-500" />
+                    </span>
+                    <div>
+                      <p className="text-xs font-semibold text-gray-700">
+                        {r.label}
+                      </p>
+                      <p className="text-[11px] text-gray-500">{r.text}</p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+          <p className="text-xs text-gray-500 leading-relaxed">
+            <span className="font-semibold text-gray-700">Context:</span>{" "}
+            Following the Presidential Launch of the EWENE Acceleration Plan and
+            MNH RRI on 28 May 2026, the Ministry of Health Director General has
+            formally requested all partners to align technical &amp; financial
+            support with EWENE/RRI priorities, support high-impact interventions
+            at national and county levels, and actively participate in EWENE
+            governance and review mechanisms.
+          </p>
+        </div>
       </div>
     </div>
   );
