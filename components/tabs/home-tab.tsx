@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { Fragment, useMemo, useState } from "react";
 import {
   BarChart,
   Bar,
@@ -24,7 +24,7 @@ import { RadialProgress } from "@/components/radial-progress";
 import { useAssessments } from "@/lib/use-assessments";
 import { useGeoFilter } from "@/lib/geo-filter-context";
 import { applyGeoFilter, PARTNERS } from "@/lib/geo";
-import { averageReadiness } from "@/lib/assessment";
+import { averageReadiness, type FacilityAssessment } from "@/lib/assessment";
 import { AssessmentTab } from "@/components/tabs/assessment-tab";
 import { MortalityTab } from "@/components/tabs/mortality-tab";
 
@@ -269,6 +269,45 @@ const PARTNER_DOMAIN_SCORES: Record<
   "nuru-ya-mtoto": { d1: 86.3, d2: 61, d4: 69, d5: 60 },
 };
 
+// Illustrative per-county scores (Domains 1, 2, 4 & 5) for the county
+// distribution view. Domain 3 (Readiness) is computed live per county.
+const COUNTY_DOMAIN_SCORES: Record<
+  string,
+  { d1: number; d2: number; d4: number; d5: number }
+> = {
+  // Jamii Tekelezi
+  Embu: { d1: 89, d2: 65, d4: 70, d5: 64 },
+  "Tharaka-Nithi": { d1: 86, d2: 60, d4: 64, d5: 60 },
+  Meru: { d1: 88, d2: 64, d4: 68, d5: 63 },
+  Nyandarua: { d1: 87, d2: 62, d4: 66, d5: 61 },
+  // Stawisha Pwani
+  Kilifi: { d1: 83, d2: 56, d4: 70, d5: 57 },
+  Kwale: { d1: 82, d2: 55, d4: 69, d5: 55 },
+  Mombasa: { d1: 87, d2: 63, d4: 75, d5: 62 },
+  "Taita-Taveta": { d1: 85, d2: 58, d4: 70, d5: 58 },
+  // Imarisha Jamii
+  Turkana: { d1: 76.5, d2: 51, d4: 62, d5: 54 },
+  // AMPATH Uzima
+  "Uasin Gishu": { d1: 91, d2: 68, d4: 76, d5: 68 },
+  "West Pokot": { d1: 87, d2: 63, d4: 71, d5: 63 },
+  "Elgeyo-Marakwet": { d1: 89, d2: 66, d4: 74, d5: 66 },
+  "Trans-Nzoia": { d1: 90, d2: 67, d4: 75, d5: 67 },
+  // Tujenge Jamii
+  Nakuru: { d1: 84, d2: 58, d4: 63, d5: 60 },
+  Baringo: { d1: 80, d2: 54, d4: 59, d5: 56 },
+  Samburu: { d1: 75, d2: 48, d4: 55, d5: 52 },
+  Laikipia: { d1: 82, d2: 56, d4: 61, d5: 58 },
+  Kajiado: { d1: 83, d2: 57, d4: 62, d5: 59 },
+  // Dumisha Afya
+  Bungoma: { d1: 80, d2: 55, d4: 65, d5: 53 },
+  Busia: { d1: 79, d2: 53, d4: 63, d5: 51 },
+  // Nuru Ya Mtoto
+  Kakamega: { d1: 85, d2: 60, d4: 68, d5: 59 },
+  Kisumu: { d1: 89, d2: 64, d4: 72, d5: 63 },
+  Nyamira: { d1: 87, d2: 62, d4: 70, d5: 61 },
+  Vihiga: { d1: 84, d2: 58, d4: 66, d5: 57 },
+};
+
 const DOMAIN_COLUMNS: {
   key: "d1" | "d2" | "d3" | "d4" | "d5";
   label: string;
@@ -310,6 +349,22 @@ function scoreTone(value: number | null) {
   return { bg: "bg-red-50", text: "text-red-700" };
 }
 
+/** Domain 3 readiness averaged over assessments in the given counties. */
+function readinessForCounties(
+  assessments: FacilityAssessment[],
+  counties: string[],
+): { count: number; avg: number | null } {
+  const scoped = assessments.filter((a) =>
+    counties.some(
+      (c) => c.trim().toLowerCase() === (a.county ?? "").trim().toLowerCase(),
+    ),
+  );
+  return {
+    count: scoped.length,
+    avg: scoped.length > 0 ? averageReadiness(scoped) : null,
+  };
+}
+
 export function HomeTab() {
   const allAssessments = useAssessments();
 
@@ -323,16 +378,7 @@ export function HomeTab() {
   const readinessByPartner = useMemo(() => {
     const map: Record<string, { count: number; avg: number | null }> = {};
     for (const p of partners) {
-      const scoped = allAssessments.filter((a) =>
-        p.counties.some(
-          (c) =>
-            c.trim().toLowerCase() === (a.county ?? "").trim().toLowerCase(),
-        ),
-      );
-      map[p.id] = {
-        count: scoped.length,
-        avg: scoped.length > 0 ? averageReadiness(scoped) : null,
-      };
+      map[p.id] = readinessForCounties(allAssessments, p.counties);
     }
     return map;
   }, [allAssessments, partners]);
@@ -375,6 +421,34 @@ export function HomeTab() {
         overall: r.overall === null ? 0 : Math.round(r.overall),
       })),
     [rows],
+  );
+
+  // County distribution: per partner, each supported county with its
+  // 5-domain scores (d3 computed live from county-scoped assessments).
+  const countyRows = useMemo(
+    () =>
+      partners.map((p) => ({
+        partner: p,
+        counties: p.counties.map((county) => {
+          const c = COUNTY_DOMAIN_SCORES[county] ?? {
+            d1: null,
+            d2: null,
+            d4: null,
+            d5: null,
+          };
+          const d3 = readinessForCounties(allAssessments, [county]);
+          const domains: (number | null)[] = [c.d1, c.d2, d3.avg, c.d4, c.d5];
+          const available = domains.filter(
+            (v): v is number => v !== null && !Number.isNaN(v),
+          );
+          const overall =
+            available.length > 0
+              ? available.reduce((a, b) => a + b, 0) / available.length
+              : null;
+          return { name: county, domains, overall, d3Count: d3.count };
+        }),
+      })),
+    [partners, allAssessments],
   );
 
   return (
@@ -526,6 +600,101 @@ export function HomeTab() {
           Domain 3 (Readiness) is computed live from entered facility
           assessments (N/A excluded); Domains 1, 2, 4 &amp; 5 are
           KHIS/EMR-illustrative baselines pending live data entry.
+        </div>
+      </div>
+
+      {/* County distribution by partner */}
+      <div className="bg-white rounded-lg border border-slate-200 overflow-hidden">
+        <div className="px-6 pt-6 pb-3">
+          <h3 className="text-lg font-semibold text-gray-900">
+            County Distribution by Partner — 5 Domains
+          </h3>
+          <p className="text-sm text-gray-500 mt-1">
+            For each implementing partner, the counties they support with their
+            five-domain scores. Green ≥ 80% (on track) · Amber 60–79% (needs
+            attention) · Red &lt; 60% (off track) · Gray — no data.
+          </p>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-slate-200">
+            <thead className="bg-slate-50">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                  Partner / County
+                </th>
+                {DOMAIN_COLUMNS.map((col) => (
+                  <th
+                    key={col.key}
+                    className="px-4 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider"
+                  >
+                    {col.label}
+                  </th>
+                ))}
+                <th className="px-4 py-3 text-center text-xs font-semibold text-gray-900 uppercase tracking-wider">
+                  Overall
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {countyRows.map((group) => (
+                <Fragment key={group.partner.id}>
+                  {/* Partner category row */}
+                  <tr className="bg-emerald-50/70">
+                    <td colSpan={7} className="px-6 py-2.5">
+                      <span className="text-sm font-bold text-emerald-900">
+                        {group.partner.name}
+                      </span>
+                      <span className="text-xs text-emerald-700 ml-2">
+                        {group.partner.counties.length} counties supported
+                      </span>
+                    </td>
+                  </tr>
+                  {/* County rows */}
+                  {group.counties.map((c) => {
+                    const overallTone = scoreTone(c.overall);
+                    return (
+                      <tr key={c.name} className="hover:bg-slate-50/60">
+                        <td className="px-6 py-2.5">
+                          <p className="text-sm font-medium text-gray-900">
+                            {c.name}
+                          </p>
+                          {c.d3Count > 0 && (
+                            <p className="text-xs text-gray-500">
+                              {c.d3Count} assessment
+                              {c.d3Count === 1 ? "" : "s"}
+                            </p>
+                          )}
+                        </td>
+                        {c.domains.map((v, idx) => {
+                          const tone = scoreTone(v);
+                          return (
+                            <td
+                              key={DOMAIN_COLUMNS[idx].key}
+                              className={`px-4 py-2.5 text-center text-sm font-bold whitespace-nowrap ${tone.bg} ${tone.text}`}
+                            >
+                              {v === null ? "—" : `${v.toFixed(1)}%`}
+                            </td>
+                          );
+                        })}
+                        <td
+                          className={`px-4 py-2.5 text-center text-sm font-bold whitespace-nowrap ${overallTone.bg} ${overallTone.text}`}
+                        >
+                          {c.overall === null
+                            ? "—"
+                            : `${c.overall.toFixed(1)}%`}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </Fragment>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <div className="px-6 pb-5 pt-2 text-xs text-gray-500">
+          Domain 3 (Readiness) is computed live from entered facility
+          assessments scoped to each county (N/A excluded); Domains 1, 2, 4
+          &amp; 5 are KHIS/EMR-illustrative baselines pending live data entry.
         </div>
       </div>
 

@@ -327,9 +327,13 @@ export function ShaTab() {
           </h3>
           <p className="text-sm text-gray-500 mb-4">
             % of HIV+ patients enrolled per facility —{" "}
-            <span className="text-green-700 font-medium">&gt;80% dark green</span>{" "}
+            <span className="text-green-700 font-medium">
+              &gt;80% dark green
+            </span>{" "}
             ·{" "}
-            <span className="text-green-600 font-medium">70–80% light green</span>{" "}
+            <span className="text-green-600 font-medium">
+              70–80% light green
+            </span>{" "}
             · <span className="text-yellow-600 font-medium">50–70% yellow</span>{" "}
             · <span className="text-red-600 font-medium">&lt;50% red</span>.
           </p>
@@ -399,8 +403,8 @@ export function ShaTab() {
           <div>
             <h3 className="font-semibold">Why SHA enrollment matters</h3>
             <p className="text-sm mt-1 opacity-80">
-              Enrolling HIV+ pregnant women and their dependents into SHA is
-              the entry point to Universal Health Coverage: it removes financial
+              Enrolling HIV+ pregnant women and their dependents into SHA is the
+              entry point to Universal Health Coverage: it removes financial
               barriers to antenatal care, skilled delivery, postnatal care and
               the PMTCT cascade. Household registration (
               <Home className="inline w-3.5 h-3.5" /> 18,450) extends coverage
