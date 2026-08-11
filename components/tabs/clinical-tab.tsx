@@ -113,8 +113,8 @@ const ancVsShaData = [
 ];
 
 const hivTestingData = [
-  { name: "HIV Tested", value: 68, fill: "#10b981" },
-  { name: "Not Tested", value: 32, fill: "#e5e7eb" },
+  { name: "HIV Tested", value: 96, fill: "#10b981" },
+  { name: "Not Tested", value: 4, fill: "#e5e7eb" },
 ];
 
 function Subtab2A() {
@@ -250,6 +250,133 @@ const vipFollowUpData = [
 
 const VIP_YTD = vipFollowUpData.reduce((acc, d) => acc + d.enrolled, 0);
 
+// ---- PMTCT Cascade — the mother–baby pair continuum "story" ----
+const cascadeData = [
+  { stage: "PBFW at 1st ANC (known HIV status)", count: 1025 },
+  { stage: "HIV tested at 1st ANC", count: 984 },
+  { stage: "HIV+ identified (NP + KP)", count: 770 },
+  { stage: "Initiated on ART", count: 675 },
+  { stage: "Delivered at supported facilities", count: 380 },
+];
+
+const heiOutcomeData = [
+  { stage: "HEI enrolled in 18–24 month cohort", count: HEI_COHORT_ENROLLED },
+  { stage: "HEI discharged HIV-negative", count: HEI_COHORT_NEGATIVE },
+];
+
+// ---- Domain 1 target framework (EWENE DA 6/26/2026) ----
+type TargetIndicator = {
+  code: string;
+  label: string;
+  value: number;
+  target: number;
+  source: string;
+  frequency: string;
+};
+
+const DOMAIN1_TARGETS: TargetIndicator[] = [
+  {
+    code: "1.1 · PMTCT_STAT_D",
+    label: "ANC coverage — 1st ANC attendance (denominator: PBFW with known HIV status)",
+    value: 94,
+    target: 95,
+    source: "KHIS",
+    frequency: "Monthly",
+  },
+  {
+    code: "1.2 · PMTCT_STAT_N",
+    label: "HIV testing coverage among PBFW at 1st ANC",
+    value: 96,
+    target: 95,
+    source: "KHIS",
+    frequency: "Monthly",
+  },
+  {
+    code: "1.3 · PMTCT_ART",
+    label: "ART initiation among HIV-positive PBFW",
+    value: +(
+      ((PBFW_NEW_ART + PBFW_KNOWN_ART) / (PBFW_NEW_POSITIVE + PBFW_KNOWN_POSITIVE)) *
+      100
+    ).toFixed(1),
+    target: 95,
+    source: "KHIS",
+    frequency: "Monthly",
+  },
+  {
+    code: "1.4 · PMTCT_PVLS",
+    label: "Viral load suppression among PBFW",
+    value: 94,
+    target: 95,
+    source: "NDW/EMR",
+    frequency: "Monthly",
+  },
+  {
+    code: "1.5 · PMTCT_EID",
+    label: "EID within 8 weeks including birth testing",
+    value: HEI_EID_PCT,
+    target: 98,
+    source: "KHIS/NASCOP",
+    frequency: "Monthly",
+  },
+  {
+    code: "1.6 · PMTCT_HEI_ART",
+    label: "Timely ART initiation for PCR-positive exposed infants",
+    value: +((HEI_POSITIVE_ART / PCR_POSITIVE_HEI) * 100).toFixed(1),
+    target: 100,
+    source: "NASCOP/EMR",
+    frequency: "Monthly",
+  },
+  {
+    code: "1.7 · Deliveries",
+    label: "Skilled birth attendance among HIV-positive mothers",
+    value: SBA_HIV_PCT,
+    target: 90,
+    source: "KHIS",
+    frequency: "Monthly",
+  },
+  {
+    code: "1.8 · PMTCT_FO",
+    label: "HEI HIV-free survival at 18–24 months",
+    value: +((HEI_COHORT_NEGATIVE / HEI_COHORT_ENROLLED) * 100).toFixed(1),
+    target: 95,
+    source: "EMR",
+    frequency: "Monthly",
+  },
+  {
+    code: "1.9 · Pairs",
+    label: "Retention of mother–baby pair across continuum of care",
+    value: PAIRS_CONTINUUM_PCT,
+    target: 95,
+    source: "EMR",
+    frequency: "Quarterly",
+  },
+];
+
+// Viral load (PMTCT_PVLS)
+const vlData = [
+  { name: "Suppressed", value: 94, fill: "#10b981" },
+  { name: "Unsuppressed", value: 6, fill: "#e5e7eb" },
+];
+
+const vlTrendData = [
+  { month: "Jan", uptake: 84, suppressed: 88 },
+  { month: "Feb", uptake: 86, suppressed: 89 },
+  { month: "Mar", uptake: 88, suppressed: 91 },
+  { month: "Apr", uptake: 89, suppressed: 92 },
+  { month: "May", uptake: 91, suppressed: 93 },
+  { month: "Jun", uptake: 92, suppressed: 94 },
+];
+
+// PCR → HEI ART donut
+const heiArtDonut = [
+  { name: "Initiated on ART", value: HEI_POSITIVE_ART, fill: "#0d9488" },
+  {
+    name: "Not yet initiated",
+    value: PCR_POSITIVE_HEI - HEI_POSITIVE_ART,
+    fill: "#fee2e2",
+  },
+];
+
 // One row of the Domain 1 indicator collection
 function IndicatorRow({
   code,
@@ -284,6 +411,158 @@ function IndicatorRow({
   );
 }
 
+// ---- Domain 1 helpers: status badges, target meters, cascade bars ----
+type StatusTone = "on" | "warn" | "off";
+
+const STATUS_LABEL: Record<StatusTone, string> = {
+  on: "On target",
+  warn: "Needs attention",
+  off: "Below target",
+};
+
+const STATUS_BADGE: Record<StatusTone, string> = {
+  on: "bg-emerald-100 text-emerald-700",
+  warn: "bg-amber-100 text-amber-700",
+  off: "bg-red-100 text-red-700",
+};
+
+const STATUS_DOT: Record<StatusTone, string> = {
+  on: "bg-emerald-500",
+  warn: "bg-amber-500",
+  off: "bg-red-500",
+};
+
+const STATUS_BAR: Record<StatusTone, string> = {
+  on: "bg-emerald-500",
+  warn: "bg-amber-500",
+  off: "bg-red-500",
+};
+
+function statusOf(
+  value: number,
+  target: number
+): { tone: StatusTone; label: string } {
+  if (value >= target) return { tone: "on", label: STATUS_LABEL.on };
+  const ratio = value / target;
+  if (ratio >= 0.9) return { tone: "warn", label: STATUS_LABEL.warn };
+  return { tone: "off", label: STATUS_LABEL.off };
+}
+
+function DomainKpi({
+  title,
+  value,
+  sub,
+  tone = "on",
+  accent = "text-emerald-600",
+}: {
+  title: string;
+  value: string;
+  sub: string;
+  tone?: StatusTone;
+  accent?: string;
+}) {
+  return (
+    <div className="bg-white rounded-lg p-4 border border-slate-200">
+      <div className="flex items-center justify-between gap-2">
+        <p className="text-sm text-gray-600 font-medium leading-snug">{title}</p>
+        <span
+          className={`w-2 h-2 rounded-full shrink-0 ${STATUS_DOT[tone]}`}
+          title={STATUS_LABEL[tone]}
+        />
+      </div>
+      <p className={`text-3xl font-bold mt-2 ${accent}`}>{value}</p>
+      <p className="text-xs text-gray-500 mt-1">{sub}</p>
+    </div>
+  );
+}
+
+function TargetMeterCard({
+  code,
+  label,
+  value,
+  target,
+  source,
+  frequency,
+}: TargetIndicator) {
+  const { tone, label: statusLabel } = statusOf(value, target);
+  return (
+    <div className="bg-white rounded-lg border border-slate-200 p-4 flex flex-col">
+      <div className="flex items-center justify-between gap-2 mb-2">
+        <span className="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-800 text-[11px] font-bold whitespace-nowrap">
+          {code}
+        </span>
+        <span
+          className={`px-2 py-0.5 rounded-full text-[11px] font-semibold flex items-center gap-1.5 ${STATUS_BADGE[tone]}`}
+        >
+          <span className={`w-1.5 h-1.5 rounded-full ${STATUS_DOT[tone]}`} />
+          {statusLabel}
+        </span>
+      </div>
+      <p className="text-sm text-gray-800 leading-snug flex-1">{label}</p>
+      <div className="mt-3">
+        <div className="flex items-baseline justify-between mb-1">
+          <span className="text-xl font-bold text-gray-900">{value}%</span>
+          <span className="text-xs text-gray-500">Target &gt;{target}%</span>
+        </div>
+        <div className="relative h-2.5 bg-slate-100 rounded-full overflow-hidden">
+          <div
+            className={`h-full rounded-full ${STATUS_BAR[tone]}`}
+            style={{ width: `${Math.min(value, 100)}%` }}
+          />
+          <div
+            className="absolute top-0 bottom-0 w-0.5 bg-gray-500"
+            style={{ left: `${target}%` }}
+          />
+        </div>
+      </div>
+      <div className="mt-2 pt-2 border-t border-slate-100 flex justify-between text-[11px] text-gray-400">
+        <span>{source}</span>
+        <span>{frequency}</span>
+      </div>
+    </div>
+  );
+}
+
+function CascadeBar({
+  stage,
+  count,
+  max,
+  note,
+  unit = "of PBFW",
+}: {
+  stage: string;
+  count: number;
+  max: number;
+  note?: string;
+  unit?: string;
+}) {
+  const pct = (count / max) * 100;
+  const roundedPct = Math.round(pct);
+  return (
+    <div>
+      <div className="flex justify-between items-baseline gap-2 mb-1">
+        <p className="text-sm font-medium text-gray-700">{stage}</p>
+        <p className="text-sm font-bold text-gray-900 whitespace-nowrap">
+          {count.toLocaleString()}
+          {note && (
+            <span className="text-xs font-medium text-gray-400 ml-2">
+              {note}
+            </span>
+          )}
+        </p>
+      </div>
+      <div className="w-full bg-slate-100 rounded-md h-8 overflow-hidden">
+        <div
+          className="h-full bg-gradient-to-r from-emerald-500 to-teal-600 rounded-r-md flex items-center justify-end pr-2 text-white text-xs font-bold transition-all"
+          style={{ width: `${pct}%` }}
+        >
+          {pct > 18 && `${roundedPct}% ${unit}`}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function Subtab2B() {
   const totalPBFW = PBFW_NEW_POSITIVE + PBFW_KNOWN_POSITIVE;
   const totalART = PBFW_NEW_ART + PBFW_KNOWN_ART;
@@ -302,34 +581,230 @@ function Subtab2B() {
         subtitle="Domain 1 · PMTCT/VTP Quality of Care — full indicator collection: HIV+ PBFW detection → ART initiation → skilled delivery → exposed-infant (HEI) EID & mother–baby pair follow-up."
       />
 
-      {/* KPI Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
-        <Kpi
-          title="Newly HIV Positive (NP)"
-          value={String(PBFW_NEW_POSITIVE)}
-          sub="PBFW identified in the period"
+      {/* KPI strip — at-a-glance performance vs targets */}
+      <div className="grid grid-cols-2 lg:grid-cols-6 gap-4">
+        <DomainKpi
+          title="HIV Tested at 1st ANC"
+          value="96%"
+          sub="PMTCT_STAT_N · target >95%"
+          tone="on"
         />
-        <Kpi
-          title="Known HIV Positive at 1st ANC (KP)"
-          value={String(PBFW_KNOWN_POSITIVE)}
-          sub="PBFW known positive"
+        <DomainKpi
+          title="HIV+ PBFW on ART"
+          value={`${pbfwInitiatedPct}%`}
+          sub={`${totalART} of ${totalPBFW} · target >95%`}
+          tone="warn"
+          accent="text-amber-600"
         />
-        <Kpi
-          title="Initiated on ART"
-          value={String(totalART)}
-          sub={`${pbfwInitiatedPct}% of HIV+ PBFW`}
+        <DomainKpi
+          title="VL Suppression"
+          value="94%"
+          sub="PMTCT_PVLS · target >95%"
+          tone="warn"
+          accent="text-amber-600"
         />
-        <Kpi
+        <DomainKpi
+          title="EID ≤ 8 weeks"
+          value={`${HEI_EID_PCT}%`}
+          sub="PMTCT_EID · target >98%"
+          tone="off"
+          accent="text-red-600"
+        />
+        <DomainKpi
           title="SBA among HIV+"
-          value="92%"
-          sub="Skilled Birth Attendance / HIV+ PBFW"
+          value={`${SBA_HIV_PCT}%`}
+          sub="Deliveries · target >90%"
+          tone="on"
         />
-        <Kpi
-          title="VIP Follow-up Enrolled"
-          value={String(VIP_YTD)}
-          sub="HEI / baby / mother pairs (YTD)"
-          accent="text-teal-600"
+        <DomainKpi
+          title="HEI HIV-free 18–24m"
+          value={`${heiNegativePct}%`}
+          sub="PMTCT_FO · target >95%"
+          tone="on"
         />
+      </div>
+
+      {/* PMTCT Cascade — the Domain 1 story */}
+      <div className="bg-white rounded-lg p-6 border border-slate-200">
+        <div className="flex flex-wrap items-center justify-between gap-2 mb-1">
+          <h3 className="text-lg font-semibold text-gray-900">
+            The PMTCT Cascade — from 1st ANC to ART
+          </h3>
+          <div className="flex items-center gap-2">
+            <span className="px-2 py-1 rounded-md bg-emerald-50 text-emerald-800 text-xs font-bold">
+              Mother–baby pair continuum
+            </span>
+            <span className="px-2 py-1 rounded-md bg-teal-50 text-teal-800 text-xs font-bold">
+              {VIP_YTD.toLocaleString()} VIP follow-ups enrolled YTD
+            </span>
+          </div>
+        </div>
+        <p className="text-sm text-gray-500 mb-5">
+          Every woman matters: of those who reach 1st ANC, how many are tested,
+          linked to ART, deliver safely, and keep their baby HIV-free.
+        </p>
+        <div className="space-y-3">
+          {cascadeData.map((item, idx) => (
+            <CascadeBar
+              key={idx}
+              stage={item.stage}
+              count={item.count}
+              max={cascadeData[0].count}
+              note={
+                idx > 0
+                  ? `−${(cascadeData[idx - 1].count - item.count).toLocaleString()} vs prev stage`
+                  : undefined
+              }
+            />
+          ))}
+        </div>
+
+        {/* HEI outcomes at 18-24 months */}
+        <div className="mt-6 pt-5 border-t border-slate-100 grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div>
+            <h4 className="text-sm font-semibold text-gray-700 mb-3">
+              HEI outcomes at 18–24 months (PMTCT_FO)
+            </h4>
+            <div className="space-y-3">
+              {heiOutcomeData.map((item, idx) => (
+                <CascadeBar
+                  key={idx}
+                  stage={item.stage}
+                  count={item.count}
+                  max={heiOutcomeData[0].count}
+                  unit="of HEI"
+                  note={
+                    idx > 0
+                      ? `−${(heiOutcomeData[idx - 1].count - item.count).toLocaleString()} vs enrolled`
+                      : undefined
+                  }
+                />
+              ))}
+            </div>
+          </div>
+          <div className="flex flex-col justify-center bg-emerald-50 rounded-lg p-6 border border-emerald-200">
+            <p className="text-sm font-medium text-emerald-800">
+              HIV-free survival among exposed infants
+            </p>
+            <p className="text-5xl font-bold text-emerald-700 mt-2">
+              {heiNegativePct}%
+            </p>
+            <p className="text-xs text-emerald-700/80 mt-2">
+              {HEI_COHORT_NEGATIVE.toLocaleString()} of{" "}
+              {HEI_COHORT_ENROLLED.toLocaleString()} HEI discharged HIV-negative ·
+              target &gt;95%
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Domain 1 indicator performance vs Year-1 targets */}
+      <div className="bg-white rounded-lg p-6 border border-slate-200">
+        <div className="flex flex-wrap items-center justify-between gap-2 mb-1">
+          <h3 className="text-lg font-semibold text-gray-900">
+            Domain 1 — Indicator Performance vs Year-1 Targets
+          </h3>
+          <span className="text-xs text-gray-500">
+            EWENE DA 6/26/2026 · KHIS / NASCOP / EMR
+          </span>
+        </div>
+        <p className="text-sm text-gray-500 mb-5">
+          Status:{" "}
+          <span className="font-semibold text-emerald-600">On target</span> ·{" "}
+          <span className="font-semibold text-amber-600">Needs attention</span> ·{" "}
+          <span className="font-semibold text-red-600">Below target</span>
+        </p>
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+          {DOMAIN1_TARGETS.map((ind) => (
+            <TargetMeterCard key={ind.code} {...ind} />
+          ))}
+        </div>
+      </div>
+
+      {/* Viral load uptake & suppression */}
+      <div className="bg-white rounded-lg p-6 border border-slate-200">
+        <div className="flex flex-wrap items-center justify-between gap-2 mb-1">
+          <h3 className="text-lg font-semibold text-gray-900">
+            Viral Load Uptake &amp; Suppression (PMTCT_PVLS)
+          </h3>
+          <span className="px-2 py-1 rounded-md bg-blue-50 text-blue-800 text-xs font-bold">
+            NDW/EMR · Monthly
+          </span>
+        </div>
+        <p className="text-sm text-gray-500 mb-4">
+          VL coverage among HIV+ pregnant &amp; breastfeeding women and suppression
+          among those tested — the gold standard for ART effectiveness.
+        </p>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="flex flex-col items-center justify-center gap-4">
+            <div className="relative">
+              <ResponsiveContainer width={220} height={220}>
+                <PieChart>
+                  <Pie
+                    data={vlData}
+                    dataKey="value"
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={70}
+                    outerRadius={100}
+                    paddingAngle={2}
+                    startAngle={90}
+                    endAngle={-270}
+                  >
+                    {vlData.map((entry, index) => (
+                      <Cell key={`vl-${index}`} fill={entry.fill} />
+                    ))}
+                  </Pie>
+                </PieChart>
+              </ResponsiveContainer>
+              <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                <p className="text-3xl font-bold text-emerald-700">94%</p>
+                <p className="text-xs text-gray-500">Suppressed</p>
+              </div>
+            </div>
+            <div className="flex gap-6">
+              {vlData.map((item, idx) => (
+                <div key={idx} className="flex items-center gap-2">
+                  <div
+                    className="w-3 h-3 rounded"
+                    style={{ backgroundColor: item.fill }}
+                  />
+                  <span className="text-sm text-gray-700">
+                    {item.name}: {item.value}%
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div>
+            <h4 className="text-sm font-semibold text-gray-700 mb-3">
+              Uptake &amp; suppression trend (Jan–Jun)
+            </h4>
+            <ResponsiveContainer width="100%" height={240}>
+              <LineChart data={vlTrendData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="month" />
+                <YAxis domain={[70, 100]} />
+                <Tooltip formatter={(v, name) => [`${v}%`, String(name)]} />
+                <Legend />
+                <Line
+                  type="monotone"
+                  dataKey="uptake"
+                  stroke="#0d9488"
+                  strokeWidth={2}
+                  name="VL Uptake"
+                />
+                <Line
+                  type="monotone"
+                  dataKey="suppressed"
+                  stroke="#10b981"
+                  strokeWidth={2}
+                  name="Suppression"
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
       </div>
 
       {/* 1 — Detection & ART Initiation */}

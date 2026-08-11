@@ -4,14 +4,12 @@ import { useState } from "react";
 import {
   LayoutDashboard,
   Layers,
-  Stethoscope,
   HeartHandshake,
   ShieldPlus,
   CheckSquare,
   Grip,
 } from "lucide-react";
 import { HomeTab, DomainsTab } from "@/components/tabs/home-tab";
-import { ClinicalTab } from "@/components/tabs/clinical-tab";
 import { ShaTab } from "@/components/tabs/sha-tab";
 import { PrepTab } from "@/components/tabs/prep-tab";
 import { AssessmentDialog } from "@/components/assessment-dialog";
@@ -26,7 +24,6 @@ export default function Dashboard() {
   const tabs = [
     { id: "home", label: "Home", icon: LayoutDashboard },
     { id: "domains", label: "Domains", icon: Layers },
-    { id: "clinical", label: "PMTCT & HIV Care", icon: Stethoscope },
     { id: "sha", label: "SHA", icon: HeartHandshake },
     { id: "prep", label: "PrEP", icon: ShieldPlus },
   ];
@@ -37,8 +34,6 @@ export default function Dashboard() {
         return <HomeTab />;
       case "domains":
         return <DomainsTab />;
-      case "clinical":
-        return <ClinicalTab />;
       case "sha":
         return <ShaTab />;
       case "prep":
