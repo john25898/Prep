@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import {
   BarChart,
   Bar,
@@ -16,23 +17,28 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import {
+  ClipboardCheck,
   HeartHandshake,
   Home,
+  Hospital,
   ShieldCheck,
   UserCheck,
   Users,
 } from "lucide-react";
+import { useAssessments } from "@/lib/use-assessments";
+import { useGeoFilter } from "@/lib/geo-filter-context";
+import { applyGeoFilter } from "@/lib/geo";
 
 // ---------------------------------------------------------------------------
 // SHA — Social Health Authority (Universal Health Coverage) enrollment
-// Registration of pregnant women (PBFW), households and dependents into the
-// SHA scheme across the supported facilities.
+// Registration of HIV+ pregnant women (PBFW) and their households/dependents
+// into the SHA scheme across the supported facilities.
 // Values are KHIS/SHA-illustrative until live data entry is wired in.
 // ---------------------------------------------------------------------------
 
-const TOTAL_ANC_CLIENTS = 8220;
-const TOTAL_ENROLLED = 6470; // ~79% of ANC clients
-const ENROLLMENT_PCT = Math.round((TOTAL_ENROLLED / TOTAL_ANC_CLIENTS) * 100);
+const TOTAL_POSITIVE = 770; // HIV+ PBFW in the supported facilities
+const TOTAL_ENROLLED = 540; // of those, enrolled in SHA (~70%)
+const ENROLLMENT_PCT = Math.round((TOTAL_ENROLLED / TOTAL_POSITIVE) * 100);
 
 const shaTrendData = [
   { month: "Jan", enrolled: 860 },
@@ -43,27 +49,56 @@ const shaTrendData = [
   { month: "Jun", enrolled: 1270 },
 ];
 
-// 1st ANC clients vs SHA-enrolled, per facility (sums match the totals above).
-const ancVsShaData = [
-  { name: "Embu CRH", "ANC Clients": 1450, "SHA Enrolled": 1189 },
-  { name: "Runyenjes", "ANC Clients": 1120, "SHA Enrolled": 851 },
-  { name: "Meru TRH", "ANC Clients": 1680, "SHA Enrolled": 1411 },
-  { name: "Nkubu HC", "ANC Clients": 980, "SHA Enrolled": 696 },
-  { name: "Ol Kalou SCH", "ANC Clients": 1150, "SHA Enrolled": 851 },
-  { name: "Chuka CRH", "ANC Clients": 1840, "SHA Enrolled": 1472 },
+// HIV+ patients vs those enrolled in SHA, per facility (sums match totals).
+const positiveVsShaData = [
+  { name: "Embu CRH", "HIV+ Patients": 140, "SHA Enrolled": 120 },
+  { name: "Runyenjes", "HIV+ Patients": 110, "SHA Enrolled": 72 },
+  { name: "Meru TRH", "HIV+ Patients": 160, "SHA Enrolled": 125 },
+  { name: "Nkubu HC", "HIV+ Patients": 95, "SHA Enrolled": 40 },
+  { name: "Ol Kalou SCH", "HIV+ Patients": 120, "SHA Enrolled": 76 },
+  { name: "Chuka CRH", "HIV+ Patients": 145, "SHA Enrolled": 107 },
 ];
 
+// % of HIV+ patients enrolled in SHA per facility.
 const coverageByFacility = [
-  { name: "Embu CRH", coverage: 82 },
-  { name: "Runyenjes", coverage: 76 },
-  { name: "Meru TRH", coverage: 84 },
-  { name: "Nkubu HC", coverage: 71 },
-  { name: "Ol Kalou SCH", coverage: 74 },
-  { name: "Chuka CRH", coverage: 80 },
+  { name: "Embu CRH", coverage: 86 },
+  { name: "Runyenjes", coverage: 65 },
+  { name: "Meru TRH", coverage: 78 },
+  { name: "Nkubu HC", coverage: 42 },
+  { name: "Ol Kalou SCH", coverage: 63 },
+  { name: "Chuka CRH", coverage: 74 },
 ];
+
+// Facilities offering maternity services (denominator for assessment coverage).
+const FACILITIES_WITH_MATERNITY = 6;
+
+// ---------------------------------------------------------------------------
+// 4-tier performance scale (applied to ALL %-based displays):
+// > 80% dark green · 70–80% light green · 50–70% yellow · < 50% red
+// ---------------------------------------------------------------------------
+
+function tierColor(value: number | null): string {
+  if (value === null || Number.isNaN(value)) return "#cbd5e1";
+  if (value > 80) return "#15803d";
+  if (value >= 70) return "#4ade80";
+  if (value >= 50) return "#eab308";
+  return "#ef4444";
+}
+
+function tierText(value: number | null): string {
+  if (value === null || Number.isNaN(value)) return "text-slate-400";
+  if (value > 80) return "text-green-700";
+  if (value >= 70) return "text-green-600";
+  if (value >= 50) return "text-yellow-600";
+  return "text-red-600";
+}
 
 const coverageDonut = [
-  { name: "Enrolled", value: ENROLLMENT_PCT, fill: "#0d9488" },
+  {
+    name: "Enrolled",
+    value: ENROLLMENT_PCT,
+    fill: tierColor(ENROLLMENT_PCT),
+  },
   { name: "Not Enrolled", value: 100 - ENROLLMENT_PCT, fill: "#e5e7eb" },
 ];
 
@@ -114,27 +149,40 @@ function SectionBanner({
 }
 
 export function ShaTab() {
+  const allAssessments = useAssessments();
+  const { filter } = useGeoFilter();
+  const assessments = useMemo(
+    () => applyGeoFilter(allAssessments, filter),
+    [allAssessments, filter],
+  );
+
+  const assessedCount = assessments.length;
+  const coveragePct =
+    FACILITIES_WITH_MATERNITY > 0
+      ? Math.round((assessedCount / FACILITIES_WITH_MATERNITY) * 100)
+      : 0;
+
   return (
     <div className="space-y-6">
       <SectionBanner
         icon={<HeartHandshake className="w-5 h-5 text-blue-600" />}
         title="SHA Enrollment — Universal Health Coverage"
-        subtitle="Registration of pregnant women (PBFW), households and dependents into the Social Health Authority scheme within the supported facilities. Values are KHIS/SHA-illustrative until live data entry is wired in."
+        subtitle="Registration of HIV+ pregnant women (PBFW) and their households & dependents into the Social Health Authority scheme within the supported facilities. Values are KHIS/SHA-illustrative until live data entry is wired in."
       />
 
       {/* KPI Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <Kpi
-          title="ANC Clients Enrolled in SHA"
+          title="HIV+ Patients Enrolled in SHA"
           value={TOTAL_ENROLLED.toLocaleString()}
-          sub={`of ${TOTAL_ANC_CLIENTS.toLocaleString()} 1st ANC clients`}
+          sub={`of ${TOTAL_POSITIVE.toLocaleString()} HIV+ PBFW`}
           accent="text-blue-600"
         />
         <Kpi
-          title="SHA Enrollment Rate"
+          title="HIV+ SHA Enrollment Rate"
           value={`${ENROLLMENT_PCT}%`}
-          sub="of ANC clients registered with SHA"
-          accent="text-emerald-600"
+          sub="of HIV+ patients registered with SHA"
+          accent={tierText(ENROLLMENT_PCT)}
         />
         <Kpi
           title="Households Registered"
@@ -150,17 +198,18 @@ export function ShaTab() {
         />
       </div>
 
-      {/* ANC vs SHA + Enrollment trend */}
+      {/* HIV+ vs SHA + Enrollment trend */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-white rounded-lg p-6 border border-slate-200 min-w-0">
           <h3 className="text-lg font-semibold text-gray-900 mb-1">
-            1st ANC Clients vs SHA-Enrolled (by Facility)
+            HIV+ Patients vs SHA-Enrolled (by Facility)
           </h3>
           <p className="text-sm text-gray-500 mb-4">
-            Total 1st ANC clients vs clients enrolled in SHA in the period.
+            HIV+ pregnant women per facility vs those enrolled in SHA in the
+            period.
           </p>
           <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={ancVsShaData} margin={{ left: 0, right: 12 }}>
+            <BarChart data={positiveVsShaData} margin={{ left: 0, right: 12 }}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis
                 dataKey="name"
@@ -173,7 +222,11 @@ export function ShaTab() {
               <YAxis />
               <Tooltip />
               <Legend />
-              <Bar dataKey="ANC Clients" fill="#94a3b8" radius={[4, 4, 0, 0]} />
+              <Bar
+                dataKey="HIV+ Patients"
+                fill="#94a3b8"
+                radius={[4, 4, 0, 0]}
+              />
               <Bar
                 dataKey="SHA Enrolled"
                 fill="#2563eb"
@@ -208,6 +261,64 @@ export function ShaTab() {
         </div>
       </div>
 
+      {/* Facilities with maternity services — assessment coverage */}
+      <div className="bg-white rounded-lg p-6 border border-slate-200">
+        <div className="flex items-start gap-3">
+          <div className="w-10 h-10 rounded-lg bg-blue-50 border border-blue-200 flex items-center justify-center flex-shrink-0">
+            <Hospital className="w-5 h-5 text-blue-600" />
+          </div>
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900">
+              Facilities with Maternity Services — Assessment Coverage
+            </h3>
+            <p className="text-sm text-gray-500 mt-0.5">
+              Facilities offering maternity services, how many were assessed,
+              and the resulting assessment coverage rate (assessed ÷ with
+              maternity services).
+            </p>
+          </div>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4">
+          <Kpi
+            title="Facilities with Maternity Services"
+            value={`${FACILITIES_WITH_MATERNITY}`}
+            sub="of supported facilities (KHIS)"
+            accent="text-blue-600"
+          />
+          <Kpi
+            title="Facilities Assessed"
+            value={`${assessedCount}`}
+            sub="Domain 3 readiness assessments entered"
+            accent="text-emerald-600"
+          />
+          <Kpi
+            title="Assessment Coverage"
+            value={`${coveragePct}%`}
+            sub="assessed ÷ facilities with maternity services"
+            accent={tierText(coveragePct)}
+          />
+        </div>
+        <div className="mt-5">
+          <div className="flex items-center justify-between text-xs text-gray-500 mb-1">
+            <span className="flex items-center gap-1">
+              <ClipboardCheck className="w-3.5 h-3.5" />
+              {assessedCount} of {FACILITIES_WITH_MATERNITY} facilities assessed
+              ({coveragePct}%)
+            </span>
+            <span>Target ≥ 100%</span>
+          </div>
+          <div className="w-full h-3 bg-gray-200 rounded-full overflow-hidden">
+            <div
+              className="h-full rounded-full transition-all"
+              style={{
+                width: `${Math.min(coveragePct, 100)}%`,
+                backgroundColor: tierColor(coveragePct),
+              }}
+            />
+          </div>
+        </div>
+      </div>
+
       {/* Coverage by facility + donut */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-white rounded-lg p-6 border border-slate-200 min-w-0">
@@ -215,8 +326,12 @@ export function ShaTab() {
             SHA Coverage by Facility
           </h3>
           <p className="text-sm text-gray-500 mb-4">
-            % of ANC clients enrolled per facility — emerald ≥ 80%, amber below
-            target.
+            % of HIV+ patients enrolled per facility —{" "}
+            <span className="text-green-700 font-medium">&gt;80% dark green</span>{" "}
+            ·{" "}
+            <span className="text-green-600 font-medium">70–80% light green</span>{" "}
+            · <span className="text-yellow-600 font-medium">50–70% yellow</span>{" "}
+            · <span className="text-red-600 font-medium">&lt;50% red</span>.
           </p>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={coverageByFacility} margin={{ left: 0, right: 12 }}>
@@ -233,10 +348,7 @@ export function ShaTab() {
               <Tooltip formatter={(v) => [`${v}%`, "Coverage"]} />
               <Bar dataKey="coverage" name="Coverage %" radius={[6, 6, 0, 0]}>
                 {coverageByFacility.map((entry, idx) => (
-                  <Cell
-                    key={`cell-${idx}`}
-                    fill={entry.coverage >= 80 ? "#10b981" : "#f59e0b"}
-                  />
+                  <Cell key={`cell-${idx}`} fill={tierColor(entry.coverage)} />
                 ))}
               </Bar>
             </BarChart>
@@ -248,7 +360,7 @@ export function ShaTab() {
             Overall Enrollment Coverage
           </h3>
           <p className="text-sm text-gray-500 mb-4">
-            Share of 1st ANC clients registered with SHA in the period.
+            Share of HIV+ patients registered with SHA in the period.
           </p>
           <ResponsiveContainer width="100%" height={300}>
             <PieChart>
@@ -287,8 +399,8 @@ export function ShaTab() {
           <div>
             <h3 className="font-semibold">Why SHA enrollment matters</h3>
             <p className="text-sm mt-1 opacity-80">
-              Enrolling pregnant women and their dependents into SHA is the
-              entry point to Universal Health Coverage: it removes financial
+              Enrolling HIV+ pregnant women and their dependents into SHA is
+              the entry point to Universal Health Coverage: it removes financial
               barriers to antenatal care, skilled delivery, postnatal care and
               the PMTCT cascade. Household registration (
               <Home className="inline w-3.5 h-3.5" /> 18,450) extends coverage
