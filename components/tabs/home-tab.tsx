@@ -13,20 +13,18 @@ import {
 } from "recharts";
 import {
   Activity,
-  ClipboardList,
   Database,
-  HeartPulse,
-  Hospital,
   ShieldCheck,
+  Stethoscope,
   TrendingUp,
 } from "lucide-react";
-import { GaugeChart } from "@/components/gauge-chart";
 import { RadialProgress } from "@/components/radial-progress";
-import { StatusBadge } from "@/components/status-badge";
 import { useAssessments } from "@/lib/use-assessments";
 import { useGeoFilter } from "@/lib/geo-filter-context";
 import { applyGeoFilter } from "@/lib/geo";
-import { averageReadiness, yesRate } from "@/lib/assessment";
+import { averageReadiness } from "@/lib/assessment";
+import { AssessmentTab } from "@/components/tabs/assessment-tab";
+import { MortalityTab } from "@/components/tabs/mortality-tab";
 
 // ---------------------------------------------------------------------------
 // Yellow-marked (home page) indicators per the EWENE Dashboard Indicators doc
@@ -226,75 +224,6 @@ const DATA_SYSTEM_INDICATORS: IndicatorDef[] = [
   },
 ];
 
-const READINESS_INDICATORS: (IndicatorDef & { itemId: string })[] = [
-  {
-    itemId: "3.1",
-    code: "3.1",
-    label:
-      "Zero stockout of tracer MNH commodities (oxytocin, carbetocin, MgSO₄, TXA, benzyl penicillin)",
-    y1: 80,
-    y2: 100,
-    note: "Computed from Item 3.1 (LMIS/KHIS)",
-  },
-  {
-    itemId: "3.2",
-    code: "3.2",
-    label: "Functional blood transfusion services (Level 4 facilities)",
-    y1: 75,
-    y2: 85,
-    note: "Computed from Item 3.2 (HFA-QOC)",
-  },
-  {
-    itemId: "3.3",
-    code: "3.3",
-    label: "Functional oxygen supply & neonatal CPAP",
-    y1: 40,
-    y2: 60,
-    note: "Computed from Item 3.3 (HFA-QOC)",
-  },
-  {
-    itemId: "3.4",
-    code: "3.4",
-    label:
-      "IP-procured equipment functional & in active use (6 months post-delivery)",
-    y1: 90,
-    y2: 90,
-    note: "Computed from Item 3.4 (facility assessment)",
-  },
-  {
-    itemId: "3.5",
-    code: "3.5",
-    label: "All 7 BEmONC signal functions performed",
-    y1: 50,
-    y2: 65,
-    note: "Computed from Item 3.5 (HFA-QOC)",
-  },
-  {
-    itemId: "3.6",
-    code: "3.6",
-    label: "All 9 CEmONC signal functions (Level 4/5 facilities)",
-    y1: 60,
-    y2: 75,
-    note: "Computed from Item 3.6 (HFA-QOC)",
-  },
-  {
-    itemId: "3.7",
-    code: "3.7",
-    label: "Essential newborn care (ENC) bundle consistently provided",
-    y1: 45,
-    y2: 60,
-    note: "Computed from Item 3.7 (HFA-QOC)",
-  },
-  {
-    itemId: "3.8",
-    code: "3.8",
-    label: "No stockout of blood or blood products in the reporting period",
-    y1: 80,
-    y2: 95,
-    note: "Computed from Item 3.8 (LMIS)",
-  },
-];
-
 // Current reported values for KHIS/EMR-sourced indicators (national baselines).
 const REPORTED_CURRENT: Record<string, number> = {
   "2.1": 52,
@@ -375,47 +304,44 @@ function HomeOverviewStrip() {
     [allAssessments, filter],
   );
 
+  const avgReadiness =
+    assessments.length > 0 ? averageReadiness(assessments) : 0;
+
   const cards = [
     {
-      title: "Facilities Reporting Maternal Deaths",
-      value: 6,
-      sub: "of 6 supported facilities",
-      icon: <Activity className="w-5 h-5 text-red-600" />,
+      title: "1 · PMTCT/VTP Quality of Care",
+      value: "87.7%",
+      sub: "675 of 770 HIV+ PBFW initiated on ART",
+      icon: <Stethoscope className="w-5 h-5 text-emerald-600" />,
     },
     {
-      title: "Facilities Reporting Neonatal Deaths",
-      value: 6,
-      sub: "of 6 supported facilities",
-      icon: <HeartPulse className="w-5 h-5 text-rose-600" />,
+      title: "2 · Coverage (90:90:80:80)",
+      value: "63%",
+      sub: "Average across the 4 coverage pillars",
+      icon: <TrendingUp className="w-5 h-5 text-teal-600" />,
     },
     {
-      title: "Maternal Deaths Reported",
-      value: 42,
-      sub: "YTD across supported facilities",
-      icon: <ClipboardList className="w-5 h-5 text-red-500" />,
-    },
-    {
-      title: "Neonatal Deaths Reported",
-      value: 58,
-      sub: "YTD across supported facilities",
-      icon: <TrendingUp className="w-5 h-5 text-rose-500" />,
-    },
-    {
-      title: "Monthly MPDSR/QI Review Meetings",
-      value: "67%",
-      sub: "4 of 6 facilities",
+      title: "3 · Readiness & Safe Systems",
+      value: `${avgReadiness.toFixed(0)}%`,
+      sub: `${assessments.length} facilities assessed · computed live`,
       icon: <ShieldCheck className="w-5 h-5 text-emerald-600" />,
     },
     {
-      title: "Maternity Service Facilities",
-      value: `${assessments.length}`,
-      sub: "H/F offering maternity services",
-      icon: <Hospital className="w-5 h-5 text-rose-600" />,
+      title: "4 · MPDSR & Accountability",
+      value: "67%",
+      sub: "4 of 6 facilities hold monthly reviews",
+      icon: <Activity className="w-5 h-5 text-red-600" />,
+    },
+    {
+      title: "5 · Data Systems",
+      value: "62%",
+      sub: "Average reporting & DQA completeness",
+      icon: <Database className="w-5 h-5 text-indigo-600" />,
     },
   ];
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4 mb-6">
+    <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4 mb-6">
       {cards.map((card) => (
         <div
           key={card.title}
@@ -521,194 +447,11 @@ function CoverageSection() {
 }
 
 // ---------------------------------------------------------------------------
-// 3. Readiness & Safe Systems (computed from assessments)
+// 3. Readiness & Safe Systems — full Readiness Insights content (Domain 3)
 // ---------------------------------------------------------------------------
 
 function ReadinessSection() {
-  const allAssessments = useAssessments();
-  const { filter } = useGeoFilter();
-  const assessments = useMemo(
-    () => applyGeoFilter(allAssessments, filter),
-    [allAssessments, filter],
-  );
-
-  const readinessValues = useMemo(() => {
-    return READINESS_INDICATORS.map((ind) => ({
-      ...ind,
-      current: yesRate(assessments, ind.itemId),
-    }));
-  }, [assessments]);
-
-  const chartData = useMemo(
-    () =>
-      readinessValues.map((r) => ({
-        name: r.code,
-        label: r.label,
-        current: r.current === null ? null : Math.round(r.current),
-        target: r.y2,
-      })),
-    [readinessValues],
-  );
-
-  if (assessments.length === 0) {
-    const hasDataElsewhere = allAssessments.length > 0;
-    return (
-      <div className="bg-white rounded-lg border border-slate-200 p-12 text-center">
-        <ShieldCheck className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-        <h3 className="text-xl font-semibold text-gray-900">
-          {hasDataElsewhere
-            ? "No Readiness Data in the Current Scope"
-            : "Readiness Indicators Await Facility Data"}
-        </h3>
-        <p className="text-gray-600 mt-2 max-w-lg mx-auto">
-          {hasDataElsewhere ? (
-            <>
-              No entered assessments match the current scope filter. Use the{" "}
-              <span className="font-semibold text-emerald-600">Scope</span>{" "}
-              dropdowns in the header to widen the selection.
-            </>
-          ) : (
-            <>
-              Indicators 3.1 – 3.8 (% of supported facilities meeting each
-              readiness criterion) are computed automatically from the entered
-              Domain 3 facility assessments. Use the{" "}
-              <span className="font-semibold text-emerald-600">
-                App Launcher
-              </span>{" "}
-              to enter an assessment, then return here to see the live
-              dashboard.
-            </>
-          )}
-        </p>
-      </div>
-    );
-  }
-
-  const avgReadiness = averageReadiness(assessments);
-
-  return (
-    <div className="space-y-6">
-      {/* Summary banner — KPI cards already shown in the overview strip */}
-      <div className="flex flex-wrap items-center justify-between gap-3 bg-gradient-to-r from-emerald-50 to-teal-50 rounded-lg p-5 border border-emerald-200">
-        <div>
-          <p className="text-sm font-medium text-emerald-800">
-            Domain 3 · computed live from {assessments.length} assessment
-            {assessments.length === 1 ? "" : "s"}
-          </p>
-          <div className="flex items-center gap-3 mt-1">
-            <p className="text-2xl font-bold text-gray-900">
-              {avgReadiness.toFixed(1)}% average readiness
-            </p>
-            <StatusBadge
-              status={
-                avgReadiness >= 80
-                  ? "green"
-                  : avgReadiness >= 60
-                    ? "amber"
-                    : "red"
-              }
-              label={`${avgReadiness.toFixed(0)}%`}
-            />
-          </div>
-        </div>
-        <p className="text-sm text-emerald-700">
-          Facility-level scores, charts &amp; records are under the{" "}
-          <span className="font-semibold">Readiness Insights</span> tab.
-        </p>
-      </div>
-
-      {/* Highlight gauges: 3.1, 3.2, 3.3, 3.8 */}
-      <div className="bg-white rounded-lg p-6 border border-slate-200">
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">
-          Critical Safe Systems — Zero Stockouts, Blood &amp; Oxygen (Indicators
-          3.1, 3.2, 3.3, 3.8)
-        </h3>
-        <p className="text-sm text-gray-500 mb-4">
-          % of assessed facilities meeting each criterion (computed from entered
-          assessments, N/A excluded)
-        </p>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {readinessValues
-            .filter((r) => ["3.1", "3.2", "3.3", "3.8"].includes(r.itemId))
-            .map((r) => (
-              <div key={r.itemId} className="bg-slate-50 rounded-xl p-5">
-                <GaugeChart
-                  value={r.current ?? 0}
-                  max={100}
-                  label={`${r.code} · ${r.label.split("(")[0].trim()}`}
-                  color={
-                    r.current !== null && r.current >= r.y2
-                      ? "#10b981"
-                      : r.current !== null && r.current >= r.y1
-                        ? "#f59e0b"
-                        : "#ef4444"
-                  }
-                />
-                <p className="text-xs text-gray-500 text-center mt-1">
-                  Target: Y1 {r.y1}% → Y2 {r.y2}%
-                </p>
-              </div>
-            ))}
-        </div>
-      </div>
-
-      {/* All 8 indicators vs targets */}
-      <div className="bg-white rounded-lg p-6 border border-slate-200">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">
-          Facility Readiness Indicators 3.1 – 3.8 vs Year 2 Targets
-        </h3>
-        <ResponsiveContainer width="100%" height={340}>
-          <BarChart data={chartData} margin={{ left: 0, right: 12 }}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-            <YAxis domain={[0, 100]} />
-            <Tooltip
-              formatter={(value, name) =>
-                name === "target"
-                  ? [`${value}%`, "Y2 Target"]
-                  : value === null || value === undefined
-                    ? ["No data", "Current"]
-                    : [`${value}%`, "Current"]
-              }
-              labelFormatter={(label) => {
-                const item = chartData.find((d) => d.name === label);
-                return item ? item.label : label;
-              }}
-            />
-            <Legend />
-            <Bar
-              dataKey="current"
-              name="Current"
-              fill="#10b981"
-              radius={[6, 6, 0, 0]}
-            />
-            <Bar
-              dataKey="target"
-              name="Y2 Target"
-              fill="#93c5fd"
-              radius={[6, 6, 0, 0]}
-            />
-          </BarChart>
-        </ResponsiveContainer>
-      </div>
-
-      {/* Per-indicator bars */}
-      <div className="bg-white rounded-lg p-6 border border-slate-200">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">
-          Readiness Indicator Detail
-        </h3>
-        <div className="space-y-5">
-          {readinessValues.map((ind) => (
-            <IndicatorBar
-              key={ind.itemId}
-              indicator={ind}
-              current={ind.current}
-            />
-          ))}
-        </div>
-      </div>
-    </div>
-  );
+  return <AssessmentTab />;
 }
 
 // ---------------------------------------------------------------------------
@@ -724,43 +467,9 @@ function MpdsrSection() {
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
-        <div className="bg-white rounded-lg p-6 border border-slate-200">
-          <p className="text-sm text-gray-600 font-medium">
-            Facilities Reporting Maternal Deaths (4.1)
-          </p>
-          <p className="text-3xl font-bold text-red-600 mt-2">6</p>
-          <p className="text-xs text-gray-500 mt-1">of 6 supported facilities</p>
-        </div>
-        <div className="bg-white rounded-lg p-6 border border-slate-200">
-          <p className="text-sm text-gray-600 font-medium">
-            Facilities Reporting Neonatal Deaths (4.2)
-          </p>
-          <p className="text-3xl font-bold text-rose-600 mt-2">6</p>
-          <p className="text-xs text-gray-500 mt-1">of 6 supported facilities</p>
-        </div>
-        <div className="bg-white rounded-lg p-6 border border-slate-200">
-          <p className="text-sm text-gray-600 font-medium">
-            Maternal Deaths Reported (4.3)
-          </p>
-          <p className="text-3xl font-bold text-red-600 mt-2">42</p>
-          <p className="text-xs text-gray-500 mt-1">YTD reported</p>
-        </div>
-        <div className="bg-white rounded-lg p-6 border border-slate-200">
-          <p className="text-sm text-gray-600 font-medium">
-            Neonatal Deaths Reported (4.4)
-          </p>
-          <p className="text-3xl font-bold text-rose-600 mt-2">58</p>
-          <p className="text-xs text-gray-500 mt-1">YTD reported</p>
-        </div>
-        <div className="bg-white rounded-lg p-6 border border-slate-200">
-          <p className="text-sm text-gray-600 font-medium">
-            Monthly MPDSR/QI Review Meetings (4.5)
-          </p>
-          <p className="text-3xl font-bold text-emerald-600 mt-2">67%</p>
-          <p className="text-xs text-gray-500 mt-1">4 of 6 facilities · Target 100%</p>
-        </div>
-      </div>
+      {/* Full Mortality & MPDSR content (KPI cards, deaths by facility,
+          monthly trends, facility review list) */}
+      <MortalityTab />
 
       <div className="bg-white rounded-lg p-6 border border-slate-200">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">

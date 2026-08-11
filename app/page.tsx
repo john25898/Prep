@@ -4,17 +4,15 @@ import { useState } from "react";
 import {
   LayoutDashboard,
   Stethoscope,
-  TrendingUp,
-  CheckSquare,
-  ShieldCheck,
+  HeartHandshake,
   ShieldPlus,
+  CheckSquare,
   Grip,
 } from "lucide-react";
 import { HomeTab } from "@/components/tabs/home-tab";
 import { ClinicalTab } from "@/components/tabs/clinical-tab";
+import { ShaTab } from "@/components/tabs/sha-tab";
 import { PrepTab } from "@/components/tabs/prep-tab";
-import { MortalityTab } from "@/components/tabs/mortality-tab";
-import { AssessmentTab } from "@/components/tabs/assessment-tab";
 import { AssessmentDialog } from "@/components/assessment-dialog";
 import { GeoFilterBar } from "@/components/geo-filter-bar";
 import { GeoFilterProvider } from "@/lib/geo-filter-context";
@@ -27,9 +25,8 @@ export default function Dashboard() {
   const tabs = [
     { id: "home", label: "Home", icon: LayoutDashboard },
     { id: "clinical", label: "PMTCT & HIV Care", icon: Stethoscope },
+    { id: "sha", label: "SHA", icon: HeartHandshake },
     { id: "prep", label: "PrEP", icon: ShieldPlus },
-    { id: "mortality", label: "Mortality & MPDSR", icon: TrendingUp },
-    { id: "readiness", label: "Readiness Insights", icon: ShieldCheck },
   ];
 
   const renderContent = () => {
@@ -38,12 +35,10 @@ export default function Dashboard() {
         return <HomeTab />;
       case "clinical":
         return <ClinicalTab />;
+      case "sha":
+        return <ShaTab />;
       case "prep":
         return <PrepTab />;
-      case "mortality":
-        return <MortalityTab />;
-      case "readiness":
-        return <AssessmentTab />;
       default:
         return null;
     }
