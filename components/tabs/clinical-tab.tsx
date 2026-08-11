@@ -405,96 +405,6 @@ const MBP_PATHWAY = [
   },
 ];
 
-// ---- Domain 1 target framework (EWENE DA 6/26/2026) ----
-type TargetIndicator = {
-  code: string;
-  label: string;
-  value: number;
-  target: number;
-  source: string;
-  frequency: string;
-};
-
-const DOMAIN1_TARGETS: TargetIndicator[] = [
-  {
-    code: "1.1 · PMTCT_STAT_D",
-    label:
-      "ANC coverage — 1st ANC attendance (denominator: PBFW with known HIV status)",
-    value: 94,
-    target: 95,
-    source: "KHIS",
-    frequency: "Monthly",
-  },
-  {
-    code: "1.2 · PMTCT_STAT_N",
-    label: "HIV testing coverage among PBFW at 1st ANC",
-    value: 96,
-    target: 95,
-    source: "KHIS",
-    frequency: "Monthly",
-  },
-  {
-    code: "1.3 · PMTCT_ART",
-    label: "ART initiation among HIV-positive PBFW",
-    value: +(
-      ((PBFW_NEW_ART + PBFW_KNOWN_ART) /
-        (PBFW_NEW_POSITIVE + PBFW_KNOWN_POSITIVE)) *
-      100
-    ).toFixed(1),
-    target: 95,
-    source: "KHIS",
-    frequency: "Monthly",
-  },
-  {
-    code: "1.4 · PMTCT_PVLS",
-    label: "Viral load suppression among PBFW",
-    value: 94,
-    target: 95,
-    source: "NDW/EMR",
-    frequency: "Monthly",
-  },
-  {
-    code: "1.5 · PMTCT_EID",
-    label: "EID within 8 weeks including birth testing",
-    value: HEI_EID_PCT,
-    target: 98,
-    source: "KHIS/NASCOP",
-    frequency: "Monthly",
-  },
-  {
-    code: "1.6 · PMTCT_HEI_ART",
-    label: "Timely ART initiation for PCR-positive exposed infants",
-    value: +((HEI_POSITIVE_ART / PCR_POSITIVE_HEI) * 100).toFixed(1),
-    target: 100,
-    source: "NASCOP/EMR",
-    frequency: "Monthly",
-  },
-  {
-    code: "1.7 · Deliveries",
-    label: "Skilled birth attendance among HIV-positive mothers",
-    value: SBA_HIV_PCT,
-    target: 90,
-    source: "KHIS",
-    frequency: "Monthly",
-  },
-  {
-    code: "1.8 · PMTCT_FO",
-    label: "HEI HIV-free survival at 18–24 months",
-    value: +((HEI_COHORT_NEGATIVE / HEI_COHORT_ENROLLED) * 100).toFixed(1),
-    target: 95,
-    source: "EMR",
-    frequency: "Monthly",
-  },
-  {
-    code: "1.9 · Pairs",
-    label: "Retention of mother–baby pair across continuum of care",
-    value: PAIRS_CONTINUUM_PCT,
-    target: 95,
-    source: "EMR",
-    frequency: "Quarterly",
-  },
-];
-
 // Viral load (PMTCT_PVLS)
 const vlData = [
   { name: "Suppressed", value: 94, fill: "#10b981" },
@@ -563,33 +473,11 @@ const STATUS_LABEL: Record<StatusTone, string> = {
   off: "Below target",
 };
 
-const STATUS_BADGE: Record<StatusTone, string> = {
-  on: "bg-emerald-100 text-emerald-700",
-  warn: "bg-amber-100 text-amber-700",
-  off: "bg-red-100 text-red-700",
-};
-
 const STATUS_DOT: Record<StatusTone, string> = {
   on: "bg-emerald-500",
   warn: "bg-amber-500",
   off: "bg-red-500",
 };
-
-const STATUS_BAR: Record<StatusTone, string> = {
-  on: "bg-emerald-500",
-  warn: "bg-amber-500",
-  off: "bg-red-500",
-};
-
-function statusOf(
-  value: number,
-  target: number,
-): { tone: StatusTone; label: string } {
-  if (value >= target) return { tone: "on", label: STATUS_LABEL.on };
-  const ratio = value / target;
-  if (ratio >= 0.9) return { tone: "warn", label: STATUS_LABEL.warn };
-  return { tone: "off", label: STATUS_LABEL.off };
-}
 
 function DomainKpi({
   title,
@@ -617,53 +505,6 @@ function DomainKpi({
       </div>
       <p className={`text-3xl font-bold mt-2 ${accent}`}>{value}</p>
       <p className="text-xs text-gray-500 mt-1">{sub}</p>
-    </div>
-  );
-}
-
-function TargetMeterCard({
-  code,
-  label,
-  value,
-  target,
-  source,
-  frequency,
-}: TargetIndicator) {
-  const { tone, label: statusLabel } = statusOf(value, target);
-  return (
-    <div className="bg-white rounded-lg border border-slate-200 p-4 flex flex-col">
-      <div className="flex items-center justify-between gap-2 mb-2">
-        <span className="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-800 text-[11px] font-bold whitespace-nowrap">
-          {code}
-        </span>
-        <span
-          className={`px-2 py-0.5 rounded-full text-[11px] font-semibold flex items-center gap-1.5 ${STATUS_BADGE[tone]}`}
-        >
-          <span className={`w-1.5 h-1.5 rounded-full ${STATUS_DOT[tone]}`} />
-          {statusLabel}
-        </span>
-      </div>
-      <p className="text-sm text-gray-800 leading-snug flex-1">{label}</p>
-      <div className="mt-3">
-        <div className="flex items-baseline justify-between mb-1">
-          <span className="text-xl font-bold text-gray-900">{value}%</span>
-          <span className="text-xs text-gray-500">Target &gt;{target}%</span>
-        </div>
-        <div className="relative h-2.5 bg-slate-100 rounded-full overflow-hidden">
-          <div
-            className={`h-full rounded-full ${STATUS_BAR[tone]}`}
-            style={{ width: `${Math.min(value, 100)}%` }}
-          />
-          <div
-            className="absolute top-0 bottom-0 w-0.5 bg-gray-500"
-            style={{ left: `${target}%` }}
-          />
-        </div>
-      </div>
-      <div className="mt-2 pt-2 border-t border-slate-100 flex justify-between text-[11px] text-gray-400">
-        <span>{source}</span>
-        <span>{frequency}</span>
-      </div>
     </div>
   );
 }
@@ -883,29 +724,6 @@ function Subtab2B() {
                 </p>
               </div>
             </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Domain 1 indicator performance vs Year-1 targets */}
-      <div className="bg-white rounded-lg p-6 border border-slate-200">
-        <div className="flex flex-wrap items-center justify-between gap-2 mb-1">
-          <h3 className="text-lg font-semibold text-gray-900">
-            Domain 1 — Indicator Performance vs Year-1 Targets
-          </h3>
-          <span className="text-xs text-gray-500">
-            EWENE DA 6/26/2026 · KHIS / NASCOP / EMR
-          </span>
-        </div>
-        <p className="text-sm text-gray-500 mb-5">
-          Status:{" "}
-          <span className="font-semibold text-emerald-600">On target</span> ·{" "}
-          <span className="font-semibold text-amber-600">Needs attention</span>{" "}
-          · <span className="font-semibold text-red-600">Below target</span>
-        </p>
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-          {DOMAIN1_TARGETS.map((ind) => (
-            <TargetMeterCard key={ind.code} {...ind} />
           ))}
         </div>
       </div>

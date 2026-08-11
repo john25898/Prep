@@ -30,7 +30,6 @@ import {
   Target,
   TrendingUp,
 } from "lucide-react";
-import { RadialProgress } from "@/components/radial-progress";
 import { useAssessments } from "@/lib/use-assessments";
 import { PARTNERS, type Partner } from "@/lib/geo";
 import { averageReadiness, type FacilityAssessment } from "@/lib/assessment";
@@ -588,15 +587,87 @@ const PILLARS = [
 
 // §5.3 — VTP Quality-of-Care scoreboard (nine core PMTCT indicators)
 const VTP_QOC = [
-  { no: 1, label: "ANC coverage", code: "PMTCT_STAT_D", source: "KHIS", target: 95, op: ">", current: 94 },
-  { no: 2, label: "Testing for PBFW", code: "PMTCT_STAT_N", source: "KHIS", target: 95, op: ">", current: 96 },
-  { no: 3, label: "ART initiation for PBFW", code: "PMTCT_ART", source: "KHIS", target: 95, op: ">", current: 87.7 },
-  { no: 4, label: "Viral load uptake & suppression", code: "PMTCT_PVLS", source: "NDW/EMR", target: 95, op: ">", current: 94 },
-  { no: 5, label: "Early infant diagnosis ≤ 8 weeks", code: "PMTCT_EID", source: "KHIS/NASCOP", target: 98, op: ">", current: 88 },
-  { no: 6, label: "Timely ART for PCR+ infants", code: "PMTCT_HEI_ART", source: "NASCOP/EMR", target: 100, op: "=", current: 92.3 },
-  { no: 7, label: "Delivery among HIV+ mothers", code: "Deliveries", source: "KHIS", target: 90, op: ">", current: 92 },
-  { no: 8, label: "HEI final outcome 18–24 months", code: "PMTCT_FO", source: "EMR", target: 95, op: ">", current: 96.6 },
-  { no: 9, label: "Retention of the mother–baby pair", code: "MBP retention", source: "EMR", target: 95, op: ">", current: 91 },
+  {
+    no: 1,
+    label: "ANC coverage",
+    code: "PMTCT_STAT_D",
+    source: "KHIS",
+    target: 95,
+    op: ">",
+    current: 94,
+  },
+  {
+    no: 2,
+    label: "Testing for PBFW",
+    code: "PMTCT_STAT_N",
+    source: "KHIS",
+    target: 95,
+    op: ">",
+    current: 96,
+  },
+  {
+    no: 3,
+    label: "ART initiation for PBFW",
+    code: "PMTCT_ART",
+    source: "KHIS",
+    target: 95,
+    op: ">",
+    current: 87.7,
+  },
+  {
+    no: 4,
+    label: "Viral load uptake & suppression",
+    code: "PMTCT_PVLS",
+    source: "NDW/EMR",
+    target: 95,
+    op: ">",
+    current: 94,
+  },
+  {
+    no: 5,
+    label: "Early infant diagnosis ≤ 8 weeks",
+    code: "PMTCT_EID",
+    source: "KHIS/NASCOP",
+    target: 98,
+    op: ">",
+    current: 88,
+  },
+  {
+    no: 6,
+    label: "Timely ART for PCR+ infants",
+    code: "PMTCT_HEI_ART",
+    source: "NASCOP/EMR",
+    target: 100,
+    op: "=",
+    current: 92.3,
+  },
+  {
+    no: 7,
+    label: "Delivery among HIV+ mothers",
+    code: "Deliveries",
+    source: "KHIS",
+    target: 90,
+    op: ">",
+    current: 92,
+  },
+  {
+    no: 8,
+    label: "HEI final outcome 18–24 months",
+    code: "PMTCT_FO",
+    source: "EMR",
+    target: 95,
+    op: ">",
+    current: 96.6,
+  },
+  {
+    no: 9,
+    label: "Retention of the mother–baby pair",
+    code: "MBP retention",
+    source: "EMR",
+    target: 95,
+    op: ">",
+    current: 91,
+  },
 ];
 
 // §5.4 — Facility Readiness & Safe Systems (five systemic enablers)
@@ -719,30 +790,46 @@ const CADENCE = [
   {
     freq: "Monthly",
     tone: "bg-emerald-50 text-emerald-700 border-emerald-200",
-    items: "Facility-level PMTCT/VTP indicators · commodity stockout reports · MPDSR death audits · RRI dashboard updates",
+    items:
+      "Facility-level PMTCT/VTP indicators · commodity stockout reports · MPDSR death audits · dashboard uploads & DQA · DoS VTP TWG review · RRI dashboard updates",
   },
   {
     freq: "Quarterly",
     tone: "bg-teal-50 text-teal-700 border-teal-200",
-    items: "County scorecards · mother–baby pair retention · blood & oxygen readiness assessments",
+    items:
+      "County scorecards · mother–baby pair retention · blood & oxygen readiness · BEmONC/CEmONC functionality · MPDSR recommendation tracking · EMR audit",
   },
   {
     freq: "Semi-annual",
     tone: "bg-sky-50 text-sky-700 border-sky-200",
-    items: "Equipment functionality assessments · DoS IP contribution reports (PEPFAR & EWENE targets)",
+    items:
+      "Equipment functionality & EmONC skills assessments · DoS IP contribution reports (PEPFAR & EWENE targets)",
   },
   {
     freq: "Annual",
     tone: "bg-violet-50 text-violet-700 border-violet-200",
-    items: "National EWENE performance review · lessons learned & best-practice documentation",
+    items:
+      "National EWENE performance review · lessons learned & best-practice documentation",
   },
 ];
 
 // §6 — Review platforms
 const REVIEW_PLATFORMS = [
-  { icon: CalendarDays, label: "Bi-weekly", text: "RRI national county coordination meetings" },
-  { icon: CalendarDays, label: "Monthly", text: "Facility CQI & MPDSR committees; DoS VTP TWG review meetings" },
-  { icon: CalendarDays, label: "Quarterly", text: "County EWENE Technical Committee reviews" },
+  {
+    icon: CalendarDays,
+    label: "Bi-weekly",
+    text: "RRI national county coordination meetings",
+  },
+  {
+    icon: CalendarDays,
+    label: "Monthly",
+    text: "Facility CQI & MPDSR committees; DoS VTP TWG review meetings",
+  },
+  {
+    icon: CalendarDays,
+    label: "Quarterly",
+    text: "County EWENE Technical Committee reviews",
+  },
 ];
 
 // Per-partner target tracking — framework targets per domain
@@ -960,6 +1047,22 @@ export function HomeTab() {
         })}
       </div>
 
+      {/* Results & Impact — executive layer header */}
+      <div className="flex items-center gap-3">
+        <span className="w-10 h-10 rounded-xl bg-gradient-to-br from-rose-500 to-teal-600 flex items-center justify-center shadow-sm flex-shrink-0">
+          <Target className="w-5 h-5 text-white" />
+        </span>
+        <div>
+          <h2 className="text-xl font-bold text-gray-900">
+            Results &amp; Impact
+          </h2>
+          <p className="text-sm text-gray-500">
+            What EWENE 2026–2028 must achieve — outcomes, coverage pillars,
+            quality of care, safe systems &amp; governance.
+          </p>
+        </div>
+      </div>
+
       {/* Core Impact Indicators — §5.1 */}
       <div className="bg-white rounded-lg border border-slate-200 overflow-hidden">
         <div className="px-6 pt-5 pb-3 flex items-center justify-between flex-wrap gap-2">
@@ -1086,16 +1189,22 @@ export function HomeTab() {
           <table className="min-w-full divide-y divide-slate-200">
             <thead className="bg-slate-50">
               <tr>
-                {["#", "Indicator", "Code", "Source", "Target", "Current", "Status"].map(
-                  (h) => (
-                    <th
-                      key={h}
-                      className="px-4 py-2.5 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider"
-                    >
-                      {h}
-                    </th>
-                  ),
-                )}
+                {[
+                  "#",
+                  "Indicator",
+                  "Code",
+                  "Source",
+                  "Target",
+                  "Current",
+                  "Status",
+                ].map((h) => (
+                  <th
+                    key={h}
+                    className="px-4 py-2.5 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider"
+                  >
+                    {h}
+                  </th>
+                ))}
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -1128,7 +1237,9 @@ export function HomeTab() {
                       <span
                         className={`inline-flex items-center gap-1.5 text-xs font-semibold px-2 py-1 rounded-full ${tone.text} bg-slate-50 border border-slate-200`}
                       >
-                        <span className={`w-1.5 h-1.5 rounded-full ${tone.dot}`} />
+                        <span
+                          className={`w-1.5 h-1.5 rounded-full ${tone.dot}`}
+                        />
                         {tone.label}
                       </span>
                     </td>
@@ -1161,16 +1272,22 @@ export function HomeTab() {
           <table className="min-w-full divide-y divide-slate-200">
             <thead className="bg-slate-50">
               <tr>
-                {["Indicator", "Detail", "Source", "Frequency", "Target", "Current", "Status"].map(
-                  (h) => (
-                    <th
-                      key={h}
-                      className="px-4 py-2.5 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider"
-                    >
-                      {h}
-                    </th>
-                  ),
-                )}
+                {[
+                  "Indicator",
+                  "Detail",
+                  "Source",
+                  "Frequency",
+                  "Target",
+                  "Current",
+                  "Status",
+                ].map((h) => (
+                  <th
+                    key={h}
+                    className="px-4 py-2.5 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider"
+                  >
+                    {h}
+                  </th>
+                ))}
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -1204,7 +1321,9 @@ export function HomeTab() {
                       <span
                         className={`inline-flex items-center gap-1.5 text-xs font-semibold px-2 py-1 rounded-full ${tone.text} bg-slate-50 border border-slate-200`}
                       >
-                        <span className={`w-1.5 h-1.5 rounded-full ${tone.dot}`} />
+                        <span
+                          className={`w-1.5 h-1.5 rounded-full ${tone.dot}`}
+                        />
                         {tone.label}
                       </span>
                     </td>
@@ -1224,9 +1343,9 @@ export function HomeTab() {
             Partner Impact &amp; Target Tracker
           </h3>
           <p className="text-sm text-gray-500 mt-0.5">
-            Each partner's progress toward framework targets — D1 &gt;95%
-            (VTP QoC), D2 ≥90% (90:90:80:80), D3 ≥90% (readiness, live), D4
-            100% (MPDSR audit), D5 100% (data reporting).
+            Each partner's progress toward framework targets — D1 &gt;95% (VTP
+            QoC), D2 ≥90% (90:90:80:80), D3 ≥90% (readiness, live), D4 100%
+            (MPDSR audit), D5 100% (data reporting).
           </p>
         </div>
         <div className="px-6 pb-6 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
@@ -1790,94 +1909,12 @@ function SubtabKpi({
 // ---------------------------------------------------------------------------
 
 function CoverageSection() {
-  const pillars = [
-    {
-      label: "ANC 4+ Visits",
-      target: 90,
-      current: 52,
-      sublabel: "2.1 · Target ≥ 90% (Y2)",
-    },
-    {
-      label: "Skilled Birth Attendance",
-      target: 95,
-      current: 70,
-      sublabel: "2.2 · Target ≥ 95% (Y2)",
-    },
-    {
-      label: "Postnatal Care ≤ 48 hrs",
-      target: 80,
-      current: 66.6,
-      sublabel: "2.3 · Target ≥ 80% (Y2)",
-    },
-    {
-      label: "Newborn PNC ≤ 48 hrs",
-      target: 80,
-      current: 68.4,
-      sublabel: "2.4 · Target ≥ 80% (Y2)",
-    },
-  ];
-
   // County-level coverage — Jamii Tekelezi counties (KHIS-illustrative).
   const countyCoverageData = [
     { name: "Embu", anc4: 58, sba: 84, pnc: 72 },
     { name: "Tharaka-Nithi", anc4: 51, sba: 76, pnc: 64 },
     { name: "Meru", anc4: 55, sba: 80, pnc: 69 },
     { name: "Nyandarua", anc4: 47, sba: 71, pnc: 60 },
-  ];
-
-  const coreImpact = [
-    {
-      label: "Maternal Mortality Ratio",
-      baseline: "355",
-      target: "≤ 140",
-      unit: "per 100,000 live births",
-      tone: "from-rose-50 to-red-50 border-rose-200 text-rose-800",
-    },
-    {
-      label: "Neonatal Mortality Rate",
-      baseline: "21",
-      target: "≤ 12",
-      unit: "per 1,000 live births",
-      tone: "from-amber-50 to-orange-50 border-amber-200 text-amber-800",
-    },
-    {
-      label: "Stillbirth Rate",
-      baseline: "19",
-      target: "≤ 12",
-      unit: "per 1,000 births",
-      tone: "from-violet-50 to-purple-50 border-violet-200 text-violet-800",
-    },
-  ];
-
-  const tracking = [
-    {
-      domain: "ANC coverage",
-      indicator: "At least four ANC visits",
-      target: "≥ 90%",
-      pillar: "90",
-      current: 52,
-    },
-    {
-      domain: "Skilled delivery",
-      indicator: "Skilled birth attendance coverage",
-      target: "≥ 90%",
-      pillar: "90",
-      current: 70,
-    },
-    {
-      domain: "Early PNC",
-      indicator: "Postnatal care within 48 hours",
-      target: "≥ 80%",
-      pillar: "80",
-      current: 66.6,
-    },
-    {
-      domain: "Continuity of care",
-      indicator: "Retention of the mother–baby pair",
-      target: "≥ 80%",
-      pillar: "80",
-      current: 68.4,
-    },
   ];
 
   return (
@@ -1930,145 +1967,26 @@ function CoverageSection() {
         />
       </div>
 
-      {/* Core impact indicators — the national north star (5.1) */}
-      <div className="bg-white rounded-lg p-6 border border-slate-200">
-        <div className="flex flex-wrap items-center justify-between gap-2 mb-1">
-          <h3 className="text-lg font-semibold text-gray-900">
-            Core Impact Indicators — EWENE 2026–2028 (5.1)
-          </h3>
-          <span className="px-2 py-1 rounded-md bg-slate-100 text-slate-600 text-xs font-bold">
-            Baseline → Target
+      {/* Headline tracking lives on Home — Results & Impact */}
+      <div className="bg-white rounded-lg p-5 border border-slate-200 flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-3 min-w-0">
+          <span className="w-9 h-9 rounded-lg bg-teal-50 border border-teal-200 flex items-center justify-center flex-shrink-0">
+            <TrendingUp className="w-4 h-4 text-teal-600" />
           </span>
+          <div className="min-w-0">
+            <p className="text-sm font-semibold text-gray-900">
+              Core impact &amp; 90:90:80:80 headline tracking
+            </p>
+            <p className="text-xs text-gray-500 mt-0.5">
+              The national mortality targets (§5.1) and the four-pillar
+              90:90:80:80 tracker (§5.2) now live on the Home page under Results
+              &amp; Impact — this tab carries the per-indicator detail below.
+            </p>
+          </div>
         </div>
-        <p className="text-sm text-gray-500 mb-5">
-          The three national outcomes the coverage work ultimately feeds: every
-          ANC visit, skilled delivery and PNC contact exists to bend these
-          curves.
-        </p>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {coreImpact.map((ci) => (
-            <div
-              key={ci.label}
-              className={`bg-gradient-to-br rounded-lg p-5 border ${ci.tone}`}
-            >
-              <p className="text-sm font-semibold">{ci.label}</p>
-              <div className="flex items-baseline gap-3 mt-3">
-                <p className="text-3xl font-bold">{ci.baseline}</p>
-                <span className="text-lg font-bold">→</span>
-                <p className="text-3xl font-bold">{ci.target}</p>
-              </div>
-              <p className="text-xs opacity-80 mt-1">{ci.unit}</p>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* EWENE 90:90:80:80 tracking table (5.2) */}
-      <div className="bg-white rounded-lg p-6 border border-slate-200">
-        <div className="flex flex-wrap items-center justify-between gap-2 mb-1">
-          <h3 className="text-lg font-semibold text-gray-900">
-            EWENE 90:90:80:80 Tracking Table (5.2)
-          </h3>
-          <span className="px-2 py-1 rounded-md bg-teal-50 text-teal-700 text-xs font-bold">
-            Current vs target
-          </span>
-        </div>
-        <p className="text-sm text-gray-500 mb-5">
-          Four pillars — 90% ANC4+, 90% skilled delivery, 80% early PNC, 80%
-          mother–baby pair retention — tracked monthly from KHIS.
-        </p>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-slate-200 text-left text-xs uppercase tracking-wide text-gray-500">
-                <th className="py-2 pr-3">Pillar</th>
-                <th className="py-2 pr-3">Indicator</th>
-                <th className="py-2 pr-3 text-right">Target</th>
-                <th className="py-2 pr-3 text-right">Current</th>
-                <th className="py-2 text-right">Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {tracking.map((t) => {
-                const tone = toneOf(
-                  t.current,
-                  parseFloat(t.target.replace(/[^\d.]/g, "")),
-                );
-                return (
-                  <tr
-                    key={t.domain}
-                    className="border-b border-slate-100 last:border-0"
-                  >
-                    <td className="py-2.5 pr-3 font-semibold text-gray-800">
-                      {t.domain}
-                      <span className="ml-2 px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 text-[10px] font-bold">
-                        {t.pillar}
-                      </span>
-                    </td>
-                    <td className="py-2.5 pr-3 text-gray-600">{t.indicator}</td>
-                    <td className="py-2.5 pr-3 text-right font-semibold text-gray-800">
-                      {t.target}
-                    </td>
-                    <td className="py-2.5 pr-3 text-right font-bold">
-                      <span className={TONE_TEXT[tone]}>{t.current}%</span>
-                    </td>
-                    <td className="py-2.5 text-right">
-                      <span
-                        className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-semibold ${
-                          tone === "on"
-                            ? "bg-emerald-100 text-emerald-700"
-                            : tone === "warn"
-                              ? "bg-amber-100 text-amber-700"
-                              : "bg-red-100 text-red-700"
-                        }`}
-                      >
-                        <span
-                          className={`w-1.5 h-1.5 rounded-full ${TONE_DOT[tone]}`}
-                        />
-                        {TONE_LABEL[tone]}
-                      </span>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <div className="bg-white rounded-lg p-6 border border-slate-200">
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">
-          EWENE 90:90:80:80 Coverage Pillars (Domain 2)
-        </h3>
-        <p className="text-sm text-gray-500 mb-6">
-          Coverage targets per the integrated monitoring framework: ANC 4+ ≥ 90%
-          · Skilled delivery ≥ 95% · Early PNC ≥ 80% · Newborn PNC ≥ 80%.
-          Current values are KHIS-reported baselines.
-        </p>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {pillars.map((pillar) => (
-            <div
-              key={pillar.label}
-              className="flex flex-col items-center bg-slate-50 rounded-xl p-5"
-            >
-              <RadialProgress
-                data={[{ name: pillar.label, value: pillar.current }]}
-                title={pillar.label}
-                color={
-                  pillar.current >= pillar.target
-                    ? "#10b981"
-                    : pillar.current >= pillar.target * 0.7
-                      ? "#f59e0b"
-                      : "#ef4444"
-                }
-              />
-              <p className="text-sm text-gray-600 mt-1">{pillar.sublabel}</p>
-              <p className="text-xs text-gray-500 mt-1">
-                Current: {pillar.current.toFixed(1)}%
-              </p>
-            </div>
-          ))}
-        </div>
+        <span className="px-2.5 py-1 rounded-full bg-teal-50 text-teal-700 border border-teal-200 text-xs font-semibold whitespace-nowrap">
+          Home → Results &amp; Impact
+        </span>
       </div>
 
       {/* County aspects — where the gaps are biggest */}
@@ -2942,33 +2860,11 @@ function DataSystemsSection() {
         </div>
       </div>
 
-      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-6 border border-blue-200">
-        <h3 className="font-semibold text-blue-900 mb-2">Reporting Cadence</h3>
-        <ul className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-blue-800">
-          <li>
-            • <b>Monthly:</b> Facility PMTCT/VTP indicators, commodity
-            stockouts, MPDSR death audits, dashboard uploads, DQA, DoS VTP TWG
-            review meeting
-          </li>
-          <li>
-            • <b>Bi-weekly:</b> RRI national–county coordination inputs, RRI
-            performance brief contribution
-          </li>
-          <li>
-            • <b>Quarterly:</b> County scorecards, mother–baby pair retention,
-            blood &amp; oxygen readiness, BEmONC/CEmONC functionality, MPDSR
-            recommendation tracking, EMR audit
-          </li>
-          <li>
-            • <b>Semi-annual:</b> Equipment functionality assessment, EmONC
-            skills assessment, DoS IP contribution report to PEPFAR &amp; EWENE
-          </li>
-          <li>
-            • <b>Annual:</b> National EWENE performance review &amp; lessons
-            learned
-          </li>
-        </ul>
-      </div>
+      <p className="text-xs text-gray-500 text-center">
+        The full governance &amp; reporting cadence (monthly → quarterly →
+        semi-annual → annual) and review platforms live on the Home page under
+        Governance &amp; Reporting Cadence.
+      </p>
     </div>
   );
 }
