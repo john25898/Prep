@@ -1,6 +1,5 @@
 "use client";
 
-import { useMemo } from "react";
 import {
   BarChart,
   Bar,
@@ -17,17 +16,12 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import {
-  ClipboardCheck,
   HeartHandshake,
   Home,
-  Hospital,
   ShieldCheck,
   UserCheck,
   Users,
 } from "lucide-react";
-import { useAssessments } from "@/lib/use-assessments";
-import { useGeoFilter } from "@/lib/geo-filter-context";
-import { applyGeoFilter } from "@/lib/geo";
 
 // ---------------------------------------------------------------------------
 // SHA — Social Health Authority (Universal Health Coverage) enrollment
@@ -70,7 +64,7 @@ const coverageByFacility = [
 ];
 
 // Facilities offering maternity services (denominator for assessment coverage).
-const FACILITIES_WITH_MATERNITY = 6;
+// (Assessment coverage now lives under Domain 3 — Readiness & Safe Systems.)
 
 // ---------------------------------------------------------------------------
 // 4-tier performance scale (applied to ALL %-based displays):
@@ -149,19 +143,6 @@ function SectionBanner({
 }
 
 export function ShaTab() {
-  const allAssessments = useAssessments();
-  const { filter } = useGeoFilter();
-  const assessments = useMemo(
-    () => applyGeoFilter(allAssessments, filter),
-    [allAssessments, filter],
-  );
-
-  const assessedCount = assessments.length;
-  const coveragePct =
-    FACILITIES_WITH_MATERNITY > 0
-      ? Math.round((assessedCount / FACILITIES_WITH_MATERNITY) * 100)
-      : 0;
-
   return (
     <div className="space-y-6">
       <SectionBanner
@@ -258,64 +239,6 @@ export function ShaTab() {
               />
             </LineChart>
           </ResponsiveContainer>
-        </div>
-      </div>
-
-      {/* Facilities with maternity services — assessment coverage */}
-      <div className="bg-white rounded-lg p-6 border border-slate-200">
-        <div className="flex items-start gap-3">
-          <div className="w-10 h-10 rounded-lg bg-blue-50 border border-blue-200 flex items-center justify-center flex-shrink-0">
-            <Hospital className="w-5 h-5 text-blue-600" />
-          </div>
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900">
-              Facilities with Maternity Services — Assessment Coverage
-            </h3>
-            <p className="text-sm text-gray-500 mt-0.5">
-              Facilities offering maternity services, how many were assessed,
-              and the resulting assessment coverage rate (assessed ÷ with
-              maternity services).
-            </p>
-          </div>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4">
-          <Kpi
-            title="Facilities with Maternity Services"
-            value={`${FACILITIES_WITH_MATERNITY}`}
-            sub="of supported facilities (KHIS)"
-            accent="text-blue-600"
-          />
-          <Kpi
-            title="Facilities Assessed"
-            value={`${assessedCount}`}
-            sub="Domain 3 readiness assessments entered"
-            accent="text-emerald-600"
-          />
-          <Kpi
-            title="Assessment Coverage"
-            value={`${coveragePct}%`}
-            sub="assessed ÷ facilities with maternity services"
-            accent={tierText(coveragePct)}
-          />
-        </div>
-        <div className="mt-5">
-          <div className="flex items-center justify-between text-xs text-gray-500 mb-1">
-            <span className="flex items-center gap-1">
-              <ClipboardCheck className="w-3.5 h-3.5" />
-              {assessedCount} of {FACILITIES_WITH_MATERNITY} facilities assessed
-              ({coveragePct}%)
-            </span>
-            <span>Target ≥ 100%</span>
-          </div>
-          <div className="w-full h-3 bg-gray-200 rounded-full overflow-hidden">
-            <div
-              className="h-full rounded-full transition-all"
-              style={{
-                width: `${Math.min(coveragePct, 100)}%`,
-                backgroundColor: tierColor(coveragePct),
-              }}
-            />
-          </div>
         </div>
       </div>
 

@@ -97,73 +97,61 @@ const COVERAGE_INDICATORS: IndicatorDef[] = [
   {
     code: "2.7",
     label: "Facility fresh stillbirth rate at supported facilities",
-    baseline: "Target ≤ 15 per 1,000 births",
-    y1: 20,
-    y2: 15,
+    baseline: "7.64 per 1,000 births (KHIS)",
+    y1: 5,
+    y2: 4,
     lowerIsBetter: true,
     unit: "per-1000",
-    note: "Source: KHIS (monthly) · added per dashboard review",
+    note: "Source: KHIS (monthly)",
   },
   {
     code: "2.8",
     label:
       "Facility maternal mortality ratio at supported facilities (per 100,000 live births)",
-    baseline: "Target ≤ 200 per 100,000 live births",
-    y1: 250,
-    y2: 200,
+    baseline: "91 per 100,000 live births (KHIS)",
+    y1: 70,
+    y2: 50,
     lowerIsBetter: true,
     unit: "per-100000",
-    note: "Source: KHIS (monthly) · added per dashboard review",
+    note: "Source: KHIS (quarterly)",
   },
 ];
 
 const MPDSR_INDICATORS: IndicatorDef[] = [
   {
     code: "4.1",
-    label: "Number of facilities reporting Maternal deaths",
-    baseline: "6 of 6 supported facilities",
-    y1: 6,
-    y2: 6,
-    unit: "count",
+    label: "% of maternal deaths audited at supported facilities (MPDSR)",
+    baseline: "105.8% reported (KHIS)",
+    y1: 100,
+    y2: 100,
     note: "Source: KHIS / MPDSR records (monthly)",
   },
   {
     code: "4.2",
-    label: "Number of facilities reporting Neonatal deaths",
-    baseline: "6 of 6 supported facilities",
-    y1: 6,
-    y2: 6,
-    unit: "count",
+    label: "% of neonatal deaths audited at supported facilities",
+    baseline: "66.8% (KHIS)",
+    y1: 85,
+    y2: 100,
     note: "Source: KHIS / MPDSR records (monthly)",
   },
   {
     code: "4.3",
-    label: "Number of Maternal Deaths reported",
-    baseline: "YTD",
-    y1: 42,
-    y2: 42,
-    unit: "count",
-    note: "Source: KHIS / MPDSR records (monthly)",
+    label: "% of supported facilities holding monthly MPDSR/QI review meetings",
+    baseline: "41% counties (national)",
+    y1: 100,
+    y2: 100,
+    note: "Source: County records (monthly)",
   },
   {
     code: "4.4",
-    label: "Number of Neonatal Deaths reported",
-    baseline: "YTD",
-    y1: 58,
-    y2: 58,
-    unit: "count",
-    note: "Source: KHIS / MPDSR records (monthly)",
+    label: "% of MPDSR recommendations implemented within 3 months",
+    baseline: "To be established at baseline",
+    y1: 70,
+    y2: 90,
+    note: "Source: MPDSR action tracker (quarterly)",
   },
   {
     code: "4.5",
-    label: "% of supported facilities holding monthly MPDSR/QI review meetings",
-    baseline: "4 of 6 facilities (67%)",
-    y1: 100,
-    y2: 100,
-    note: "Replaces Monthly MPDSR/QI Meeting · Source: County records (monthly)",
-  },
-  {
-    code: "4.6",
     label: "% of providers correctly diagnosing & treating PPH",
     baseline: "40% (national)",
     y1: 55,
@@ -171,12 +159,28 @@ const MPDSR_INDICATORS: IndicatorDef[] = [
     note: "Source: HFA-QOC / skills assessment (semi-annual)",
   },
   {
-    code: "4.7",
+    code: "4.6",
     label: "% of providers correctly diagnosing & treating birth asphyxia",
     baseline: "36% (national)",
     y1: 50,
     y2: 65,
     note: "Source: HFA-QOC / skills assessment (semi-annual)",
+  },
+  {
+    code: "4.7",
+    label: "% of health workers trained on EmONC within the last 2 years",
+    baseline: "28% (national)",
+    y1: 50,
+    y2: 75,
+    note: "Source: MOH training records (quarterly)",
+  },
+  {
+    code: "4.8",
+    label: "% of supported facilities with functional MPDSR/QI teams",
+    baseline: "63% (national)",
+    y1: 85,
+    y2: 100,
+    note: "Source: HFA-QOC (quarterly)",
   },
 ];
 
@@ -226,6 +230,90 @@ const DATA_SYSTEM_INDICATORS: IndicatorDef[] = [
     y2: 100,
     note: "Source: DQA records (monthly)",
   },
+  {
+    code: "5.6",
+    label:
+      "Number of DoS VTP TWG review meetings held using real-time dashboard data",
+    baseline: "Facility-specific",
+    y1: 12,
+    y2: 12,
+    unit: "count",
+    note: "Source: Meeting minutes (monthly)",
+  },
+];
+
+const READINESS_INDICATORS: IndicatorDef[] = [
+  {
+    code: "3.1",
+    label:
+      "% of supported facilities with zero stockout of tracer MNH commodities (oxytocin, carbetocin, MgSO₄, TXA, benzyl penicillin)",
+    baseline: "Facility-specific",
+    y1: 80,
+    y2: 100,
+    note: "Source: LMIS / KHIS (monthly)",
+  },
+  {
+    code: "3.2",
+    label:
+      "% of supported Level 4 facilities with functional blood transfusion services",
+    baseline: "66% (national L4)",
+    y1: 75,
+    y2: 85,
+    note: "Source: HFA-QOC (quarterly)",
+  },
+  {
+    code: "3.3",
+    label:
+      "% of supported facilities with functional oxygen supply and CPAP for neonates",
+    baseline: "20% L4 (national)",
+    y1: 40,
+    y2: 60,
+    note: "Source: HFA-QOC (quarterly)",
+  },
+  {
+    code: "3.4",
+    label:
+      "% of IP-procured equipment functional and in active use at 6 months post-delivery",
+    baseline: "To be established at baseline",
+    y1: 90,
+    y2: 90,
+    note: "Source: Facility assessment (semi-annual)",
+  },
+  {
+    code: "3.5",
+    label: "% of supported facilities with all 7 BEmONC signal functions",
+    baseline: "37% (national)",
+    y1: 50,
+    y2: 65,
+    note: "Source: HFA-QOC (quarterly)",
+  },
+  {
+    code: "3.6",
+    label:
+      "% of supported Level 4/5 facilities with all 9 CEmONC signal functions",
+    baseline: "46% (national)",
+    y1: 60,
+    y2: 75,
+    note: "Source: HFA-QOC (quarterly)",
+  },
+  {
+    code: "3.7",
+    label:
+      "% of supported facilities with essential newborn health services (ENC bundle)",
+    baseline: "34% (national)",
+    y1: 45,
+    y2: 60,
+    note: "Source: HFA-QOC (quarterly)",
+  },
+  {
+    code: "3.8",
+    label:
+      "% of supported facilities with no stockout of blood or blood products in the reporting period",
+    baseline: "Facility-specific",
+    y1: 80,
+    y2: 95,
+    note: "Source: LMIS / County (monthly)",
+  },
 ];
 
 // Current reported values for KHIS/EMR-sourced indicators (national baselines).
@@ -236,20 +324,30 @@ const REPORTED_CURRENT: Record<string, number> = {
   "2.4": 68.4,
   "2.5": 54,
   "2.6": 65,
-  "2.7": 22,
-  "2.8": 310,
-  "4.1": 6,
-  "4.2": 6,
-  "4.3": 42,
-  "4.4": 58,
-  "4.5": 67,
-  "4.6": 40,
-  "4.7": 36,
+  "2.7": 7.6,
+  "2.8": 91,
+  "3.1": 72,
+  "3.2": 66,
+  "3.3": 20,
+  "3.4": 88,
+  "3.5": 37,
+  "3.6": 46,
+  "3.7": 34,
+  "3.8": 70,
+  "4.1": 88,
+  "4.2": 74,
+  "4.3": 67,
+  "4.4": 55,
+  "4.5": 40,
+  "4.6": 36,
+  "4.7": 28,
+  "4.8": 63,
   "5.1": 85,
   "5.2": 65,
   "5.3": 30,
   "5.4": 60,
   "5.5": 70,
+  "5.6": 9,
 };
 
 // ---------------------------------------------------------------------------
@@ -911,38 +1009,62 @@ function CoverageSection() {
       label: "ANC 4+ Visits",
       target: 90,
       current: 52,
-      sublabel: "Target ≥ 90%",
+      sublabel: "2.1 · Target ≥ 90% (Y2)",
     },
     {
       label: "Skilled Birth Attendance",
-      target: 90,
+      target: 95,
       current: 70,
-      sublabel: "Target ≥ 90%",
+      sublabel: "2.2 · Target ≥ 95% (Y2)",
     },
     {
       label: "Postnatal Care ≤ 48 hrs",
       target: 80,
       current: 66.6,
-      sublabel: "Target ≥ 80%",
+      sublabel: "2.3 · Target ≥ 80% (Y2)",
     },
     {
-      label: "Mother–Baby Pair Retention",
+      label: "Newborn PNC ≤ 48 hrs",
       target: 80,
-      current: 62,
-      sublabel: "Target ≥ 80%",
+      current: 68.4,
+      sublabel: "2.4 · Target ≥ 80% (Y2)",
     },
+  ];
+
+  // County-level coverage — Jamii Tekelezi counties (KHIS-illustrative).
+  const countyCoverageData = [
+    { name: "Embu", anc4: 58, sba: 84, pnc: 72 },
+    { name: "Tharaka-Nithi", anc4: 51, sba: 76, pnc: 64 },
+    { name: "Meru", anc4: 55, sba: 80, pnc: 69 },
+    { name: "Nyandarua", anc4: 47, sba: 71, pnc: 60 },
   ];
 
   return (
     <div className="space-y-6">
+      {/* Story banner — the gap to close */}
+      <div className="bg-gradient-to-r from-teal-50 to-cyan-50 rounded-lg p-5 border border-teal-200 text-teal-900">
+        <h3 className="font-semibold">
+          The coverage story: too many women fall out of the continuum
+        </h3>
+        <p className="text-sm mt-1 opacity-80">
+          Only <b>52%</b> of pregnant women reach 4+ ANC visits and <b>70%</b>{" "}
+          deliver with a skilled attendant — far short of the 90:90:80:80
+          ambition. Every missed ANC visit is a missed opportunity for HIV
+          testing, syphilis screening, and delivery planning; every
+          facility-only delivery is a risk for mother and baby. Closing the
+          gap means tracing each mother–baby pair from first contact through
+          the postnatal period.
+        </p>
+      </div>
+
       <div className="bg-white rounded-lg p-6 border border-slate-200">
         <h3 className="text-lg font-semibold text-gray-900 mb-2">
           EWENE 90:90:80:80 Coverage Pillars (Domain 2)
         </h3>
         <p className="text-sm text-gray-500 mb-6">
-          Coverage targets: ANC 4+ ≥ 90% · Skilled delivery ≥ 90% · Early PNC ≥
-          80% · Continuity of care ≥ 80%. Current values are KHIS-reported
-          baselines.
+          Coverage targets per the integrated monitoring framework: ANC 4+ ≥
+          90% · Skilled delivery ≥ 95% · Early PNC ≥ 80% · Newborn PNC ≥ 80%.
+          Current values are KHIS-reported baselines.
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {pillars.map((pillar) => (
@@ -963,11 +1085,34 @@ function CoverageSection() {
               />
               <p className="text-sm text-gray-600 mt-1">{pillar.sublabel}</p>
               <p className="text-xs text-gray-500 mt-1">
-                Current: {pillar.current.toFixed(0)}%
+                Current: {pillar.current.toFixed(1)}%
               </p>
             </div>
           ))}
         </div>
+      </div>
+
+      {/* County aspects — where the gaps are biggest */}
+      <div className="bg-white rounded-lg p-6 border border-slate-200">
+        <h3 className="text-lg font-semibold text-gray-900 mb-1">
+          Coverage by County — Jamii Tekelezi
+        </h3>
+        <p className="text-sm text-gray-500 mb-4">
+          ANC 4+, skilled birth attendance and early PNC differ widely by
+          county — targeting the laggards is where the biggest gains lie.
+        </p>
+        <ResponsiveContainer width="100%" height={300}>
+          <BarChart data={countyCoverageData} margin={{ left: 0, right: 12 }}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="name" />
+            <YAxis domain={[0, 100]} />
+            <Tooltip formatter={(v) => [`${v}%`, ""]} />
+            <Legend />
+            <Bar dataKey="anc4" name="ANC 4+" fill="#14b8a6" radius={[4, 4, 0, 0]} />
+            <Bar dataKey="sba" name="SBA" fill="#0d9488" radius={[4, 4, 0, 0]} />
+            <Bar dataKey="pnc" name="PNC ≤ 48h" fill="#06b6d4" radius={[4, 4, 0, 0]} />
+          </BarChart>
+        </ResponsiveContainer>
       </div>
 
       <div className="bg-white rounded-lg p-6 border border-slate-200">
@@ -989,11 +1134,141 @@ function CoverageSection() {
 }
 
 // ---------------------------------------------------------------------------
-// 3. Readiness & Safe Systems — full Readiness Insights content (Domain 3)
+// 3. Readiness & Safe Systems — Domain 3 framework + live assessment content
 // ---------------------------------------------------------------------------
 
 function ReadinessSection() {
-  return <AssessmentTab />;
+  const allAssessments = useAssessments();
+
+  // Jamii Tekelezi county readiness — computed live from entered assessments.
+  const countyReadiness = [
+    "Embu",
+    "Tharaka-Nithi",
+    "Meru",
+    "Nyandarua",
+  ].map((county) => {
+    const r = readinessForCounties(allAssessments, [county]);
+    return {
+      name: county,
+      readiness: r.avg ?? 0,
+      assessed: r.count,
+    };
+  });
+
+  return (
+    <div className="space-y-6">
+      {/* Story banner — the three systemic enablers */}
+      <div className="bg-gradient-to-r from-lime-50 to-emerald-50 rounded-lg p-5 border border-lime-200 text-emerald-900">
+        <h3 className="font-semibold">
+          Readiness is more than buildings — it is blood, oxygen, commodities
+          and working equipment
+        </h3>
+        <p className="text-sm mt-1 opacity-80">
+          Three systemic enablers determine whether a facility can actually
+          save a life at the moment of need: <b>equipment due diligence</b>{" "}
+          (10–30% of donated equipment in LMICs never becomes operational),{" "}
+          <b>safe blood systems</b> (26% of PPH deaths are attributable to a
+          lack of safe blood), and <b>oxygen ecosystems</b> (RDS contributes to
+          ~45% of preterm deaths; only 20% of Level 4 facilities can deliver
+          oxygen/CPAP). The guiding question is not “Can we buy this?” but “Are
+          the conditions in place to make it work?”
+        </p>
+      </div>
+
+      {/* Domain 3 indicators 3.1 – 3.8 */}
+      <div className="bg-white rounded-lg p-6 border border-slate-200">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">
+          Readiness &amp; Safe Systems Indicators (3.1 – 3.8)
+        </h3>
+        <div className="space-y-5">
+          {READINESS_INDICATORS.map((ind) => (
+            <IndicatorBar
+              key={ind.code}
+              indicator={ind}
+              current={REPORTED_CURRENT[ind.code] ?? 0}
+            />
+          ))}
+        </div>
+      </div>
+
+      {/* County readiness — live from assessments */}
+      <div className="bg-white rounded-lg p-6 border border-slate-200">
+        <h3 className="text-lg font-semibold text-gray-900 mb-1">
+          Facility Readiness by County — Jamii Tekelezi (live)
+        </h3>
+        <p className="text-sm text-gray-500 mb-4">
+          Average readiness score computed from the assessments entered below;
+          counties with no assessment yet show 0%.
+        </p>
+        <ResponsiveContainer width="100%" height={260}>
+          <BarChart data={countyReadiness} margin={{ left: 0, right: 12 }}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="name" />
+            <YAxis domain={[0, 100]} />
+            <Tooltip
+              formatter={(v, name) =>
+                name === "readiness" ? [`${v}%`, "Readiness"] : [v, name]
+              }
+            />
+            <Bar
+              dataKey="readiness"
+              name="Readiness (%)"
+              fill="#84cc16"
+              radius={[4, 4, 0, 0]}
+            />
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+
+      {/* The three systemic enablers — story panels */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="bg-gradient-to-b from-sky-50 to-white rounded-lg p-5 border border-sky-200">
+          <h4 className="font-semibold text-sky-900">
+            Equipment Due Diligence
+          </h4>
+          <p className="text-sm text-sky-800 mt-2">
+            Before any procurement: verify facility readiness (power, space,
+            water), maintenance contracts &amp; spare parts, a training plan that
+            accounts for staff turnover, and a tracking system to prevent
+            diversion.
+          </p>
+          <p className="text-xs text-sky-700 mt-3 font-medium">
+            Milestones: installed &amp; staff trained 100% · in active use at 3
+            months ≥ 90% · functional at 6 months ≥ 90% · consumables zero
+            stockout.
+          </p>
+        </div>
+        <div className="bg-gradient-to-b from-rose-50 to-white rounded-lg p-5 border border-rose-200">
+          <h4 className="font-semibold text-rose-900">Safe Blood Systems</h4>
+          <p className="text-sm text-rose-800 mt-2">
+            PPH is the leading direct cause of maternal death in Kenya — 26% of
+            PPH deaths trace to a lack of safe blood. Track availability at
+            supported facilities and advocate for SHA reimbursement of
+            transfusion services.
+          </p>
+          <p className="text-xs text-rose-700 mt-3 font-medium">
+            Benchmarks: ≥ facility minimum stock · 100% availability for
+            obstetrics · ≥ 75% of L4 cold storage · county blood drives.
+          </p>
+        </div>
+        <div className="bg-gradient-to-b from-violet-50 to-white rounded-lg p-5 border border-violet-200">
+          <h4 className="font-semibold text-violet-900">Oxygen Ecosystems</h4>
+          <p className="text-sm text-violet-800 mt-2">
+            RDS contributes to ~45% of preterm deaths; only 20% of L4
+            facilities meet all oxygen/CPAP requirements. Assess availability
+            and flag gaps for county &amp; national escalation.
+          </p>
+          <p className="text-xs text-violet-700 mt-3 font-medium">
+            Benchmarks: ≥ 80% functional supply · ≥ 60% of L4 with CPAP · ≥
+            80% engineers trained · zero stockouts.
+          </p>
+        </div>
+      </div>
+
+      {/* Live readiness assessments (existing content) */}
+      <AssessmentTab />
+    </div>
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -1002,20 +1277,45 @@ function ReadinessSection() {
 
 function MpdsrSection() {
   const chartData = [
-    { name: "MPDSR/QI Review Meetings", current: 67, target: 100 },
+    { name: "Maternal deaths audited", current: 88, target: 100 },
+    { name: "Neonatal deaths audited", current: 74, target: 100 },
+    { name: "Monthly MPDSR/QI meetings", current: 67, target: 100 },
+    { name: "Recommendations implemented", current: 55, target: 90 },
     { name: "PPH Treatment Skills", current: 40, target: 70 },
     { name: "Asphyxia Treatment Skills", current: 36, target: 65 },
   ];
 
+  // County MPDSR performance — Jamii Tekelezi counties (illustrative).
+  const countyMpdsrData = [
+    { name: "Embu", audited: 92, meetings: 100 },
+    { name: "Tharaka-Nithi", audited: 78, meetings: 67 },
+    { name: "Meru", audited: 85, meetings: 100 },
+    { name: "Nyandarua", audited: 70, meetings: 67 },
+  ];
+
   return (
     <div className="space-y-6">
+      {/* Story banner — audit is the accountability engine */}
+      <div className="bg-gradient-to-r from-red-50 to-rose-50 rounded-lg p-5 border border-red-200 text-red-900">
+        <h3 className="font-semibold">
+          Every death must be counted, audited, and acted on
+        </h3>
+        <p className="text-sm mt-1 opacity-80">
+          A death that is not audited cannot be prevented. The MPDSR loop is:
+          <b> report → audit → recommend → implement → re-audit</b>. The
+          framework demands 100% of maternal and neonatal deaths audited each
+          month, and ≥ 70% of recommendations implemented within 3 months —
+          turning every tragedy into a systemic fix.
+        </p>
+      </div>
+
       {/* Full Mortality & MPDSR content (KPI cards, deaths by facility,
           monthly trends, facility review list) */}
       <MortalityTab />
 
       <div className="bg-white rounded-lg p-6 border border-slate-200">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">
-          MPDSR/QI Meetings &amp; Provider Skills — % vs Target
+          The MPDSR Audit Loop — % vs Target (4.1 – 4.6)
         </h3>
         <ResponsiveContainer width="100%" height={300}>
           <BarChart data={chartData} margin={{ left: 0, right: 12 }}>
@@ -1024,9 +1324,9 @@ function MpdsrSection() {
               dataKey="name"
               tick={{ fontSize: 11 }}
               interval={0}
-              angle={-15}
+              angle={-20}
               textAnchor="end"
-              height={60}
+              height={70}
             />
             <YAxis domain={[0, 100]} />
             <Tooltip formatter={(v) => [`${v}%`, ""]} />
@@ -1047,9 +1347,31 @@ function MpdsrSection() {
         </ResponsiveContainer>
       </div>
 
+      {/* County aspects — who audits and who meets */}
+      <div className="bg-white rounded-lg p-6 border border-slate-200">
+        <h3 className="text-lg font-semibold text-gray-900 mb-1">
+          MPDSR by County — Jamii Tekelezi
+        </h3>
+        <p className="text-sm text-gray-500 mb-4">
+          % of deaths audited vs % of facilities holding monthly MPDSR/QI
+          meetings, per county.
+        </p>
+        <ResponsiveContainer width="100%" height={260}>
+          <BarChart data={countyMpdsrData} margin={{ left: 0, right: 12 }}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="name" />
+            <YAxis domain={[0, 100]} />
+            <Tooltip formatter={(v) => [`${v}%`, ""]} />
+            <Legend />
+            <Bar dataKey="audited" name="Deaths audited (%)" fill="#dc2626" radius={[4, 4, 0, 0]} />
+            <Bar dataKey="meetings" name="Monthly meetings (%)" fill="#f59e0b" radius={[4, 4, 0, 0]} />
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+
       <div className="bg-white rounded-lg p-6 border border-slate-200">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">
-          MPDSR &amp; Clinical Quality Indicators (4.1 – 4.7)
+          MPDSR &amp; Clinical Quality Indicators (4.1 – 4.8)
         </h3>
         <div className="space-y-5">
           {MPDSR_INDICATORS.map((ind) => (
@@ -1070,11 +1392,110 @@ function MpdsrSection() {
 // ---------------------------------------------------------------------------
 
 function DataSystemsSection() {
+  const flow = [
+    {
+      step: "Community",
+      detail: "eCHIS / CHP reports",
+      color: "bg-emerald-50 border-emerald-200 text-emerald-800",
+    },
+    {
+      step: "Facility",
+      detail: "EMR / KHIS monthly upload · MPDSR records",
+      color: "bg-teal-50 border-teal-200 text-teal-800",
+    },
+    {
+      step: "Sub-County",
+      detail: "SCHMT data verification / DQA",
+      color: "bg-cyan-50 border-cyan-200 text-cyan-800",
+    },
+    {
+      step: "County",
+      detail: "CHMT scorecard · RRI bi-weekly report",
+      color: "bg-blue-50 border-blue-200 text-blue-800",
+    },
+    {
+      step: "DoS IP TWG",
+      detail: "Monthly VTP TWG · quarterly IP review",
+      color: "bg-indigo-50 border-indigo-200 text-indigo-800",
+    },
+    {
+      step: "National",
+      detail: "EWENE dashboard · MOH RRI brief · EWENE DU",
+      color: "bg-violet-50 border-violet-200 text-violet-800",
+    },
+  ];
+
+  const countyDataData = [
+    { name: "Embu", khis: 92, emr: 78, dqa: 85 },
+    { name: "Tharaka-Nithi", khis: 84, emr: 62, dqa: 70 },
+    { name: "Meru", khis: 90, emr: 74, dqa: 82 },
+    { name: "Nyandarua", khis: 86, emr: 66, dqa: 72 },
+  ];
+
   return (
     <div className="space-y-6">
+      {/* Story banner — data as the connective tissue */}
+      <div className="bg-gradient-to-r from-indigo-50 to-blue-50 rounded-lg p-5 border border-indigo-200 text-indigo-900">
+        <h3 className="font-semibold">
+          A single real-time data spine from community to national level
+        </h3>
+        <p className="text-sm mt-1 opacity-80">
+          Every facility upload flows up one channel: community reports are
+          verified at sub-county, scored at county, reviewed at the DoS IP TWG
+          monthly, and surfaced on the national EWENE dashboard. The goal is
+          that the same numbers drive facility CQI, county scorecards and
+          national decisions — not parallel paper trails.
+        </p>
+      </div>
+
+      {/* Reporting flow */}
       <div className="bg-white rounded-lg p-6 border border-slate-200">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">
-          Data Systems &amp; Reporting Functionality (5.1 – 5.5)
+          Reporting Flow — from Community to National EWENE
+        </h3>
+        <div className="flex flex-col lg:flex-row gap-3">
+          {flow.map((f, idx) => (
+            <div key={f.step} className="flex-1 flex items-center gap-3">
+              <div className={`flex-1 rounded-lg border p-3 ${f.color}`}>
+                <p className="font-semibold text-sm">{f.step}</p>
+                <p className="text-xs mt-1 opacity-80">{f.detail}</p>
+              </div>
+              {idx < flow.length - 1 && (
+                <div className="hidden lg:flex flex-col items-center">
+                  <span className="text-indigo-400 font-bold">→</span>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* County data systems */}
+      <div className="bg-white rounded-lg p-6 border border-slate-200">
+        <h3 className="text-lg font-semibold text-gray-900 mb-1">
+          Data Systems by County — Jamii Tekelezi
+        </h3>
+        <p className="text-sm text-gray-500 mb-4">
+          Timely KHIS submission, active EMR capturing mother–baby pairs, and
+          monthly DQA — the three gears of a healthy data system.
+        </p>
+        <ResponsiveContainer width="100%" height={260}>
+          <BarChart data={countyDataData} margin={{ left: 0, right: 12 }}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="name" />
+            <YAxis domain={[0, 100]} />
+            <Tooltip formatter={(v) => [`${v}%`, ""]} />
+            <Legend />
+            <Bar dataKey="khis" name="KHIS timely (%)" fill="#6366f1" radius={[4, 4, 0, 0]} />
+            <Bar dataKey="emr" name="EMR active (%)" fill="#8b5cf6" radius={[4, 4, 0, 0]} />
+            <Bar dataKey="dqa" name="DQA (%)" fill="#22d3ee" radius={[4, 4, 0, 0]} />
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+
+      <div className="bg-white rounded-lg p-6 border border-slate-200">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">
+          Data Systems &amp; Reporting Functionality (5.1 – 5.6)
         </h3>
         <div className="space-y-5">
           {DATA_SYSTEM_INDICATORS.map((ind) => (
@@ -1091,19 +1512,26 @@ function DataSystemsSection() {
         <h3 className="font-semibold text-blue-900 mb-2">Reporting Cadence</h3>
         <ul className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-blue-800">
           <li>
-            • Monthly: Facility PMTCT/VTP indicators, commodity stockouts, MPDSR
-            audits, dashboard uploads
+            • <b>Monthly:</b> Facility PMTCT/VTP indicators, commodity
+            stockouts, MPDSR death audits, dashboard uploads, DQA, DoS VTP TWG
+            review meeting
           </li>
           <li>
-            • Quarterly: County scorecards, mother–baby pair retention, blood
-            &amp; oxygen readiness
+            • <b>Bi-weekly:</b> RRI national–county coordination inputs,
+            RRI performance brief contribution
           </li>
           <li>
-            • Semi-annual: Equipment functionality assessments, DoS IP
-            contribution reports
+            • <b>Quarterly:</b> County scorecards, mother–baby pair retention,
+            blood &amp; oxygen readiness, BEmONC/CEmONC functionality, MPDSR
+            recommendation tracking, EMR audit
           </li>
           <li>
-            • Annual: National EWENE performance review &amp; lessons learned
+            • <b>Semi-annual:</b> Equipment functionality assessment, EmONC
+            skills assessment, DoS IP contribution report to PEPFAR &amp; EWENE
+          </li>
+          <li>
+            • <b>Annual:</b> National EWENE performance review &amp; lessons
+            learned
           </li>
         </ul>
       </div>
