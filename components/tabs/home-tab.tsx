@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import {
   BarChart,
   Bar,
@@ -610,101 +610,6 @@ export function HomeTab() {
           Domain 3 (Readiness) is computed live from entered facility
           assessments (N/A excluded); Domains 1, 2, 4 &amp; 5 are
           KHIS/EMR-illustrative baselines pending live data entry.
-        </div>
-      </div>
-
-      {/* County distribution by partner */}
-      <div className="bg-white rounded-lg border border-slate-200 overflow-hidden">
-        <div className="px-6 pt-6 pb-3">
-          <h3 className="text-lg font-semibold text-gray-900">
-            County Distribution by Partner — 5 Domains
-          </h3>
-          <p className="text-sm text-gray-500 mt-1">
-            For each implementing partner, the counties they support with their
-            five-domain scores. Green ≥ 80% (on track) · Amber 60–79% (needs
-            attention) · Red &lt; 60% (off track) · Gray — no data.
-          </p>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-slate-200">
-            <thead className="bg-slate-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                  Partner / County
-                </th>
-                {DOMAIN_COLUMNS.map((col) => (
-                  <th
-                    key={col.key}
-                    className="px-4 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider"
-                  >
-                    {col.label}
-                  </th>
-                ))}
-                <th className="px-4 py-3 text-center text-xs font-semibold text-gray-900 uppercase tracking-wider">
-                  Overall
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {countyRows.map((group) => (
-                <Fragment key={group.partner.id}>
-                  {/* Partner category row */}
-                  <tr className="bg-emerald-50/70">
-                    <td colSpan={7} className="px-6 py-2.5">
-                      <span className="text-sm font-bold text-emerald-900">
-                        {group.partner.name}
-                      </span>
-                      <span className="text-xs text-emerald-700 ml-2">
-                        {group.partner.counties.length} counties supported
-                      </span>
-                    </td>
-                  </tr>
-                  {/* County rows */}
-                  {group.counties.map((c) => {
-                    const overallTone = scoreTone(c.overall);
-                    return (
-                      <tr key={c.name} className="hover:bg-slate-50/60">
-                        <td className="px-6 py-2.5">
-                          <p className="text-sm font-medium text-gray-900">
-                            {c.name}
-                          </p>
-                          {c.d3Count > 0 && (
-                            <p className="text-xs text-gray-500">
-                              {c.d3Count} assessment
-                              {c.d3Count === 1 ? "" : "s"}
-                            </p>
-                          )}
-                        </td>
-                        {c.domains.map((v, idx) => {
-                          const tone = scoreTone(v);
-                          return (
-                            <td
-                              key={DOMAIN_COLUMNS[idx].key}
-                              className={`px-4 py-2.5 text-center text-sm font-bold whitespace-nowrap ${tone.bg} ${tone.text}`}
-                            >
-                              {v === null ? "—" : `${v.toFixed(1)}%`}
-                            </td>
-                          );
-                        })}
-                        <td
-                          className={`px-4 py-2.5 text-center text-sm font-bold whitespace-nowrap ${overallTone.bg} ${overallTone.text}`}
-                        >
-                          {c.overall === null
-                            ? "—"
-                            : `${c.overall.toFixed(1)}%`}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </Fragment>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        <div className="px-6 pb-5 pt-2 text-xs text-gray-500">
-          Domain 3 (Readiness) is computed live from entered facility
-          assessments scoped to each county (N/A excluded); Domains 1, 2, 4
-          &amp; 5 are KHIS/EMR-illustrative baselines pending live data entry.
         </div>
       </div>
 
