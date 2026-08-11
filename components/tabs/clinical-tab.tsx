@@ -105,11 +105,18 @@ export function ClinicalTab() {
 // 1.A — Intake & Screening
 // ===========================================================================
 
-const ancVsShaData = [
-  { name: "District 1", "ANC Visits": 3200, "SHA Enrollment": 2850 },
-  { name: "District 2", "ANC Visits": 2900, "SHA Enrollment": 2650 },
-  { name: "District 3", "ANC Visits": 3450, "SHA Enrollment": 3100 },
-  { name: "District 4", "ANC Visits": 2650, "SHA Enrollment": 2400 },
+const ancVsTestedData = [
+  { name: "District 1", "ANC Visits": 3200, "HIV Tested": 3070 },
+  { name: "District 2", "ANC Visits": 2900, "HIV Tested": 2790 },
+  { name: "District 3", "ANC Visits": 3450, "HIV Tested": 3310 },
+  { name: "District 4", "ANC Visits": 2650, "HIV Tested": 2545 },
+];
+
+const npKpData = [
+  { name: "District 1", "Newly HIV+ (NP)": 148, "Known HIV+ (KP)": 102 },
+  { name: "District 2", "Newly HIV+ (NP)": 122, "Known HIV+ (KP)": 88 },
+  { name: "District 3", "Newly HIV+ (NP)": 110, "Known HIV+ (KP)": 84 },
+  { name: "District 4", "Newly HIV+ (NP)": 70, "Known HIV+ (KP)": 46 },
 ];
 
 const hivTestingData = [
@@ -123,51 +130,96 @@ function Subtab2A() {
       <SectionBanner
         tone="blue"
         title="Intake & Screening — the entry point of the PMTCT cascade"
-        subtitle="1st ANC attendance vs SHA enrollment, and HIV testing coverage at the 1st ANC visit."
+        subtitle="1st ANC attendance, HIV testing coverage and HIV+ detection (NP + KP) at the 1st ANC visit."
       />
 
+      {/* Intake KPI strip — aligned to Domain 1 entry indicators */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <DomainKpi
+          title="1st ANC Attendance"
+          value="94%"
+          sub="PMTCT_STAT_D · target >95%"
+          tone="warn"
+          accent="text-amber-600"
+        />
+        <DomainKpi
+          title="HIV Tested at 1st ANC"
+          value="96%"
+          sub="PMTCT_STAT_N · target >95%"
+          tone="on"
+        />
+        <DomainKpi
+          title="PBFW with known status"
+          value="984"
+          sub="96% of 1,025 1st ANC attendees"
+          tone="on"
+        />
+        <DomainKpi
+          title="HIV+ identified at intake"
+          value="770"
+          sub="450 NP + 320 KP · 78% of those tested"
+          tone="on"
+        />
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Bar Chart: 1st ANC vs SHA */}
+        {/* Bar Chart: 1st ANC vs HIV Tested */}
         <div className="bg-white rounded-lg p-6 border border-slate-200">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">
-            1st ANC Visits vs SHA Enrollment
+          <h3 className="text-lg font-semibold text-gray-900 mb-1">
+            1st ANC Attendance vs HIV Testing
           </h3>
+          <p className="text-sm text-gray-500 mb-4">
+            Women reached at 1st ANC and those with an HIV test result at
+            intake, per district.
+          </p>
           <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={ancVsShaData}>
+            <BarChart data={ancVsTestedData}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="name" />
               <YAxis />
               <Tooltip />
               <Legend />
               <Bar dataKey="ANC Visits" fill="#10b981" />
-              <Bar dataKey="SHA Enrollment" fill="#3b82f6" />
+              <Bar dataKey="HIV Tested" fill="#3b82f6" />
             </BarChart>
           </ResponsiveContainer>
         </div>
 
         {/* Donut Chart: HIV Testing */}
         <div className="bg-white rounded-lg p-6 border border-slate-200">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">
+          <h3 className="text-lg font-semibold text-gray-900 mb-1">
             HIV Testing Coverage (1st ANC Visits)
           </h3>
+          <p className="text-sm text-gray-500 mb-4">
+            PMTCT_STAT_N — proportion of PBFW tested for HIV at 1st ANC · target
+            &gt;95%.
+          </p>
           <div className="flex flex-col items-center justify-center gap-8 h-[300px]">
-            <ResponsiveContainer width={260} height={260}>
-              <PieChart>
-                <Pie
-                  data={hivTestingData}
-                  dataKey="value"
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={60}
-                  outerRadius={100}
-                  paddingAngle={2}
-                >
-                  {hivTestingData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.fill} />
-                  ))}
-                </Pie>
-              </PieChart>
-            </ResponsiveContainer>
+            <div className="relative">
+              <ResponsiveContainer width={260} height={260}>
+                <PieChart>
+                  <Pie
+                    data={hivTestingData}
+                    dataKey="value"
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={70}
+                    outerRadius={100}
+                    paddingAngle={2}
+                    startAngle={90}
+                    endAngle={-270}
+                  >
+                    {hivTestingData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.fill} />
+                    ))}
+                  </Pie>
+                </PieChart>
+              </ResponsiveContainer>
+              <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                <p className="text-3xl font-bold text-emerald-600">96%</p>
+                <p className="text-xs text-gray-500">Tested</p>
+              </div>
+            </div>
             <div className="flex gap-6">
               {hivTestingData.map((item, idx) => (
                 <div key={idx} className="flex items-center gap-2">
@@ -181,6 +233,47 @@ function Subtab2A() {
                 </div>
               ))}
             </div>
+          </div>
+        </div>
+      </div>
+
+      {/* HIV+ detection at intake: NP vs KP */}
+      <div className="bg-white rounded-lg p-6 border border-slate-200">
+        <div className="flex flex-wrap items-center justify-between gap-2 mb-1">
+          <h3 className="text-lg font-semibold text-gray-900">
+            HIV+ PBFW identified at Intake — New (NP) vs Known (KP)
+          </h3>
+          <span className="px-2 py-1 rounded-md bg-blue-50 text-blue-800 text-xs font-bold">
+            Denominator for ART initiation (PMTCT_ART)
+          </span>
+        </div>
+        <p className="text-sm text-gray-500 mb-5">
+          Women found HIV+ during the period are either newly identified at 1st
+          ANC (NP) or already known positive (KP). Together they form the pool
+          who must start ART — see 1.B.
+        </p>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2">
+            <ResponsiveContainer width="100%" height={260}>
+              <BarChart data={npKpData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                <Bar dataKey="Newly HIV+ (NP)" stackId="a" fill="#0d9488" />
+                <Bar dataKey="Known HIV+ (KP)" stackId="a" fill="#f59e0b" />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+          <div className="flex flex-col justify-center bg-blue-50 rounded-lg p-6 border border-blue-200">
+            <p className="text-sm font-medium text-blue-800">
+              HIV+ PBFW identified at 1st ANC (YTD)
+            </p>
+            <p className="text-5xl font-bold text-blue-700 mt-2">770</p>
+            <p className="text-xs text-blue-700/80 mt-2">
+              58% newly identified (NP) · 42% known positive (KP)
+            </p>
           </div>
         </div>
       </div>
@@ -277,7 +370,8 @@ type TargetIndicator = {
 const DOMAIN1_TARGETS: TargetIndicator[] = [
   {
     code: "1.1 · PMTCT_STAT_D",
-    label: "ANC coverage — 1st ANC attendance (denominator: PBFW with known HIV status)",
+    label:
+      "ANC coverage — 1st ANC attendance (denominator: PBFW with known HIV status)",
     value: 94,
     target: 95,
     source: "KHIS",
@@ -295,7 +389,8 @@ const DOMAIN1_TARGETS: TargetIndicator[] = [
     code: "1.3 · PMTCT_ART",
     label: "ART initiation among HIV-positive PBFW",
     value: +(
-      ((PBFW_NEW_ART + PBFW_KNOWN_ART) / (PBFW_NEW_POSITIVE + PBFW_KNOWN_POSITIVE)) *
+      ((PBFW_NEW_ART + PBFW_KNOWN_ART) /
+        (PBFW_NEW_POSITIVE + PBFW_KNOWN_POSITIVE)) *
       100
     ).toFixed(1),
     target: 95,
@@ -440,7 +535,7 @@ const STATUS_BAR: Record<StatusTone, string> = {
 
 function statusOf(
   value: number,
-  target: number
+  target: number,
 ): { tone: StatusTone; label: string } {
   if (value >= target) return { tone: "on", label: STATUS_LABEL.on };
   const ratio = value / target;
@@ -464,7 +559,9 @@ function DomainKpi({
   return (
     <div className="bg-white rounded-lg p-4 border border-slate-200">
       <div className="flex items-center justify-between gap-2">
-        <p className="text-sm text-gray-600 font-medium leading-snug">{title}</p>
+        <p className="text-sm text-gray-600 font-medium leading-snug">
+          {title}
+        </p>
         <span
           className={`w-2 h-2 rounded-full shrink-0 ${STATUS_DOT[tone]}`}
           title={STATUS_LABEL[tone]}
@@ -691,8 +788,8 @@ function Subtab2B() {
             </p>
             <p className="text-xs text-emerald-700/80 mt-2">
               {HEI_COHORT_NEGATIVE.toLocaleString()} of{" "}
-              {HEI_COHORT_ENROLLED.toLocaleString()} HEI discharged HIV-negative ·
-              target &gt;95%
+              {HEI_COHORT_ENROLLED.toLocaleString()} HEI discharged HIV-negative
+              · target &gt;95%
             </p>
           </div>
         </div>
@@ -711,8 +808,8 @@ function Subtab2B() {
         <p className="text-sm text-gray-500 mb-5">
           Status:{" "}
           <span className="font-semibold text-emerald-600">On target</span> ·{" "}
-          <span className="font-semibold text-amber-600">Needs attention</span> ·{" "}
-          <span className="font-semibold text-red-600">Below target</span>
+          <span className="font-semibold text-amber-600">Needs attention</span>{" "}
+          · <span className="font-semibold text-red-600">Below target</span>
         </p>
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
           {DOMAIN1_TARGETS.map((ind) => (
@@ -732,8 +829,9 @@ function Subtab2B() {
           </span>
         </div>
         <p className="text-sm text-gray-500 mb-4">
-          VL coverage among HIV+ pregnant &amp; breastfeeding women and suppression
-          among those tested — the gold standard for ART effectiveness.
+          VL coverage among HIV+ pregnant &amp; breastfeeding women and
+          suppression among those tested — the gold standard for ART
+          effectiveness.
         </p>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div className="flex flex-col items-center justify-center gap-4">
