@@ -340,6 +340,16 @@ const DOMAIN_COLUMNS: {
   },
 ];
 
+// Colors for the per-partner county comparison bar charts.
+const BAR_SERIES: { key: string; name: string; color: string }[] = [
+  { key: "d1", name: "D1 · QoC", color: "#059669" },
+  { key: "d2", name: "D2 · Coverage", color: "#0d9488" },
+  { key: "d3", name: "D3 · Readiness", color: "#84cc16" },
+  { key: "d4", name: "D4 · MPDSR", color: "#dc2626" },
+  { key: "d5", name: "D5 · Data", color: "#4f46e5" },
+  { key: "overall", name: "Overall", color: "#334155" },
+];
+
 function scoreTone(value: number | null) {
   if (value === null || Number.isNaN(value)) {
     return { bg: "bg-slate-50", text: "text-slate-400" };
@@ -696,6 +706,99 @@ export function HomeTab() {
           assessments scoped to each county (N/A excluded); Domains 1, 2, 4
           &amp; 5 are KHIS/EMR-illustrative baselines pending live data entry.
         </div>
+      </div>
+
+      {/* County comparison by partner — bar charts */}
+      <div className="space-y-6">
+        <div className="bg-white rounded-lg p-6 border border-slate-200">
+          <h3 className="text-lg font-semibold text-gray-900 mb-1">
+            County Comparison by Partner — Bar Charts
+          </h3>
+          <p className="text-sm text-gray-500">
+            For each implementing partner, the counties they support compared
+            across the five domains (colored bars) and the overall score (dark
+            bar).
+          </p>
+        </div>
+        {countyRows.map((group) => {
+          const data = group.counties.map((c) => {
+            const row: Record<string, number | null | string> = {
+              name: c.name,
+            };
+            DOMAIN_COLUMNS.forEach((col, idx) => {
+              row[col.key] = c.domains[idx];
+            });
+            row.overall = c.overall;
+            return row;
+          });
+          return (
+            <div
+              key={group.partner.id}
+              className="bg-white rounded-lg p-6 border border-slate-200"
+            >
+              <div className="flex items-center justify-between flex-wrap gap-2 mb-4">
+                <div>
+                  <h4 className="font-semibold text-gray-900">
+                    {group.partner.name}
+                  </h4>
+                  <p className="text-sm text-gray-500">
+                    {group.partner.counties.length} counties · five-domain
+                    comparison
+                  </p>
+                </div>
+                <div className="flex flex-wrap items-center gap-3 text-xs">
+                  {BAR_SERIES.map((s) => (
+                    <span
+                      key={s.key}
+                      className="flex items-center gap-1.5 text-gray-600"
+                    >
+                      <span
+                        className="w-3 h-3 rounded-sm"
+                        style={{ backgroundColor: s.color }}
+                      />
+                      {s.name}
+                    </span>
+                  ))}
+                </div>
+              </div>
+              <ResponsiveContainer
+                width="100%"
+                height={Math.max(220, group.counties.length * 64)}
+              >
+                <BarChart
+                  data={data}
+                  layout="vertical"
+                  margin={{ left: 0, right: 24 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis type="number" domain={[0, 100]} />
+                  <YAxis
+                    type="category"
+                    dataKey="name"
+                    width={110}
+                    tick={{ fontSize: 12 }}
+                  />
+                  <Tooltip
+                    formatter={(v, name) =>
+                      v === null
+                        ? ["No data", name]
+                        : [`${Number(v).toFixed(1)}%`, name]
+                    }
+                  />
+                  {BAR_SERIES.map((s) => (
+                    <Bar
+                      key={s.key}
+                      dataKey={s.key}
+                      name={s.name}
+                      fill={s.color}
+                      radius={s.key === "overall" ? [0, 4, 4, 0] : 0}
+                    />
+                  ))}
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          );
+        })}
       </div>
 
       {/* Overall score by partner */}
