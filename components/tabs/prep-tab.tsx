@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import {
   BarChart,
   Bar,
@@ -16,6 +17,8 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { ShieldCheck, Users, HeartPulse } from "lucide-react";
+import { useGeoFilter } from "@/lib/geo-filter-context";
+import { useKhis } from "@/lib/use-khis";
 
 // ---------------------------------------------------------------------------
 // PrEP — separate prevention track (own top-level tab)
@@ -61,24 +64,17 @@ function SectionBanner({
   );
 }
 
-// ---- PrEP cascade — the prevention story ----
-const prepCascadeData = [
-  { stage: "PBFW screened for PrEP at ANC", count: 1025 },
-  { stage: "Assessed eligible for PrEP", count: 280 },
-  { stage: "Initiated on PrEP", count: 198 },
-  { stage: "Continuing at 3 months", count: 156 },
-  { stage: "Retained on PrEP at 6 months", count: 132 },
-];
+// ---- DEMO fallback — used only when live KHIS is unreachable ----
+const DEMO_PREP = {
+  screened: 1025, // 1st ANC visits (MOH 731 HV02-01)
+  eligible: 280, // Eligible PrEP Total
+  initiated: 198, // Initiated (New) PrEP Total
+  refill: 156, // Continuing (Refills) PrEP Total
+  current: 132, // Currently on PrEP (New + Refill + Restart) Total
+};
 
-const PREP_ELIGIBLE = prepCascadeData[1].count;
-const PREP_INITIATED = prepCascadeData[2].count;
-const PREP_3MO = prepCascadeData[3].count;
-const PREP_6MO = prepCascadeData[4].count;
-const PREP_COVERAGE_PCT = Math.round((PREP_INITIATED / PREP_ELIGIBLE) * 100);
-const PREP_3MO_PCT = Math.round((PREP_3MO / PREP_INITIATED) * 100);
-const PREP_6MO_PCT = Math.round((PREP_6MO / PREP_INITIATED) * 100);
-
-// Facility-level: eligible vs initiated (sums match the cascade totals).
+// Facility-level: eligible vs initiated (illustrative until facility-level
+// analytics is enabled).
 const prepFacilityData = [
   { name: "Embu CRH", eligible: 62, initiated: 47 },
   { name: "Runyenjes", eligible: 48, initiated: 31 },
@@ -88,17 +84,7 @@ const prepFacilityData = [
   { name: "Chuka CRH", eligible: 46, initiated: 37 },
 ];
 
-// Retention: continuing at 6 months vs not.
-const prepRetentionData = [
-  { name: "Retained at 6 months", value: PREP_6MO, fill: "#8b5cf6" },
-  {
-    name: "Discontinued / lost",
-    value: PREP_INITIATED - PREP_6MO,
-    fill: "#e5e7eb",
-  },
-];
-
-// Monthly: new initiations AND cumulative active on PrEP.
+// Retention is computed live inside the component (currently on vs discontinued).
 const prepInitiationData = [
   { month: "Jan", initiated: 150, active: 148 },
   { month: "Feb", initiated: 165, active: 156 },
@@ -136,9 +122,10 @@ function CascadeBar({
       <div className="w-full bg-slate-100 rounded-md h-8 overflow-hidden">
         <div
           className="h-full bg-gradient-to-r from-violet-500 to-purple-600 rounded-r-md flex items-center justify-end pr-2 text-white text-xs font-bold transition-all"
-          style={{ width: `${pct}%` }}
+          // Cap at 100% — an estimate can exceed the live first-stage count.
+          style={{ width: `${Math.min(pct, 100)}%` }}
         >
-          {pct > 18 && `${Math.round(pct)}% of screened`}
+          {pct >= 18 && pct <= 100 && `${Math.round(pct)}% of screened`}
         </div>
       </div>
     </div>
@@ -146,46 +133,215 @@ function CascadeBar({
 }
 
 export function PrepTab() {
+  const { filter } = useGeoFilter();
+  const partner = filter.partner || "jamii-tekelezi";
+
+  const { data, loading, error, value } = useKhis({
+    partner,
+    pe: "202505",
+    indicators: [
+      "prep_eligible_total",
+      "prep_new_total",
+      "prep_refill_total",
+      "prep_current_total",
+      "pmtct_anc1_visits",
+    ],
+  });
+
+  // Live values — merged per stage. KHIS doesn't report every stage at
+  // facility level for this period (e.g. eligible/refills/current come from
+  // the 132 report), so each stage falls back to the demo estimate when the
+  // live value is missing. `liveCount` tracks how many stages are real.
+  const liveVals = useMemo(() => {
+    if (!data) return null;
+    return {
+      screened: value("pmtct_anc1_visits"),
+      eligible: value("prep_eligible_total"),
+      initiated: value("prep_new_total"),
+      refill: value("prep_refill_total"),
+      current: value("prep_current_total"),
+    };
+  }, [data, value]);
+
+  const liveCount = useMemo(
+    () =>
+      liveVals
+        ? Object.values(liveVals).filter((x): x is number => x != null).length
+        : 0,
+    [liveVals],
+  );
+
+  const isLive = liveCount > 0;
+  const p = useMemo(
+    () => ({
+      screened: liveVals?.screened ?? DEMO_PREP.screened,
+      eligible: liveVals?.eligible ?? DEMO_PREP.eligible,
+      initiated: liveVals?.initiated ?? DEMO_PREP.initiated,
+      refill: liveVals?.refill ?? DEMO_PREP.refill,
+      current: liveVals?.current ?? DEMO_PREP.current,
+    }),
+    [liveVals],
+  );
+
+  // Percentages are only meaningful when BOTH values are live — mixing a live
+  // value with an estimate (e.g. live initiated 62 vs est. current 132) yields
+  // absurd ratios, so we return null and the UI shows an estimate note instead.
+  const livePct = (n: number, d: number, liveN: boolean, liveD: boolean) =>
+    liveN && liveD && d > 0 ? Math.round((n / d) * 100) : null;
+  const eligiblePct = livePct(
+    p.eligible,
+    p.screened,
+    liveVals?.eligible != null,
+    liveVals?.screened != null,
+  );
+  const coveragePct = livePct(
+    p.initiated,
+    p.eligible,
+    liveVals?.initiated != null,
+    liveVals?.eligible != null,
+  );
+  const threeMoPct = livePct(
+    p.refill,
+    p.initiated,
+    liveVals?.refill != null,
+    liveVals?.initiated != null,
+  );
+  const sixMoPct = livePct(
+    p.current,
+    p.initiated,
+    liveVals?.current != null,
+    liveVals?.initiated != null,
+  );
+
+  const cascade = [
+    {
+      stage: "PBFW seen at 1st ANC (HV02-01)",
+      count: p.screened,
+      est: liveVals?.screened == null,
+    },
+    {
+      stage: "Eligible for PrEP (Total)",
+      count: p.eligible,
+      est: liveVals?.eligible == null,
+    },
+    {
+      stage: "Initiated on PrEP (New, Total)",
+      count: p.initiated,
+      est: liveVals?.initiated == null,
+    },
+    {
+      stage: "Continuing on PrEP (Refills)",
+      count: p.refill,
+      est: liveVals?.refill == null,
+    },
+    {
+      stage: "Currently on PrEP (New + Refill + Restart)",
+      count: p.current,
+      est: liveVals?.current == null,
+    },
+  ];
+
+  const retentionData = [
+    { name: "Currently on PrEP", value: p.current, fill: "#8b5cf6" },
+    {
+      name: "Discontinued / lost",
+      value: Math.max(p.initiated - p.current, 0),
+      fill: "#e5e7eb",
+    },
+  ];
+
+  const sourceBadge = loading ? (
+    <span className="px-2 py-1 rounded-md bg-amber-50 text-amber-700 text-xs font-bold">
+      Loading KHIS…
+    </span>
+  ) : isLive && data ? (
+    <span
+      className={
+        liveCount === 5
+          ? "px-2 py-1 rounded-md bg-emerald-50 text-emerald-700 text-xs font-bold"
+          : "px-2 py-1 rounded-md bg-emerald-50 text-emerald-700 text-xs font-bold"
+      }
+    >
+      Live · national KHIS · {data.scope} · May 2025
+      {liveCount < 5 && (
+        <span className="font-medium opacity-80">
+          {" "}
+          · {liveCount}/5 stages reported this period
+        </span>
+      )}
+    </span>
+  ) : error ? (
+    <span className="px-2 py-1 rounded-md bg-rose-50 text-rose-700 text-xs font-bold">
+      KHIS error: {error}
+    </span>
+  ) : (
+    <span className="px-2 py-1 rounded-md bg-slate-100 text-slate-600 text-xs font-bold">
+      Demo data — no KHIS values for this partner/period
+    </span>
+  );
+
   return (
     <div className="space-y-6">
       <SectionBanner
         title="PrEP — Pre-Exposure Prophylaxis for Pregnant & Breastfeeding Women (PBFW)"
-        subtitle="A distinct prevention track: ANC screening → eligibility → initiation → continuation → retention. Kept separate from the PMTCT treatment cascade."
+        subtitle={
+          isLive
+            ? `Live numbers from national KHIS (MOH 731 HTS) for the selected partner's facilities — ANC screening → eligibility → initiation → continuation → retention. Stages not reported at facility level this period show estimates marked (est.).`
+            : "A distinct prevention track: ANC screening → eligibility → initiation → continuation → retention. Kept separate from the PMTCT treatment cascade. (Demo values until KHIS is reachable.)"
+        }
       />
 
       {/* KPI Cards — the PrEP story at a glance */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
         <Kpi
-          title="PBFW Screened at ANC"
-          value="1,025"
-          sub="for PrEP eligibility (PMTCT_STAT_N visit)"
+          title="PBFW seen at 1st ANC"
+          value={p.screened.toLocaleString()}
+          sub="MOH 731 HV02-01 — PrEP screening population"
           accent="text-violet-600"
         />
         <Kpi
           title="Assessed Eligible"
-          value={PREP_ELIGIBLE.toLocaleString()}
-          sub="27% of women screened"
+          value={p.eligible.toLocaleString()}
+          sub={
+            eligiblePct != null
+              ? `${eligiblePct}% of women seen`
+              : "eligibility estimate"
+          }
           accent="text-violet-600"
         />
         <Kpi
           title="Initiated on PrEP"
-          value={PREP_INITIATED.toLocaleString()}
-          sub={`${PREP_COVERAGE_PCT}% of eligible (target ≥ 90%)`}
+          value={p.initiated.toLocaleString()}
+          sub={
+            coveragePct != null
+              ? `${coveragePct}% of eligible (target ≥ 90%)`
+              : "initiation estimate (target ≥ 90%)"
+          }
           accent={
-            PREP_COVERAGE_PCT >= 90 ? "text-emerald-600" : "text-amber-600"
+            coveragePct != null && coveragePct >= 90
+              ? "text-emerald-600"
+              : "text-amber-600"
           }
         />
         <Kpi
-          title="Continuing at 3 months"
-          value={`${PREP_3MO_PCT}%`}
-          sub={`${PREP_3MO.toLocaleString()} of ${PREP_INITIATED.toLocaleString()} initiated`}
-          accent={PREP_3MO_PCT >= 80 ? "text-emerald-600" : "text-amber-600"}
+          title="Continuing (Refills)"
+          value={threeMoPct != null ? `${threeMoPct}%` : "est."}
+          sub={`${p.refill.toLocaleString()} of ${p.initiated.toLocaleString()} initiated`}
+          accent={
+            threeMoPct != null && threeMoPct >= 80
+              ? "text-emerald-600"
+              : "text-amber-600"
+          }
         />
         <Kpi
-          title="Retained at 6 months"
-          value={`${PREP_6MO_PCT}%`}
-          sub={`${PREP_6MO.toLocaleString()} of ${PREP_INITIATED.toLocaleString()} initiated`}
-          accent={PREP_6MO_PCT >= 70 ? "text-emerald-600" : "text-amber-600"}
+          title="Currently on PrEP"
+          value={sixMoPct != null ? `${sixMoPct}%` : "est."}
+          sub={`${p.current.toLocaleString()} of ${p.initiated.toLocaleString()} initiated`}
+          accent={
+            sixMoPct != null && sixMoPct >= 70
+              ? "text-emerald-600"
+              : "text-amber-600"
+          }
         />
       </div>
 
@@ -195,9 +351,7 @@ export function PrepTab() {
           <h3 className="text-lg font-semibold text-gray-900">
             The PrEP Cascade — from ANC screening to 6-month retention
           </h3>
-          <span className="px-2 py-1 rounded-md bg-violet-50 text-violet-800 text-xs font-bold">
-            Prevention track · per EWENE tracking framework
-          </span>
+          {sourceBadge}
         </div>
         <p className="text-sm text-gray-500 mb-5">
           Every HIV-negative PBFW screened at ANC is a prevention opportunity:
@@ -205,16 +359,18 @@ export function PrepTab() {
           so that seroconversion is avoided through the highest-risk window.
         </p>
         <div className="space-y-3">
-          {prepCascadeData.map((item, idx) => (
+          {cascade.map((item, idx) => (
             <CascadeBar
               key={idx}
               stage={item.stage}
               count={item.count}
-              max={prepCascadeData[0].count}
+              max={cascade[0].count}
               note={
                 idx > 0
-                  ? `↓ ${(prepCascadeData[idx - 1].count - item.count).toLocaleString()} drop`
-                  : undefined
+                  ? `↓ ${(cascade[idx - 1].count - item.count).toLocaleString()} drop${item.est ? " (est.)" : ""}`
+                  : item.est
+                    ? "(est.)"
+                    : undefined
               }
             />
           ))}
@@ -274,7 +430,7 @@ export function PrepTab() {
               <ResponsiveContainer width={230} height={230}>
                 <PieChart>
                   <Pie
-                    data={prepRetentionData}
+                    data={retentionData}
                     dataKey="value"
                     cx="50%"
                     cy="50%"
@@ -284,7 +440,7 @@ export function PrepTab() {
                     startAngle={90}
                     endAngle={-270}
                   >
-                    {prepRetentionData.map((entry, index) => (
+                    {retentionData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.fill} />
                     ))}
                   </Pie>
@@ -292,13 +448,17 @@ export function PrepTab() {
               </ResponsiveContainer>
               <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
                 <p className="text-3xl font-bold text-violet-700">
-                  {PREP_6MO_PCT}%
+                  {sixMoPct != null
+                    ? `${sixMoPct}%`
+                    : p.current.toLocaleString()}
                 </p>
-                <p className="text-xs text-gray-500">Retained</p>
+                <p className="text-xs text-gray-500">
+                  {sixMoPct != null ? "Retained" : "on PrEP (est.)"}
+                </p>
               </div>
             </div>
             <div className="flex gap-6">
-              {prepRetentionData.map((item, idx) => (
+              {retentionData.map((item, idx) => (
                 <div key={idx} className="flex items-center gap-2">
                   <div
                     className="w-3 h-3 rounded"
@@ -322,6 +482,7 @@ export function PrepTab() {
         <p className="text-sm text-gray-500 mb-4">
           Monthly new starts (violet) versus the cumulative number actively on
           PrEP (dashed) — the gap shows discontinuations in near real time.
+          (Illustrative trend until monthly analytics is enabled.)
         </p>
         <ResponsiveContainer width="100%" height={280}>
           <LineChart data={prepInitiationData}>

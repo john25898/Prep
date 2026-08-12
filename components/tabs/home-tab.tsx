@@ -960,9 +960,7 @@ function PartnerIndicatorChart({
               ]}
               labelFormatter={(label) => {
                 const r = rows.find((row) => row.label === label);
-                return r
-                  ? `${r.full} · target ≥ ${r.target}%`
-                  : String(label);
+                return r ? `${r.full} · target ≥ ${r.target}%` : String(label);
               }}
             />
             {counties.map((c, i) => (

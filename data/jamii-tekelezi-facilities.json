@@ -1,0 +1,1409 @@
+[
+  {
+    "uid": "JfanPlPxNKE",
+    "name": "Gategi Health Centre",
+    "county": "Embu",
+    "subCounty": "B9SxE4L4sAj",
+    "ward": "Mwea Ward"
+  },
+  {
+    "uid": "KERTH85vVHa",
+    "name": "Karaba Wango Dispensary",
+    "county": "Embu",
+    "subCounty": "B9SxE4L4sAj",
+    "ward": "Mwea Ward"
+  },
+  {
+    "uid": "uAFvoO68slK",
+    "name": "Makima Dispensary",
+    "county": "Embu",
+    "subCounty": "B9SxE4L4sAj",
+    "ward": "Makima Ward"
+  },
+  {
+    "uid": "tkWVWdSzZCJ",
+    "name": "Mbonzuki Dispensary",
+    "county": "Embu",
+    "subCounty": "B9SxE4L4sAj",
+    "ward": "Mwea Ward"
+  },
+  {
+    "uid": "L4GDNxHEvSK",
+    "name": "Wachoro Dispensary",
+    "county": "Embu",
+    "subCounty": "B9SxE4L4sAj",
+    "ward": "Mwea Ward"
+  },
+  {
+    "uid": "NXlTHAroEmk",
+    "name": "Dallas Dispensary",
+    "county": "Embu",
+    "subCounty": "Embu west Sub County",
+    "ward": "Kirimari Ward"
+  },
+  {
+    "uid": "vomk8x4PVA8",
+    "name": "Embu Children Hospital",
+    "county": "Embu",
+    "subCounty": "Embu west Sub County",
+    "ward": "Mbeti North Ward"
+  },
+  {
+    "uid": "ubYSAHlGbvb",
+    "name": "Embu Provincial General Hospital",
+    "county": "Embu",
+    "subCounty": "Embu west Sub County",
+    "ward": "Kirimari Ward"
+  },
+  {
+    "uid": "sFIGmjKBUBC",
+    "name": "Emmanuel Kigari (ACK) Dispensary",
+    "county": "Embu",
+    "subCounty": "Embu west Sub County",
+    "ward": "Ruguru-ngandori Ward"
+  },
+  {
+    "uid": "HgEHx7HWGXS",
+    "name": "Gatunduri Dispensary",
+    "county": "Embu",
+    "subCounty": "Embu west Sub County",
+    "ward": "Mbeti North Ward"
+  },
+  {
+    "uid": "n69slLZD3v3",
+    "name": "Geltrude Health Centre",
+    "county": "Embu",
+    "subCounty": "Embu west Sub County",
+    "ward": "Mbeti North Ward"
+  },
+  {
+    "uid": "NsOtD5QOM4t",
+    "name": "Kairuri Health Centre",
+    "county": "Embu",
+    "subCounty": "Embu west Sub County",
+    "ward": "Ruguru-ngandori Ward"
+  },
+  {
+    "uid": "pvtkOPp8UE4",
+    "name": "Karau Health Centre",
+    "county": "Embu",
+    "subCounty": "Embu west Sub County",
+    "ward": "Nginda Ward"
+  },
+  {
+    "uid": "rVDOiFMpHlD",
+    "name": "Kibugu Health Centre",
+    "county": "Embu",
+    "subCounty": "Embu west Sub County",
+    "ward": "Nginda Ward"
+  },
+  {
+    "uid": "nJ74OdDWIhS",
+    "name": "Kithegi Dispensary",
+    "county": "Embu",
+    "subCounty": "Embu west Sub County",
+    "ward": "Kithimu Ward"
+  },
+  {
+    "uid": "MtUXQriAX6H",
+    "name": "Kithimu Dispensary",
+    "county": "Embu",
+    "subCounty": "Embu west Sub County",
+    "ward": "Kithimu Ward"
+  },
+  {
+    "uid": "MWWddpdCM6G",
+    "name": "Makengi Dispensary (Embu)",
+    "county": "Embu",
+    "subCounty": "Embu west Sub County",
+    "ward": "Gaturi North Ward"
+  },
+  {
+    "uid": "mZq9BpNMPFG",
+    "name": "Nembure Health Centre",
+    "county": "Embu",
+    "subCounty": "Embu west Sub County",
+    "ward": "Gaturi South Ward"
+  },
+  {
+    "uid": "IzazwT0OMF8",
+    "name": "Rukira Dispensary",
+    "county": "Embu",
+    "subCounty": "Embu west Sub County",
+    "ward": "Kithimu Ward"
+  },
+  {
+    "uid": "kgwPDqMydjo",
+    "name": "Ishiara Sub-District Hospital",
+    "county": "Embu",
+    "subCounty": "Mbeere North Sub County",
+    "ward": "Evurore Ward"
+  },
+  {
+    "uid": "Zl8JMj5NOHk",
+    "name": "Kamumu Dispensary",
+    "county": "Embu",
+    "subCounty": "Mbeere North Sub County",
+    "ward": "Evurore Ward"
+  },
+  {
+    "uid": "R41QQ3YpoYu",
+    "name": "Kanyuambora Dispensary",
+    "county": "Embu",
+    "subCounty": "Mbeere North Sub County",
+    "ward": "Evurore Ward"
+  },
+  {
+    "uid": "Jg3AKpoTgyf",
+    "name": "Kathanje Dispensary",
+    "county": "Embu",
+    "subCounty": "Mbeere North Sub County",
+    "ward": "Muminji Ward"
+  },
+  {
+    "uid": "QtkuzgCwZnB",
+    "name": "Kiambere Dam Dispensary",
+    "county": "Embu",
+    "subCounty": "Mbeere North Sub County",
+    "ward": "Muminji Ward"
+  },
+  {
+    "uid": "tww0l46CGoh",
+    "name": "Kirie Dispensary",
+    "county": "Embu",
+    "subCounty": "Mbeere North Sub County",
+    "ward": "Muminji Ward"
+  },
+  {
+    "uid": "Kr5Vxuz1yLl",
+    "name": "Mbeere District Hospital",
+    "county": "Embu",
+    "subCounty": "Mbeere North Sub County",
+    "ward": "Nthawa Ward"
+  },
+  {
+    "uid": "pITV7RGeKeJ",
+    "name": "Ccs Kiritiri Clinic",
+    "county": "Embu",
+    "subCounty": "Mbeere South Sub County",
+    "ward": "Mavuria Ward"
+  },
+  {
+    "uid": "tCDh3rEYIVj",
+    "name": "Gachuriri Dispensary",
+    "county": "Embu",
+    "subCounty": "Mbeere South Sub County",
+    "ward": "Mbeti South Ward"
+  },
+  {
+    "uid": "xDYrSeSD4g7",
+    "name": "Kiambere Health Centre",
+    "county": "Embu",
+    "subCounty": "Mbeere South Sub County",
+    "ward": "Kiambere Ward"
+  },
+  {
+    "uid": "jtiEDT1LMuP",
+    "name": "Kiamuringa Dispensary",
+    "county": "Embu",
+    "subCounty": "Mbeere South Sub County",
+    "ward": "Mbeti South Ward"
+  },
+  {
+    "uid": "dzPtnXVHu7C",
+    "name": "Kiritiri Health Centre",
+    "county": "Embu",
+    "subCounty": "Mbeere South Sub County",
+    "ward": "Mavuria Ward"
+  },
+  {
+    "uid": "gwSSgY6zYfC",
+    "name": "Liviero Dispensary",
+    "county": "Embu",
+    "subCounty": "Mbeere South Sub County",
+    "ward": "Mbeti South Ward"
+  },
+  {
+    "uid": "sObWsoB3enC",
+    "name": "Machang'a Dispensary",
+    "county": "Embu",
+    "subCounty": "Mbeere South Sub County",
+    "ward": "Mavuria Ward"
+  },
+  {
+    "uid": "iOtmyIoDd6i",
+    "name": "Nganduri Dispensary",
+    "county": "Embu",
+    "subCounty": "Mbeere South Sub County",
+    "ward": "Mbeti South Ward"
+  },
+  {
+    "uid": "yGXMuAvTOta",
+    "name": "Riachina Dispensary",
+    "county": "Embu",
+    "subCounty": "Mbeere South Sub County",
+    "ward": "Kiambere Ward"
+  },
+  {
+    "uid": "GCv9teCuS8H",
+    "name": "Rwika Dispensary",
+    "county": "Embu",
+    "subCounty": "Mbeere South Sub County",
+    "ward": "Mbeti South Ward"
+  },
+  {
+    "uid": "VsK11IQUWdd",
+    "name": "Acef Ena Health Centre",
+    "county": "Embu",
+    "subCounty": "Runyenjes Sub County",
+    "ward": "Kagaari South Ward"
+  },
+  {
+    "uid": "t5xZIr6qjd3",
+    "name": "Gichiche Dispensary",
+    "county": "Embu",
+    "subCounty": "Runyenjes Sub County",
+    "ward": "Central Ward"
+  },
+  {
+    "uid": "ixOiUM1rnYq",
+    "name": "Kanja Health Centre",
+    "county": "Embu",
+    "subCounty": "Runyenjes Sub County",
+    "ward": "Kagaari North Ward"
+  },
+  {
+    "uid": "oaUZAfsPmoJ",
+    "name": "Karurumo Rhtc",
+    "county": "Embu",
+    "subCounty": "Runyenjes Sub County",
+    "ward": "Kyeni South Ward"
+  },
+  {
+    "uid": "vWQ2B3FTO0m",
+    "name": "Kathunguri Dispensary",
+    "county": "Embu",
+    "subCounty": "Runyenjes Sub County",
+    "ward": "Kyeni South Ward"
+  },
+  {
+    "uid": "MxxUSfpmXEr",
+    "name": "Kianjokoma Sub-District Hospital",
+    "county": "Embu",
+    "subCounty": "Runyenjes Sub County",
+    "ward": "Kagaari North Ward"
+  },
+  {
+    "uid": "JfN8Z99ACsS",
+    "name": "Kigaa Dispensary",
+    "county": "Embu",
+    "subCounty": "Runyenjes Sub County",
+    "ward": "Central Ward"
+  },
+  {
+    "uid": "eM3PnqBIqcR",
+    "name": "Kigumo Dispensary",
+    "county": "Embu",
+    "subCounty": "Runyenjes Sub County",
+    "ward": "Kyeni South Ward"
+  },
+  {
+    "uid": "mUTjOetE3rb",
+    "name": "Mufu Dispensary",
+    "county": "Embu",
+    "subCounty": "Runyenjes Sub County",
+    "ward": "Kyeni North Ward"
+  },
+  {
+    "uid": "IlWbjdTM42i",
+    "name": "Nthagaiya Catholic Dispensary",
+    "county": "Embu",
+    "subCounty": "Runyenjes Sub County",
+    "ward": "Kagaari South Ward"
+  },
+  {
+    "uid": "f8GXUUOSkR6",
+    "name": "Runyenjes District Hospital",
+    "county": "Embu",
+    "subCounty": "Runyenjes Sub County",
+    "ward": "Central Ward"
+  },
+  {
+    "uid": "MgDJfPfoqid",
+    "name": "St Michael Nursing Home",
+    "county": "Embu",
+    "subCounty": "Runyenjes Sub County",
+    "ward": "Central Ward"
+  },
+  {
+    "uid": "QCgPeQ0XSzz",
+    "name": "Ugweri Dispensary",
+    "county": "Embu",
+    "subCounty": "Runyenjes Sub County",
+    "ward": "Kagaari South Ward"
+  },
+  {
+    "uid": "CbWO3Te8Tut",
+    "name": "Kibirichia Sub-District Hospital",
+    "county": "Meru",
+    "subCounty": "Buuri East Sub County",
+    "ward": "Kibirichia Ward"
+  },
+  {
+    "uid": "RPHJVk6E7GS",
+    "name": "Kiirua Health Centre",
+    "county": "Meru",
+    "subCounty": "Buuri East Sub County",
+    "ward": "Kiirua/Naari Ward"
+  },
+  {
+    "uid": "VbYot2ROb2I",
+    "name": "Mboroga Dispensary",
+    "county": "Meru",
+    "subCounty": "Buuri East Sub County",
+    "ward": "Kibirichia Ward"
+  },
+  {
+    "uid": "qWhq6ucH0t0",
+    "name": "Naari Health Centre",
+    "county": "Meru",
+    "subCounty": "Buuri East Sub County",
+    "ward": "Kiirua/Naari Ward"
+  },
+  {
+    "uid": "DSJwlBtTqKz",
+    "name": "Ruiri Rural Health Demonstration Centre",
+    "county": "Meru",
+    "subCounty": "Buuri East Sub County",
+    "ward": "Ruiru/Rwawera Ward"
+  },
+  {
+    "uid": "nGyonUvdpOm",
+    "name": "St Theresa Hospital (Kiirua)",
+    "county": "Meru",
+    "subCounty": "Buuri East Sub County",
+    "ward": "Kiirua/Naari Ward"
+  },
+  {
+    "uid": "wmdsuWliwrG",
+    "name": "Lewa Downs Dispensary",
+    "county": "Meru",
+    "subCounty": "Buuri West Sub County",
+    "ward": "Kisima Ward"
+  },
+  {
+    "uid": "salniVCl5mw",
+    "name": "Ontulili Dispensary",
+    "county": "Meru",
+    "subCounty": "Buuri West Sub County",
+    "ward": "Timau Ward"
+  },
+  {
+    "uid": "S9EM52EwGgF",
+    "name": "Timau Catholic Dispensary",
+    "county": "Meru",
+    "subCounty": "Buuri West Sub County",
+    "ward": "Timau Ward"
+  },
+  {
+    "uid": "d0imj0dhHw1",
+    "name": "Timau Sub-County Hospital",
+    "county": "Meru",
+    "subCounty": "Buuri West Sub County",
+    "ward": "Timau Ward"
+  },
+  {
+    "uid": "wAbEG7TlDWH",
+    "name": "Kangeta Heaith Centre",
+    "county": "Meru",
+    "subCounty": "Igembe Central Sub County",
+    "ward": "Kangeta Ward"
+  },
+  {
+    "uid": "hIpsmAXAhVb",
+    "name": "Kawiru Dispensary",
+    "county": "Meru",
+    "subCounty": "Igembe Central Sub County",
+    "ward": "Athiru Ruujine Ward"
+  },
+  {
+    "uid": "AmbExKcweHi",
+    "name": "Kiengu PCEA Dispensary",
+    "county": "Meru",
+    "subCounty": "Igembe Central Sub County",
+    "ward": "Igembe East Ward"
+  },
+  {
+    "uid": "trxPkQIiUSK",
+    "name": "Kina Dispensary",
+    "county": "Meru",
+    "subCounty": "Igembe Central Sub County",
+    "ward": "Athiru Ruujine Ward"
+  },
+  {
+    "uid": "CfdoxJFZhw9",
+    "name": "Muutine Med Clinic",
+    "county": "Meru",
+    "subCounty": "Igembe Central Sub County",
+    "ward": "Njia Ward"
+  },
+  {
+    "uid": "ih5hkcBBCDG",
+    "name": "Nthambiro Dispensary",
+    "county": "Meru",
+    "subCounty": "Igembe Central Sub County",
+    "ward": "Igembe East Ward"
+  },
+  {
+    "uid": "b1Jlgi9MyPT",
+    "name": "St Joseph Catholic Dispensary (Igembe)",
+    "county": "Meru",
+    "subCounty": "Igembe Central Sub County",
+    "ward": "Kangeta Ward"
+  },
+  {
+    "uid": "m7Apm4vbqtE",
+    "name": "Tuuru Catholic Health Centre",
+    "county": "Meru",
+    "subCounty": "Igembe Central Sub County",
+    "ward": "Akirang'ondu Ward"
+  },
+  {
+    "uid": "K4FWeDZV2o0",
+    "name": "Kaelo Dispensary",
+    "county": "Meru",
+    "subCounty": "Igembe North Sub County",
+    "ward": "Antuambui Ward"
+  },
+  {
+    "uid": "qEsCuWc2eMM",
+    "name": "Mutuati Sub-County Hospital",
+    "county": "Meru",
+    "subCounty": "Igembe North Sub County",
+    "ward": "Amwathi Ward"
+  },
+  {
+    "uid": "AtnPcyOFmJJ",
+    "name": "Theere Health Centre",
+    "county": "Meru",
+    "subCounty": "Igembe North Sub County",
+    "ward": "Antubetwe Kiongo Ward"
+  },
+  {
+    "uid": "PBqYe1aI7YB",
+    "name": "Akachiu Health Centre",
+    "county": "Meru",
+    "subCounty": "Igembe South Sub County",
+    "ward": "Kanuni Ward"
+  },
+  {
+    "uid": "hxW3BziXi9a",
+    "name": "Christian Community Services Dispensary (Maua)",
+    "county": "Meru",
+    "subCounty": "Igembe South Sub County",
+    "ward": "Maua Ward"
+  },
+  {
+    "uid": "ZVjBzM0mybV",
+    "name": "HWWK Maua Dice",
+    "county": "Meru",
+    "subCounty": "Igembe South Sub County",
+    "ward": "Maua Ward"
+  },
+  {
+    "uid": "LWFoTadbJCc",
+    "name": "Kalamene Dispensary",
+    "county": "Meru",
+    "subCounty": "Igembe South Sub County",
+    "ward": "Akachiu Ward"
+  },
+  {
+    "uid": "REg5UDXlWWL",
+    "name": "Kawiria Maternity and Nursing Home",
+    "county": "Meru",
+    "subCounty": "Igembe South Sub County",
+    "ward": "Maua Ward"
+  },
+  {
+    "uid": "LtTKMgQOIOk",
+    "name": "Kiraone Dispensary",
+    "county": "Meru",
+    "subCounty": "Igembe South Sub County",
+    "ward": "Athiru Gaiti Ward"
+  },
+  {
+    "uid": "NhQSD4YkDy3",
+    "name": "Mutiokiama Health Centre",
+    "county": "Meru",
+    "subCounty": "Igembe South Sub County",
+    "ward": "Akachiu Ward"
+  },
+  {
+    "uid": "KCKQZfmxuKS",
+    "name": "Nyambene District Hospital",
+    "county": "Meru",
+    "subCounty": "Igembe South Sub County",
+    "ward": "Maua Ward"
+  },
+  {
+    "uid": "AagM6cS5ef7",
+    "name": "Gatimbi Health Centre",
+    "county": "Meru",
+    "subCounty": "Imenti Central Sub County",
+    "ward": "Abothuguchi Central Ward"
+  },
+  {
+    "uid": "XFmkizVkihs",
+    "name": "Githongo District Hospital",
+    "county": "Meru",
+    "subCounty": "Imenti Central Sub County",
+    "ward": "Abothuguchi West Ward"
+  },
+  {
+    "uid": "H6dJ8tUSdoq",
+    "name": "Kaongo Health Centre",
+    "county": "Meru",
+    "subCounty": "Imenti Central Sub County",
+    "ward": "Mwangathia Ward"
+  },
+  {
+    "uid": "oc5gvs8WhFF",
+    "name": "St Lukes Cottage Hospital",
+    "county": "Meru",
+    "subCounty": "Imenti Central Sub County",
+    "ward": "Kiagu Ward"
+  },
+  {
+    "uid": "dtbW7eHfCpd",
+    "name": "Chugu Dispensary",
+    "county": "Meru",
+    "subCounty": "Imenti North Sub County",
+    "ward": "Nyaki West Ward"
+  },
+  {
+    "uid": "h90pFNjfJ14",
+    "name": "Consolata Hospital Gitoro",
+    "county": "Meru",
+    "subCounty": "Imenti North Sub County",
+    "ward": "Municipality Ward"
+  },
+  {
+    "uid": "Fzwvhn805YI",
+    "name": "Family Care Medical Centre (Meru)",
+    "county": "Meru",
+    "subCounty": "Imenti North Sub County",
+    "ward": "Municipality Ward"
+  },
+  {
+    "uid": "ZAh3Z32unZx",
+    "name": "Gakoromone Dispensary",
+    "county": "Meru",
+    "subCounty": "Imenti North Sub County",
+    "ward": "Ntima East Ward"
+  },
+  {
+    "uid": "pti6tGt9YYZ",
+    "name": "Giaki Sub-District Hospital",
+    "county": "Meru",
+    "subCounty": "Imenti North Sub County",
+    "ward": "Nyaki East Ward"
+  },
+  {
+    "uid": "gvyTCFjYnOU",
+    "name": "Igoki Dispensary",
+    "county": "Meru",
+    "subCounty": "Imenti North Sub County",
+    "ward": "Ntima East Ward"
+  },
+  {
+    "uid": "yx40eoay4oE",
+    "name": "Imenti North Dice (Meru)",
+    "county": "Meru",
+    "subCounty": "Imenti North Sub County",
+    "ward": "Municipality Ward"
+  },
+  {
+    "uid": "kTcvbvWVT7c",
+    "name": "Kathithi Dispensary",
+    "county": "Meru",
+    "subCounty": "Imenti North Sub County",
+    "ward": "Nyaki West Ward"
+  },
+  {
+    "uid": "qofxRUgcFyD",
+    "name": "Kiamiriru MCK Dispensary",
+    "county": "Meru",
+    "subCounty": "Imenti North Sub County",
+    "ward": "Ntima West Ward"
+  },
+  {
+    "uid": "lIp9zbMt3dv",
+    "name": "Kiburine Dispensary",
+    "county": "Meru",
+    "subCounty": "Imenti North Sub County",
+    "ward": "Nyaki East Ward"
+  },
+  {
+    "uid": "F0Uf3SJ6y5k",
+    "name": "Kinoru Dispensary",
+    "county": "Meru",
+    "subCounty": "Imenti North Sub County",
+    "ward": "Municipality Ward"
+  },
+  {
+    "uid": "uwvOG2N2Cmt",
+    "name": "Meru District Hospital",
+    "county": "Meru",
+    "subCounty": "Imenti North Sub County",
+    "ward": "Municipality Ward"
+  },
+  {
+    "uid": "sV03SJelJoh",
+    "name": "Woodlands Hospital",
+    "county": "Meru",
+    "subCounty": "Imenti North Sub County",
+    "ward": "Ntima East Ward"
+  },
+  {
+    "uid": "KslEEBZU6b0",
+    "name": "Ichomba Clinic",
+    "county": "Meru",
+    "subCounty": "Imenti South Sub County",
+    "ward": "Abogeta West Ward"
+  },
+  {
+    "uid": "G5nMS2OZrdN",
+    "name": "Ithimbari Dispensary",
+    "county": "Meru",
+    "subCounty": "Imenti South Sub County",
+    "ward": "Abogeta West Ward"
+  },
+  {
+    "uid": "fKR3N7cmgQl",
+    "name": "Kanyakine District Hospital",
+    "county": "Meru",
+    "subCounty": "Imenti South Sub County",
+    "ward": "Abogeta East Ward"
+  },
+  {
+    "uid": "n7ytFkIygmW",
+    "name": "Kathigu Health Centre",
+    "county": "Meru",
+    "subCounty": "Imenti South Sub County",
+    "ward": "Igoji East Ward"
+  },
+  {
+    "uid": "SYc2EtoHIAJ",
+    "name": "Kiarago Health Centre",
+    "county": "Meru",
+    "subCounty": "Imenti South Sub County",
+    "ward": "Nkuene Ward"
+  },
+  {
+    "uid": "ghAFXf6JkoY",
+    "name": "Kieni Kia Ndege Dispensary",
+    "county": "Meru",
+    "subCounty": "Imenti South Sub County",
+    "ward": "Igoji East Ward"
+  },
+  {
+    "uid": "M5ta6XIocZh",
+    "name": "Kinoro Sub-District Hospital",
+    "county": "Meru",
+    "subCounty": "Imenti South Sub County",
+    "ward": "Igoji West Ward"
+  },
+  {
+    "uid": "PuCIJFEhQkq",
+    "name": "Kionyo Dispensary",
+    "county": "Meru",
+    "subCounty": "Imenti South Sub County",
+    "ward": "Abogeta West Ward"
+  },
+  {
+    "uid": "sKxmx6BtHB5",
+    "name": "Kirogine Dispensary",
+    "county": "Meru",
+    "subCounty": "Imenti South Sub County",
+    "ward": "Nkuene Ward"
+  },
+  {
+    "uid": "fkW2AtRyW2I",
+    "name": "Mikumbune Sub-District Hospital",
+    "county": "Meru",
+    "subCounty": "Imenti South Sub County",
+    "ward": "Nkuene Ward"
+  },
+  {
+    "uid": "olWgUsoEXF9",
+    "name": "Mitunguu CCS Dispensary",
+    "county": "Meru",
+    "subCounty": "Imenti South Sub County",
+    "ward": "Mitunguu Ward"
+  },
+  {
+    "uid": "DRRmd0KhJ7U",
+    "name": "Mitunguu Dispensary",
+    "county": "Meru",
+    "subCounty": "Imenti South Sub County",
+    "ward": "Mitunguu Ward"
+  },
+  {
+    "uid": "ncUbBz02BRI",
+    "name": "Mweru Dispensary",
+    "county": "Meru",
+    "subCounty": "Imenti South Sub County",
+    "ward": "Igoji East Ward"
+  },
+  {
+    "uid": "VDr1OojYAjX",
+    "name": "Nkubu Dispensary",
+    "county": "Meru",
+    "subCounty": "Imenti South Sub County",
+    "ward": "Nkuene Ward"
+  },
+  {
+    "uid": "YFxIyCBX0oG",
+    "name": "Ntemwene Dispensary",
+    "county": "Meru",
+    "subCounty": "Imenti South Sub County",
+    "ward": "Nkuene Ward"
+  },
+  {
+    "uid": "tMwQKRfIVVG",
+    "name": "Uruku Health Centre",
+    "county": "Meru",
+    "subCounty": "Imenti South Sub County",
+    "ward": "Nkuene Ward"
+  },
+  {
+    "uid": "tZXNm0Rsz9p",
+    "name": "Amugaa Health Centre",
+    "county": "Meru",
+    "subCounty": "Tigania Central Sub County",
+    "ward": "Thangatha Ward"
+  },
+  {
+    "uid": "KAr8IJxZVtv",
+    "name": "Kiguchwa Dispensary",
+    "county": "Meru",
+    "subCounty": "Tigania Central Sub County",
+    "ward": "Kinguchwa Ward"
+  },
+  {
+    "uid": "SdFx8cdCB6P",
+    "name": "Kunati Health Centre",
+    "county": "Meru",
+    "subCounty": "Tigania Central Sub County",
+    "ward": "Thangatha Ward"
+  },
+  {
+    "uid": "jobx0qAOpoC",
+    "name": "Mikinduri Sub-District Hospial",
+    "county": "Meru",
+    "subCounty": "Tigania Central Sub County",
+    "ward": "Mikinduri Ward"
+  },
+  {
+    "uid": "KN2rGrHVSJM",
+    "name": "Charuru Dispensary",
+    "county": "Meru",
+    "subCounty": "Tigania East Sub County",
+    "ward": "Muthara Ward"
+  },
+  {
+    "uid": "am3tU3bLhO8",
+    "name": "Karama Health Centre",
+    "county": "Meru",
+    "subCounty": "Tigania East Sub County",
+    "ward": "Karama Ward"
+  },
+  {
+    "uid": "ELHafKamFIR",
+    "name": "Muthara Sub-District Hospital",
+    "county": "Meru",
+    "subCounty": "Tigania East Sub County",
+    "ward": "Muthara Ward"
+  },
+  {
+    "uid": "sFRSyKkdRWy",
+    "name": "St John of God Hospital Tigania",
+    "county": "Meru",
+    "subCounty": "Tigania East Sub County",
+    "ward": "Muthara Ward"
+  },
+  {
+    "uid": "AOUfiTMGCKi",
+    "name": "Kimachia Dispensary",
+    "county": "Meru",
+    "subCounty": "Tigania West Sub County",
+    "ward": "Nkomo Ward"
+  },
+  {
+    "uid": "VFz5dSLBYWL",
+    "name": "Kunene Health Centre",
+    "county": "Meru",
+    "subCounty": "Tigania West Sub County",
+    "ward": "Nkomo Ward"
+  },
+  {
+    "uid": "QGDYhPfwBWt",
+    "name": "Mbeu Sub-District Hospital",
+    "county": "Meru",
+    "subCounty": "Tigania West Sub County",
+    "ward": "Mbeu Ward"
+  },
+  {
+    "uid": "pP9chFqKMHb",
+    "name": "Miathene District Hospital",
+    "county": "Meru",
+    "subCounty": "Tigania West Sub County",
+    "ward": "Kianjai Ward"
+  },
+  {
+    "uid": "NXGzLjdgyVi",
+    "name": "Mutionjuri Health Centre",
+    "county": "Meru",
+    "subCounty": "Tigania West Sub County",
+    "ward": "Kianjai Ward"
+  },
+  {
+    "uid": "UItLmkkqt09",
+    "name": "Mweronkaga Health Centre",
+    "county": "Meru",
+    "subCounty": "Tigania West Sub County",
+    "ward": "Akithii Ward"
+  },
+  {
+    "uid": "IVVvBhul17d",
+    "name": "Uringu Health Centre",
+    "county": "Meru",
+    "subCounty": "Tigania West Sub County",
+    "ward": "Nkomo Ward"
+  },
+  {
+    "uid": "IKdUHYliWr5",
+    "name": "Bamboo Health Centre",
+    "county": "Nyandarua",
+    "subCounty": "Kinangop Sub County",
+    "ward": "Magumu Ward"
+  },
+  {
+    "uid": "fS76SN2mDYs",
+    "name": "Engineer District Hospital",
+    "county": "Nyandarua",
+    "subCounty": "Kinangop Sub County",
+    "ward": "Gathara Ward"
+  },
+  {
+    "uid": "R6tG0IzAhpv",
+    "name": "Heni Health Centre",
+    "county": "Nyandarua",
+    "subCounty": "Kinangop Sub County",
+    "ward": "Githabai Ward"
+  },
+  {
+    "uid": "SfTrvW441Q0",
+    "name": "Karangatha Health Centre",
+    "county": "Nyandarua",
+    "subCounty": "Kinangop Sub County",
+    "ward": "Nyakio Ward"
+  },
+  {
+    "uid": "r7pU4IuyIJF",
+    "name": "Mukungi Dispensary",
+    "county": "Nyandarua",
+    "subCounty": "Kinangop Sub County",
+    "ward": "Murungaru Ward"
+  },
+  {
+    "uid": "JPl6BiRGUjp",
+    "name": "Murungaru Health Centre",
+    "county": "Nyandarua",
+    "subCounty": "Kinangop Sub County",
+    "ward": "Murungaru Ward"
+  },
+  {
+    "uid": "FVZSGQeGAWy",
+    "name": "Nandarasi Dispensary",
+    "county": "Nyandarua",
+    "subCounty": "Kinangop Sub County",
+    "ward": "North Kinangop Ward"
+  },
+  {
+    "uid": "zqmymbY6VTU",
+    "name": "Ndunyu Njeru Dispensary",
+    "county": "Nyandarua",
+    "subCounty": "Kinangop Sub County",
+    "ward": "North Kinangop Ward"
+  },
+  {
+    "uid": "JWdMKPTg0HL",
+    "name": "Njabini Health Centre",
+    "county": "Nyandarua",
+    "subCounty": "Kinangop Sub County",
+    "ward": "Njabani/Kiburu Ward"
+  },
+  {
+    "uid": "Ip6XL8ad5Fy",
+    "name": "Our Lady of Mercy (Magumu)",
+    "county": "Nyandarua",
+    "subCounty": "Kinangop Sub County",
+    "ward": "Magumu Ward"
+  },
+  {
+    "uid": "jLbIZHuRAYh",
+    "name": "Weru Health Centre (Nyandarua South)",
+    "county": "Nyandarua",
+    "subCounty": "Kinangop Sub County",
+    "ward": "Engineer Ward"
+  },
+  {
+    "uid": "La4FiUTG0Ed",
+    "name": "Geta Bush Health Centre",
+    "county": "Nyandarua",
+    "subCounty": "Kipipiri Sub County",
+    "ward": "Geta Ward"
+  },
+  {
+    "uid": "FSrkhOVFdOk",
+    "name": "Lereshwa Dispensary",
+    "county": "Nyandarua",
+    "subCounty": "Kipipiri Sub County",
+    "ward": "Kipipiri Ward"
+  },
+  {
+    "uid": "KysFcG0IQYZ",
+    "name": "Manunga Health Centre",
+    "county": "Nyandarua",
+    "subCounty": "Kipipiri Sub County",
+    "ward": "Kipipiri Ward"
+  },
+  {
+    "uid": "uECirbmK3vj",
+    "name": "Ndemi Health Centre",
+    "county": "Nyandarua",
+    "subCounty": "Kipipiri Sub County",
+    "ward": "Wanjohi Ward"
+  },
+  {
+    "uid": "cLBvS1WGEQF",
+    "name": "Old Mawingu Health Centre",
+    "county": "Nyandarua",
+    "subCounty": "Kipipiri Sub County",
+    "ward": "Githioro Ward"
+  },
+  {
+    "uid": "bArGQMJx5Vs",
+    "name": "Turasha Dispensary",
+    "county": "Nyandarua",
+    "subCounty": "Kipipiri Sub County",
+    "ward": "Githioro Ward"
+  },
+  {
+    "uid": "lqUH9qJYc2r",
+    "name": "Wanjohi Health Centre",
+    "county": "Nyandarua",
+    "subCounty": "Kipipiri Sub County",
+    "ward": "Wanjohi Ward"
+  },
+  {
+    "uid": "CXAJP0JoCDZ",
+    "name": "Baari Health Centre",
+    "county": "Nyandarua",
+    "subCounty": "Ndaragwa Sub County",
+    "ward": "Kiritta Ward"
+  },
+  {
+    "uid": "q6NwSRm7CoV",
+    "name": "Kahembe Health Centre",
+    "county": "Nyandarua",
+    "subCounty": "Ndaragwa Sub County",
+    "ward": "Kiritta Ward"
+  },
+  {
+    "uid": "QsbKIv43xwM",
+    "name": "Kirima Dispensary",
+    "county": "Nyandarua",
+    "subCounty": "Ndaragwa Sub County",
+    "ward": "Shamata Ward"
+  },
+  {
+    "uid": "YTgby61ISnd",
+    "name": "Kiriogo Dispensary",
+    "county": "Nyandarua",
+    "subCounty": "Ndaragwa Sub County",
+    "ward": "Central Ward"
+  },
+  {
+    "uid": "BwF2JaC8lCL",
+    "name": "Leshau Pondo Health Centre",
+    "county": "Nyandarua",
+    "subCounty": "Ndaragwa Sub County",
+    "ward": "Leshau/Pondo Ward"
+  },
+  {
+    "uid": "SKJI5xtKLmd",
+    "name": "Mastoo Dispensary",
+    "county": "Nyandarua",
+    "subCounty": "Ndaragwa Sub County",
+    "ward": "Shamata Ward"
+  },
+  {
+    "uid": "VI8FnbLBPDD",
+    "name": "Mbuyu Dispensary",
+    "county": "Nyandarua",
+    "subCounty": "Ndaragwa Sub County",
+    "ward": "Leshau/Pondo Ward"
+  },
+  {
+    "uid": "uAmB8MLWUbq",
+    "name": "Ndaragwa Health Centre",
+    "county": "Nyandarua",
+    "subCounty": "Ndaragwa Sub County",
+    "ward": "Central Ward"
+  },
+  {
+    "uid": "iE17KE2PvJf",
+    "name": "Pesi Dispensary",
+    "county": "Nyandarua",
+    "subCounty": "Ndaragwa Sub County",
+    "ward": "Shamata Ward"
+  },
+  {
+    "uid": "dU7dDBWWWDi",
+    "name": "Shamata Health Centre",
+    "county": "Nyandarua",
+    "subCounty": "Ndaragwa Sub County",
+    "ward": "Shamata Ward"
+  },
+  {
+    "uid": "ldTs7l4tu6V",
+    "name": "Subuku Dispensary (Nyandarua North)",
+    "county": "Nyandarua",
+    "subCounty": "Ndaragwa Sub County",
+    "ward": "Central Ward"
+  },
+  {
+    "uid": "Wl8S53qfNST",
+    "name": "Uruku Dispensary",
+    "county": "Nyandarua",
+    "subCounty": "Ndaragwa Sub County",
+    "ward": "Central Ward"
+  },
+  {
+    "uid": "RUBAdXhzucO",
+    "name": "Chamuka Dispensary",
+    "county": "Nyandarua",
+    "subCounty": "Oljoroorok Sub County",
+    "ward": "Weru Ward"
+  },
+  {
+    "uid": "RPNI2yciVPb",
+    "name": "Gatimu Health Centre",
+    "county": "Nyandarua",
+    "subCounty": "Oljoroorok Sub County",
+    "ward": "Gatimu Ward"
+  },
+  {
+    "uid": "kfyFrKOKqnz",
+    "name": "Huhoini Dispensary",
+    "county": "Nyandarua",
+    "subCounty": "Oljoroorok Sub County",
+    "ward": "Gathanji Ward"
+  },
+  {
+    "uid": "LT6XGXS57II",
+    "name": "Kasuku Health Centre",
+    "county": "Nyandarua",
+    "subCounty": "Oljoroorok Sub County",
+    "ward": "Weru Ward"
+  },
+  {
+    "uid": "yeGUcHoOF0W",
+    "name": "Ngano Health Centre",
+    "county": "Nyandarua",
+    "subCounty": "Oljoroorok Sub County",
+    "ward": "Charagita Ward"
+  },
+  {
+    "uid": "ZqmBdrwI59g",
+    "name": "Olborosat Dispensary",
+    "county": "Nyandarua",
+    "subCounty": "Oljoroorok Sub County",
+    "ward": "Gathanji Ward"
+  },
+  {
+    "uid": "iSzLcFdtWbX",
+    "name": "Oljororok Catholic Dispensary",
+    "county": "Nyandarua",
+    "subCounty": "Oljoroorok Sub County",
+    "ward": "Weru Ward"
+  },
+  {
+    "uid": "PoAHq41Wjsk",
+    "name": "Silibwet Health Centre (Nyandarua West)",
+    "county": "Nyandarua",
+    "subCounty": "Oljoroorok Sub County",
+    "ward": "Gathanji Ward"
+  },
+  {
+    "uid": "SiFad15yKhZ",
+    "name": "JM Kariuki County Memorial Hospital (Olkalou)",
+    "county": "Nyandarua",
+    "subCounty": "Olkalou Sub County",
+    "ward": "Rurii Ward"
+  },
+  {
+    "uid": "UdcrfRV5diV",
+    "name": "Kaimbaga Dispensary",
+    "county": "Nyandarua",
+    "subCounty": "Olkalou Sub County",
+    "ward": "Kaimbaga Ward"
+  },
+  {
+    "uid": "ClfJQm3Docv",
+    "name": "Mirangine Health Centre",
+    "county": "Nyandarua",
+    "subCounty": "Olkalou Sub County",
+    "ward": "Mirangine Ward"
+  },
+  {
+    "uid": "kKYdOJ0uRod",
+    "name": "New Mawingu Health Centre",
+    "county": "Nyandarua",
+    "subCounty": "Olkalou Sub County",
+    "ward": "Karau Ward"
+  },
+  {
+    "uid": "xpXgPL892GT",
+    "name": "New Tumaini Health Centre",
+    "county": "Nyandarua",
+    "subCounty": "Olkalou Sub County",
+    "ward": "Kanjuiri Range Ward"
+  },
+  {
+    "uid": "JpOeRsaZHoG",
+    "name": "Ngorika Dispensary",
+    "county": "Nyandarua",
+    "subCounty": "Olkalou Sub County",
+    "ward": "Kanjuiri Range Ward"
+  },
+  {
+    "uid": "d23ZMyDAOEE",
+    "name": "St Mathews and Sarah Dispensary",
+    "county": "Nyandarua",
+    "subCounty": "Olkalou Sub County",
+    "ward": "Mirangine Ward"
+  },
+  {
+    "uid": "MEAv0YmXK3C",
+    "name": "Tumaini National Youth Service Dispensary",
+    "county": "Nyandarua",
+    "subCounty": "Olkalou Sub County",
+    "ward": "Kanjuiri Range Ward"
+  },
+  {
+    "uid": "sD0C4mSXA4H",
+    "name": "Chuka  County Refferal Hospital",
+    "county": "Tharaka-Nithi",
+    "subCounty": "Chuka Sub County",
+    "ward": "Karingani Ward"
+  },
+  {
+    "uid": "ULobKkMnBuO",
+    "name": "Chuka Cottage Hospital",
+    "county": "Tharaka-Nithi",
+    "subCounty": "Chuka Sub County",
+    "ward": "Karingani Ward"
+  },
+  {
+    "uid": "H3B4JAtTbeZ",
+    "name": "Ikuu Dispensary",
+    "county": "Tharaka-Nithi",
+    "subCounty": "Chuka Sub County",
+    "ward": "Magumoni Ward"
+  },
+  {
+    "uid": "s11x854JKz0",
+    "name": "Kambandi Dispensary",
+    "county": "Tharaka-Nithi",
+    "subCounty": "Chuka Sub County",
+    "ward": "Mugwe Ward"
+  },
+  {
+    "uid": "K2ONWpvXjM9",
+    "name": "Kibugua Health Centre",
+    "county": "Tharaka-Nithi",
+    "subCounty": "Chuka Sub County",
+    "ward": "Magumoni Ward"
+  },
+  {
+    "uid": "VKU1Pm3yNeW",
+    "name": "Kiereni Dispensary",
+    "county": "Tharaka-Nithi",
+    "subCounty": "Chuka Sub County",
+    "ward": "Mugwe Ward"
+  },
+  {
+    "uid": "LMrrCJ5eIO3",
+    "name": "Mpukoni Health Centre",
+    "county": "Tharaka-Nithi",
+    "subCounty": "Chuka Sub County",
+    "ward": "Magumoni Ward"
+  },
+  {
+    "uid": "vCytWU2htrB",
+    "name": "Mukuuni Dispensary",
+    "county": "Tharaka-Nithi",
+    "subCounty": "Chuka Sub County",
+    "ward": "Magumoni Ward"
+  },
+  {
+    "uid": "t1MRzPmOj7Q",
+    "name": "Presbyterian Ttc Rubate Health Centre",
+    "county": "Tharaka-Nithi",
+    "subCounty": "Chuka Sub County",
+    "ward": "Magumoni Ward"
+  },
+  {
+    "uid": "GeQ8joSYNcm",
+    "name": "Kaanwa Dispensary",
+    "county": "Tharaka-Nithi",
+    "subCounty": "Igambangombe Sub County",
+    "ward": "Mariani Ward"
+  },
+  {
+    "uid": "R3tvYrwsSZA",
+    "name": "Kajuki Health Centre",
+    "county": "Tharaka-Nithi",
+    "subCounty": "Igambangombe Sub County",
+    "ward": "Igambang'ombe Ward"
+  },
+  {
+    "uid": "vpe1oyTwS9P",
+    "name": "Kamaindi Dispensary",
+    "county": "Tharaka-Nithi",
+    "subCounty": "Igambangombe Sub County",
+    "ward": "Igambang'ombe Ward"
+  },
+  {
+    "uid": "wZUrNTrCEWz",
+    "name": "Baragu Health Centre",
+    "county": "Tharaka-Nithi",
+    "subCounty": "Maara Sub County",
+    "ward": "Chogoria Ward"
+  },
+  {
+    "uid": "ijkWLvIGDoy",
+    "name": "Kiamuchairu Health Centre",
+    "county": "Tharaka-Nithi",
+    "subCounty": "Maara Sub County",
+    "ward": "Chogoria Ward"
+  },
+  {
+    "uid": "fXf88nqZeKn",
+    "name": "Magutuni District Hospital",
+    "county": "Tharaka-Nithi",
+    "subCounty": "Maara Sub County",
+    "ward": "Mwimbi Ward"
+  },
+  {
+    "uid": "cV6VsQJFA5A",
+    "name": "Mukui Health Centre",
+    "county": "Tharaka-Nithi",
+    "subCounty": "Maara Sub County",
+    "ward": "Ganga Ward"
+  },
+  {
+    "uid": "EFWuy00kRUY",
+    "name": "Mutindwa Dispensary",
+    "county": "Tharaka-Nithi",
+    "subCounty": "Maara Sub County",
+    "ward": "Chogoria Ward"
+  },
+  {
+    "uid": "Ps9kWPr86pD",
+    "name": "Nguruki-Iruma Dispensary",
+    "county": "Tharaka-Nithi",
+    "subCounty": "Maara Sub County",
+    "ward": "Mwimbi Ward"
+  },
+  {
+    "uid": "sijQjq4rhfT",
+    "name": "Minugu Dispensary",
+    "county": "Tharaka-Nithi",
+    "subCounty": "Muthambi Sub County",
+    "ward": "Mitheru Ward"
+  },
+  {
+    "uid": "iLfGXM4vg6l",
+    "name": "Muthambi Health Centre",
+    "county": "Tharaka-Nithi",
+    "subCounty": "Muthambi Sub County",
+    "ward": "Muthambi Ward"
+  },
+  {
+    "uid": "eKeevmjKeuN",
+    "name": "Gaciongo Dispensary",
+    "county": "Tharaka-Nithi",
+    "subCounty": "Tharaka North Sub County",
+    "ward": "Mukothima Ward"
+  },
+  {
+    "uid": "gTC4YDSbhb6",
+    "name": "Gatunga Model Health Centre",
+    "county": "Tharaka-Nithi",
+    "subCounty": "Tharaka North Sub County",
+    "ward": "Gatunga Ward"
+  },
+  {
+    "uid": "oii4V7vuPXN",
+    "name": "Kamwathu Dispensary",
+    "county": "Tharaka-Nithi",
+    "subCounty": "Tharaka North Sub County",
+    "ward": "Gatunga Ward"
+  },
+  {
+    "uid": "jSOWQUkhPVF",
+    "name": "Kathangacini Dispensary",
+    "county": "Tharaka-Nithi",
+    "subCounty": "Tharaka North Sub County",
+    "ward": "Gatunga Ward"
+  },
+  {
+    "uid": "y7oiHjCpFVc",
+    "name": "Mukothima Health Centre",
+    "county": "Tharaka-Nithi",
+    "subCounty": "Tharaka North Sub County",
+    "ward": "Mukothima Ward"
+  },
+  {
+    "uid": "XpgCObK6h8l",
+    "name": "Thanantu Faith Clinic Dispensary",
+    "county": "Tharaka-Nithi",
+    "subCounty": "Tharaka North Sub County",
+    "ward": "Mukothima Ward"
+  },
+  {
+    "uid": "cmay4WXRmhA",
+    "name": "Gatunga Health Centre",
+    "county": "Tharaka-Nithi",
+    "subCounty": "Tharaka South Sub County",
+    "ward": "Marimanti Ward"
+  },
+  {
+    "uid": "WCjUg04KkUY",
+    "name": "Kibunga Sub-District Hospital",
+    "county": "Tharaka-Nithi",
+    "subCounty": "Tharaka South Sub County",
+    "ward": "Marimanti Ward"
+  },
+  {
+    "uid": "tLVjdEE6IX2",
+    "name": "Tharaka District Hospital",
+    "county": "Tharaka-Nithi",
+    "subCounty": "Tharaka South Sub County",
+    "ward": "Marimanti Ward"
+  }
+]
