@@ -3,7 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev --webpack",
+    "dev:turbo": "next dev",
+    "cleanup": "node scripts/cleanup.cjs",
+    "dev:clean": "npm run cleanup && next dev --webpack",
     "build": "next build",
     "start": "next start",
     "lint": "eslint ."
