@@ -331,97 +331,9 @@ const READINESS_INDICATORS: IndicatorDef[] = [
   },
 ];
 
-// Current reported values for KHIS/EMR-sourced indicators (national baselines).
-const REPORTED_CURRENT: Record<string, number> = {
-  "2.1": 52,
-  "2.2": 70,
-  "2.3": 66.6,
-  "2.4": 68.4,
-  "2.5": 54,
-  "2.6": 65,
-  "2.7": 7.6,
-  "2.8": 91,
-  "3.1": 72,
-  "3.2": 66,
-  "3.3": 20,
-  "3.4": 88,
-  "3.5": 37,
-  "3.6": 46,
-  "3.7": 34,
-  "3.8": 70,
-  "4.1": 88,
-  "4.2": 74,
-  "4.3": 67,
-  "4.4": 55,
-  "4.5": 40,
-  "4.6": 36,
-  "4.7": 28,
-  "4.8": 63,
-  "5.1": 85,
-  "5.2": 65,
-  "5.3": 30,
-  "5.4": 60,
-  "5.5": 70,
-  "5.6": 9,
-};
-
 // ---------------------------------------------------------------------------
 // Home — 5-Domain summary across the 7 implementing partners
 // ---------------------------------------------------------------------------
-
-// Illustrative KHIS/EMR baselines per partner (Domains 1, 2, 4 & 5).
-// Domain 3 (Readiness) is computed live from entered facility assessments.
-const PARTNER_DOMAIN_SCORES: Record<
-  string,
-  { d1: number; d2: number; d4: number; d5: number }
-> = {
-  "jamii-tekelezi": { d1: 87.7, d2: 63, d4: 67, d5: 62 },
-  "stawisha-pwani": { d1: 84.2, d2: 58, d4: 71, d5: 58 },
-  "imarisha-jamii": { d1: 76.5, d2: 51, d4: 62, d5: 54 },
-  "ampath-uzima": { d1: 89.1, d2: 66, d4: 74, d5: 66 },
-  "tujenge-jamii": { d1: 81.0, d2: 55, d4: 60, d5: 57 },
-  "dumisha-afya": { d1: 79.8, d2: 54, d4: 64, d5: 52 },
-  "nuru-ya-mtoto": { d1: 86.3, d2: 61, d4: 69, d5: 60 },
-};
-
-// Illustrative per-county scores (Domains 1, 2, 4 & 5) for the county
-// distribution view. Domain 3 (Readiness) is computed live per county.
-const COUNTY_DOMAIN_SCORES: Record<
-  string,
-  { d1: number; d2: number; d4: number; d5: number }
-> = {
-  // Jamii Tekelezi
-  Embu: { d1: 89, d2: 65, d4: 70, d5: 64 },
-  "Tharaka-Nithi": { d1: 86, d2: 60, d4: 64, d5: 60 },
-  Meru: { d1: 88, d2: 64, d4: 68, d5: 63 },
-  Nyandarua: { d1: 87, d2: 62, d4: 66, d5: 61 },
-  // Stawisha Pwani
-  Kilifi: { d1: 83, d2: 56, d4: 70, d5: 57 },
-  Kwale: { d1: 82, d2: 55, d4: 69, d5: 55 },
-  Mombasa: { d1: 87, d2: 63, d4: 75, d5: 62 },
-  "Taita-Taveta": { d1: 85, d2: 58, d4: 70, d5: 58 },
-  // Imarisha Jamii
-  Turkana: { d1: 76.5, d2: 51, d4: 62, d5: 54 },
-  // AMPATH Uzima
-  "Uasin Gishu": { d1: 91, d2: 68, d4: 76, d5: 68 },
-  "West Pokot": { d1: 87, d2: 63, d4: 71, d5: 63 },
-  "Elgeyo-Marakwet": { d1: 89, d2: 66, d4: 74, d5: 66 },
-  "Trans-Nzoia": { d1: 90, d2: 67, d4: 75, d5: 67 },
-  // Tujenge Jamii
-  Nakuru: { d1: 84, d2: 58, d4: 63, d5: 60 },
-  Baringo: { d1: 80, d2: 54, d4: 59, d5: 56 },
-  Samburu: { d1: 75, d2: 48, d4: 55, d5: 52 },
-  Laikipia: { d1: 82, d2: 56, d4: 61, d5: 58 },
-  Kajiado: { d1: 83, d2: 57, d4: 62, d5: 59 },
-  // Dumisha Afya
-  Bungoma: { d1: 80, d2: 55, d4: 65, d5: 53 },
-  Busia: { d1: 79, d2: 53, d4: 63, d5: 51 },
-  // Nuru Ya Mtoto
-  Kakamega: { d1: 85, d2: 60, d4: 68, d5: 59 },
-  Kisumu: { d1: 89, d2: 64, d4: 72, d5: 63 },
-  Nyamira: { d1: 87, d2: 62, d4: 70, d5: 61 },
-  Vihiga: { d1: 84, d2: 58, d4: 66, d5: 57 },
-};
 
 const DOMAIN_COLUMNS: {
   key: "d1" | "d2" | "d3" | "d4" | "d5";
@@ -736,37 +648,8 @@ const SAFE_SYSTEMS = [
   },
 ];
 
-// Deterministic pseudo-variation so every county gets its own value.
-function seededJitter(key: string, spread: number): number {
-  let h = 2166136261;
-  for (let i = 0; i < key.length; i++) {
-    h ^= key.charCodeAt(i);
-    h = Math.imul(h, 16777619);
-  }
-  return (((h >>> 0) % (spread * 2 + 1)) - spread) / 2;
-}
-
 // County series palette for the per-partner indicator charts (max 5 counties).
 const COUNTY_COLORS = ["#0ea5e9", "#8b5cf6", "#f59e0b", "#10b981", "#f43f5e"];
-
-/** VTP QoC value for one county, scaled by the county's D1 vs the partner's D1. */
-function countyVtpValue(
-  base: number,
-  county: string,
-  partnerId: string,
-  idx: number,
-): number {
-  const partnerD1 = PARTNER_DOMAIN_SCORES[partnerId]?.d1 ?? base;
-  const countyD1 = COUNTY_DOMAIN_SCORES[county]?.d1 ?? partnerD1;
-  const factor = countyD1 / partnerD1;
-  return Math.max(
-    0,
-    Math.min(
-      100,
-      Math.round(base * factor + seededJitter(`${county}:v${idx}`, 6)),
-    ),
-  );
-}
 
 // Theory of Change (document §2 — if / then / resulting in)
 const TOC_STEPS = [
@@ -950,12 +833,12 @@ function PartnerIndicatorChart({
                 r.values.map((v) => ({
                   label: `${r.full} · ${v.county}`,
                   value: v.value,
-                  source: "demo" as const,
+                  source: v.value > 0 ? ("live" as const) : ("n/r" as const),
                 })),
               ),
               notes: [
-                "These are baseline constants / entered assessments — not live KHIS numerators, which are not disaggregated monthly for these indicators.",
-                "A blank bar means no value was entered for that county.",
+                "Live KHIS values where reported (HIV testing, ART initiation) — indicators not disaggregated on KHIS this period show zero.",
+                "A blank bar means no value was reported for that county.",
               ],
             }}
           />
@@ -1208,9 +1091,9 @@ export function HomeTab({
   }, [pillarByCounty, pillarCounties]);
 
   // -----------------------------------------------------------------------
-  // Live KHIS domain scores per partner (pe = 202505, roster/county scope).
-  // Domains 1, 2, 4 & 5 are derived from KHIS where the data is reported and
-  // fall back to the baseline constants below when a value is null.
+  // Live KHIS domain scores per partner (current period, roster/county scope).
+  // Domains 1, 2, 4 & 5 are derived from KHIS where the data is reported;
+  // unreported domains show null (never baselines).
   // Domain 3 (Readiness) is always computed from entered assessments.
   // -----------------------------------------------------------------------
   const KHIS_DOMAIN_DX =
@@ -1333,7 +1216,6 @@ export function HomeTab({
   const rows = useMemo(
     () =>
       partners.map((p) => {
-        const s = PARTNER_DOMAIN_SCORES[p.id];
         const l = liveByPartner[p.id] ?? {};
         const d3 = readinessByPartner[p.id];
         // Nuru Ya Mtoto has no facility roster yet — a KHIS county-level scope
@@ -1343,7 +1225,7 @@ export function HomeTab({
         const pending = p.id === "nuru-ya-mtoto";
         const domains: (number | null)[] = pending
           ? [0, 0, 0, 0, 0]
-          : [l.d1 ?? s.d1, l.d2 ?? s.d2, d3.avg, l.d4 ?? s.d4, l.d5 ?? s.d5];
+          : [l.d1 ?? null, l.d2 ?? null, d3.avg, l.d4 ?? null, l.d5 ?? null];
         const live: boolean[] = pending
           ? [false, false, false, false, false]
           : [l.d1 != null, l.d2 != null, false, l.d4 != null, l.d5 != null];
@@ -1399,12 +1281,7 @@ export function HomeTab({
           partner: p,
           pending,
           counties: p.counties.map((county) => {
-            const c = COUNTY_DOMAIN_SCORES[county] ?? {
-              d1: null,
-              d2: null,
-              d4: null,
-              d5: null,
-            };
+            const c = { d1: null, d2: null, d4: null, d5: null };
             const d3 = readinessForCounties(allAssessments, [county]);
             const domains: (number | null)[] = pending
               ? [0, 0, 0, 0, 0]
@@ -1427,7 +1304,7 @@ export function HomeTab({
 
   // §5.3 — VTP QoC per partner, each indicator compared across its counties.
   // Rows 2 (HIV testing) & 3 (ART initiation) use live KHIS partner values
-  // as the base when reported; all other rows use the KHIS/EMR baseline.
+  // when reported; all other rows are not reported on KHIS and show zero.
   const vtpByPartner = useMemo(
     () =>
       partners.map((p) => {
@@ -1449,9 +1326,7 @@ export function HomeTab({
               target: ind.target,
               values: p.counties.map((county) => ({
                 county,
-                value: pending
-                  ? 0
-                  : countyVtpValue(liveBase ?? ind.current, county, p.id, idx),
+                value: pending ? 0 : (liveBase ?? 0),
               })),
             };
           }),
@@ -1461,51 +1336,23 @@ export function HomeTab({
   );
 
   // §5.4 — Safe systems per partner, each enabler compared across counties.
+  // No per-county KHIS feed exists for these enablers — honest zeros.
   const safeByPartner = useMemo(
     () =>
       partners.map((p) => {
-        const pD3 = readinessByPartner[p.id].avg;
         const pending = p.id === "nuru-ya-mtoto";
         return {
           partner: p,
           pending,
-          rows: SAFE_SYSTEMS.map((ind, idx) => ({
+          rows: SAFE_SYSTEMS.map((ind) => ({
             label: ind.short,
             full: ind.label,
             target: ind.target,
-            values: p.counties.map((county) => {
-              const cD3 = readinessForCounties(allAssessments, [county]).avg;
-              let value: number;
-              if (pending) {
-                value = 0;
-              } else if (pD3 !== null && cD3 !== null && pD3 > 0) {
-                value = Math.max(
-                  0,
-                  Math.min(
-                    100,
-                    Math.round(
-                      ind.current * (cD3 / pD3) +
-                        seededJitter(`${county}:s${idx}`, 6),
-                    ),
-                  ),
-                );
-              } else {
-                value = Math.max(
-                  0,
-                  Math.min(
-                    100,
-                    Math.round(
-                      ind.current + seededJitter(`${county}:s${idx}`, 14),
-                    ),
-                  ),
-                );
-              }
-              return { county, value };
-            }),
+            values: p.counties.map((county) => ({ county, value: 0 })),
           })),
         };
       }),
-    [partners, readinessByPartner, allAssessments],
+    [partners],
   );
 
   return (
@@ -1761,7 +1608,7 @@ export function HomeTab({
             >
               {livePillars.anyLive
                 ? `Live · KHIS ${peLabel} · ${getPartner(filter.partner)?.shortName ?? filter.partner}${filter.county ? ` · ${filter.county}` : ""}`
-                : "Baseline (national)"}
+                : "Not reported on KHIS this period"}
             </span>
             <ViewDataButton
               title="EWENE 90:90:80:80 Pillar Status"
@@ -1863,9 +1710,18 @@ export function HomeTab({
                   : p.label === "Early PNC"
                     ? livePillars.pncM
                     : livePillars.pncI;
-            const current = liveVal ?? p.current;
-            const tone = targetTone(current / p.target);
-            const pct = Math.min(100, (current / p.target) * 100);
+            const current = liveVal ?? null;
+            const tone =
+              current != null
+                ? targetTone(current / p.target)
+                : {
+                    dot: "bg-slate-400",
+                    text: "text-slate-500",
+                    label: "Not reported on KHIS",
+                    bar: "bg-slate-300",
+                  };
+            const pct =
+              current != null ? Math.min(100, (current / p.target) * 100) : 0;
             return (
               <div
                 key={p.label}
@@ -1878,8 +1734,10 @@ export function HomeTab({
                 <p className="text-xs text-gray-500 mt-0.5">{p.indicator}</p>
                 <div className="flex items-end gap-1.5 mt-3">
                   <p className="text-3xl font-extrabold text-gray-900">
-                    {current > 100 ? 100 : current}%
-                    {current > 100 && (
+                    {current != null
+                      ? `${current > 100 ? 100 : current}%`
+                      : "n/r"}
+                    {current != null && current > 100 && (
                       <span className="text-sm font-bold text-amber-600">
                         *
                       </span>
@@ -1901,7 +1759,7 @@ export function HomeTab({
                   <span className={`w-1.5 h-1.5 rounded-full ${tone.dot}`} />
                   {tone.label}
                 </p>
-                {current > 100 && (
+                {current != null && current > 100 && (
                   <p className="text-[10px] mt-1 text-amber-600">
                     * KHIS reports &gt;100% — likely double-counted visits
                     (clamped to 100)
@@ -2111,7 +1969,7 @@ export function HomeTab({
                               : `${v.toFixed(1)}%`}
                           {isLive && (
                             <span
-                              title="Live from KHIS (May 2026)"
+                              title="Live from KHIS (current period)"
                               className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500 ml-1.5 align-middle"
                             />
                           )}
@@ -2169,10 +2027,10 @@ export function HomeTab({
         </div>
         <div className="px-6 pb-5 pt-2 text-xs text-gray-500">
           <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5 align-middle" />
-          live from national KHIS (May 2026) where reported — falls back to the
-          KHIS/EMR baseline constant when a domain has no KHIS value. Domain 3
-          (Readiness) is computed live from entered facility assessments (N/A
-          excluded) and is never sourced from KHIS.
+          live from national KHIS (current period) where reported — domains with
+          no KHIS value show “—” (not reported). Domain 3 (Readiness) is
+          computed live from entered facility assessments (N/A excluded) and is
+          never sourced from KHIS.
           {!liveLoaded && " Loading live KHIS domain scores…"} Nuru Ya Mtoto is{" "}
           <span className="font-semibold text-amber-600">pending</span> — no
           facility list is loaded yet, so its scores default to 0 until the
@@ -2318,7 +2176,7 @@ export function HomeTab({
               formula:
                 "overall % = mean of the five domain scores (domains with no data are excluded from the average)",
               notes: [
-                "Domains 1, 2, 4 & 5 fall back to KHIS/EMR baseline constants when KHIS has no value this period.",
+                "Domains 1, 2, 4 & 5 show live KHIS values where reported; domains with no KHIS value this period are excluded from the average.",
                 "Domain 3 (Readiness) is always computed live from entered facility assessments (N/A excluded) — never from KHIS.",
               ],
             }}
@@ -2618,17 +2476,6 @@ function SubtabKpi({
 // Live KHIS county coverage — Jamii Tekelezi counties (pe 202505).
 const JT_COVERAGE_COUNTIES = ["Embu", "Tharaka-Nithi", "Meru", "Nyandarua"];
 
-// Fallback values used while KHIS loads or on failure (prior baselines).
-const COUNTY_COVERAGE_FALLBACK: Record<
-  string,
-  { anc4: number; sba: number; pnc: number }
-> = {
-  Embu: { anc4: 58, sba: 84, pnc: 72 },
-  "Tharaka-Nithi": { anc4: 51, sba: 76, pnc: 64 },
-  Meru: { anc4: 55, sba: 80, pnc: 69 },
-  Nyandarua: { anc4: 47, sba: 71, pnc: 60 },
-};
-
 interface CountyCoverageLive {
   anc4Pct?: number;
   sba?: number;
@@ -2714,7 +2561,7 @@ function CoverageSection() {
   }, [counties, pe]);
 
   // Partner-level live aggregates — average of reported counties (or sum of
-  // counts), falling back to the baseline constants when KHIS has no value.
+  // counts); unreported values stay null (never baselines).
   const live = useMemo(() => {
     if (!coverage) return null;
     const rows = counties
@@ -2751,30 +2598,28 @@ function CoverageSection() {
     ? "Loading KHIS…"
     : liveReady
       ? `Live · KHIS ${peLabel} · ${filter.county ? filter.county : partnerLabel}`
-      : "Baseline (national)";
+      : "Not reported on KHIS this period";
 
-  // Live current values per indicator code (2.1–2.8) with baseline fallback.
-  const liveCurrent: Record<string, number> = {
-    "2.1": live?.anc4Pct ?? REPORTED_CURRENT["2.1"],
-    "2.2": live?.sba ?? REPORTED_CURRENT["2.2"],
-    "2.3": live?.pnc ?? REPORTED_CURRENT["2.3"],
-    "2.4": live?.pncInfant ?? REPORTED_CURRENT["2.4"],
-    "2.5": live?.kmc ?? REPORTED_CURRENT["2.5"],
-    "2.6": live?.chlorhexidine ?? REPORTED_CURRENT["2.6"],
-    "2.7": live?.stillbirths ?? REPORTED_CURRENT["2.7"],
-    "2.8": live?.mmr ?? REPORTED_CURRENT["2.8"],
+  // Live current values per indicator code (2.1–2.8) — null when KHIS does
+  // not report the indicator for this scope/period (shown as “No data”).
+  const liveCurrent: Record<string, number | null> = {
+    "2.1": live?.anc4Pct ?? null,
+    "2.2": live?.sba ?? null,
+    "2.3": live?.pnc ?? null,
+    "2.4": live?.pncInfant ?? null,
+    "2.5": live?.kmc ?? null,
+    "2.6": live?.chlorhexidine ?? null,
+    "2.7": live?.stillbirths ?? null,
+    "2.8": live?.mmr ?? null,
   };
 
   const countyCoverageData = counties.map((name) => {
     const c = coverage?.[name];
-    const fb =
-      COUNTY_COVERAGE_FALLBACK[name] ??
-      ({ anc4: 52, sba: 70, pnc: 66.6 } as const);
     return {
       name,
-      anc4: c?.anc4Pct ?? fb.anc4,
-      sba: c?.sba ?? fb.sba,
-      pnc: c?.pnc ?? fb.pnc,
+      anc4: c?.anc4Pct ?? 0,
+      sba: c?.sba ?? 0,
+      pnc: c?.pnc ?? 0,
     };
   });
 
@@ -2786,9 +2631,9 @@ function CoverageSection() {
           The coverage story: too many women fall out of the continuum
         </h3>
         <p className="text-sm mt-1 opacity-80">
-          Only <b>{live?.anc4Pct ?? 52}%</b> of pregnant women reach 4+ ANC
-          visits and <b>{live?.sba ?? 70}%</b> deliver with a skilled attendant
-          — far short of the 90:90:80:80 ambition. Every missed ANC visit is a
+          Only <b>{live?.anc4Pct ?? 0}%</b> of pregnant women reach 4+ ANC
+          visits and <b>{live?.sba ?? 0}%</b> deliver with a skilled attendant —
+          far short of the 90:90:80:80 ambition. Every missed ANC visit is a
           missed opportunity for HIV testing, syphilis screening, and delivery
           planning; every facility-only delivery is a risk for mother and baby.
           Closing the gap means tracing each mother–baby pair from first contact
@@ -2801,30 +2646,30 @@ function CoverageSection() {
         <SubtabKpi
           code="2.1 · ANC 4+"
           title="4+ ANC Visits"
-          value={`${live?.anc4Pct ?? 52}%`}
+          value={`${live?.anc4Pct ?? 0}%`}
           sub={`Target ≥ 90% (Y2) · ${liveSub}`}
-          tone={toneOf(live?.anc4Pct ?? 52, 90)}
+          tone={toneOf(live?.anc4Pct ?? 0, 90)}
         />
         <SubtabKpi
           code="2.2 · SBA"
           title="Skilled Birth Attendance"
-          value={`${live?.sba ?? 70}%`}
+          value={`${live?.sba ?? 0}%`}
           sub={`Target ≥ 95% (Y2) · ${liveSub}`}
-          tone={toneOf(live?.sba ?? 70, 95)}
+          tone={toneOf(live?.sba ?? 0, 95)}
         />
         <SubtabKpi
           code="2.3 · PNC"
           title="Maternal PNC ≤ 48 hrs"
-          value={`${live?.pnc ?? 66.6}%`}
+          value={`${live?.pnc ?? 0}%`}
           sub={`Target ≥ 80% (Y2) · ${liveSub}`}
-          tone={toneOf(live?.pnc ?? 66.6, 80)}
+          tone={toneOf(live?.pnc ?? 0, 80)}
         />
         <SubtabKpi
           code="2.4 · Newborn PNC"
           title="Newborn PNC ≤ 48 hrs"
-          value={`${live?.pncInfant ?? 68.4}%`}
+          value={`${live?.pncInfant ?? 0}%`}
           sub={`Target ≥ 80% (Y2) · ${liveSub}`}
-          tone={toneOf(live?.pncInfant ?? 68.4, 80)}
+          tone={toneOf(live?.pncInfant ?? 0, 80)}
         />
       </div>
 
@@ -2870,34 +2715,31 @@ function CoverageSection() {
                   "ANC4 % = women with 4+ ANC visits ÷ expected pregnancies × 100 · SBA % = skilled deliveries ÷ deliveries × 100 · PNC % = mothers with PNC ≤48h ÷ deliveries × 100",
                 inputs: counties.flatMap((name) => {
                   const c = coverage?.[name];
-                  const fb =
-                    COUNTY_COVERAGE_FALLBACK[name] ??
-                    ({ anc4: 52, sba: 70, pnc: 66.6 } as const);
                   return [
                     {
                       label: `${name} · ANC 4+ %`,
-                      value: c?.anc4Pct ?? fb.anc4,
+                      value: c?.anc4Pct ?? 0,
                       source:
                         c?.anc4Pct != null
                           ? ("live" as const)
-                          : ("est" as const),
+                          : ("n/r" as const),
                     },
                     {
                       label: `${name} · Skilled delivery %`,
-                      value: c?.sba ?? fb.sba,
+                      value: c?.sba ?? 0,
                       source:
-                        c?.sba != null ? ("live" as const) : ("est" as const),
+                        c?.sba != null ? ("live" as const) : ("n/r" as const),
                     },
                     {
                       label: `${name} · Maternal PNC ≤48h %`,
-                      value: c?.pnc ?? fb.pnc,
+                      value: c?.pnc ?? 0,
                       source:
-                        c?.pnc != null ? ("live" as const) : ("est" as const),
+                        c?.pnc != null ? ("live" as const) : ("n/r" as const),
                     },
                   ];
                 }),
                 notes: [
-                  `${liveSub} — live values come from KHIS per county; where KHIS reports none, the county baseline constant is shown and tagged "estimate".`,
+                  `${liveSub} — live values come from KHIS per county; where KHIS reports none for this period, zero is shown.`,
                   "Percentages are county-level KHIS values, not summed across facilities.",
                 ],
               }}
@@ -2946,7 +2788,7 @@ function CoverageSection() {
             <IndicatorBar
               key={ind.code}
               indicator={ind}
-              current={liveCurrent[ind.code] ?? 0}
+              current={liveCurrent[ind.code] ?? null}
             />
           ))}
         </div>
@@ -3089,30 +2931,30 @@ function ReadinessSection() {
         <SubtabKpi
           code="3.1 · Zero stockout"
           title="Tracer Commodities"
-          value="72%"
-          sub="Zero stockout · target 100% (Y2)"
-          tone={toneOf(72, 100)}
+          value="n/r"
+          sub="Target 100% (Y2) · not reported on KHIS this period (LMIS)"
+          tone="off"
         />
         <SubtabKpi
           code="3.2 · Blood services"
           title="Functional Blood (L4)"
-          value="66%"
-          sub="Target ≥ 85% (Y2) · HFA-QOC"
-          tone={toneOf(66, 85)}
+          value="n/r"
+          sub="Target ≥ 85% (Y2) · not reported on KHIS this period (HFA-QOC)"
+          tone="off"
         />
         <SubtabKpi
           code="3.3 · Oxygen/CPAP"
           title="Oxygen & CPAP (L4)"
-          value="20%"
-          sub="Target ≥ 60% (Y2) · HFA-QOC"
-          tone={toneOf(20, 60)}
+          value="n/r"
+          sub="Target ≥ 60% (Y2) · not reported on KHIS this period (HFA-QOC)"
+          tone="off"
         />
         <SubtabKpi
           code="3.4 · Equipment"
           title="Equipment Functional"
-          value="88%"
-          sub="Target ≥ 90% (Y2) · facility assessment"
-          tone={toneOf(88, 90)}
+          value="n/r"
+          sub="Target ≥ 90% (Y2) · not reported on KHIS this period"
+          tone="off"
         />
       </div>
 
@@ -3123,11 +2965,7 @@ function ReadinessSection() {
         </h3>
         <div className="space-y-5">
           {READINESS_INDICATORS.map((ind) => (
-            <IndicatorBar
-              key={ind.code}
-              indicator={ind}
-              current={REPORTED_CURRENT[ind.code] ?? 0}
-            />
+            <IndicatorBar key={ind.code} indicator={ind} current={null} />
           ))}
         </div>
       </div>
@@ -3363,54 +3201,43 @@ function MpdsrSection({
       : null;
 
   // KHIS answered for this period/scope at all — never show illustrative
-  // 88%/74% baselines as if they were data.
+  // baselines as if they were data.
   const mpdsrAnswered = !!mpdsr.data && !mpdsr.loading && !mpdsr.error;
 
   // KHIS answered but reported ZERO deaths for this period/scope — show 0
-  // instead of the illustrative 88%/74% baselines (they would read as data).
+  // (never illustrative baselines, they would read as data).
   const mpdsrNoData = mpdsrAnswered && matAudPct == null && neoAudPct == null;
 
   const chartData = [
     {
       name: "Maternal deaths audited",
-      current: mpdsrAnswered ? (matAudPct ?? 0) : (matAudPct ?? 88),
+      current: mpdsrAnswered ? (matAudPct ?? 0) : 0,
       target: 100,
-      est: matAudPct == null && !mpdsrAnswered,
     },
     {
       name: "Neonatal deaths audited",
-      current: mpdsrAnswered ? (neoAudPct ?? 0) : (neoAudPct ?? 74),
+      current: mpdsrAnswered ? (neoAudPct ?? 0) : 0,
       target: 100,
-      est: neoAudPct == null && !mpdsrAnswered,
     },
-    { name: "Monthly MPDSR/QI meetings", current: 67, target: 100, est: true },
-    {
-      name: "Recommendations implemented",
-      current: 55,
-      target: 90,
-      est: true,
-    },
-    { name: "PPH Treatment Skills", current: 40, target: 70, est: true },
-    { name: "Asphyxia Treatment Skills", current: 36, target: 65, est: true },
   ];
 
-  // County MPDSR performance — Jamii Tekelezi counties (illustrative).
+  // County MPDSR performance — not disaggregated on KHIS monthly; zeros.
   const countyMpdsrData = [
-    { name: "Embu", audited: 92, meetings: 100 },
-    { name: "Tharaka-Nithi", audited: 78, meetings: 67 },
-    { name: "Meru", audited: 85, meetings: 100 },
-    { name: "Nyandarua", audited: 70, meetings: 67 },
+    { name: "Embu", audited: 0, meetings: 0 },
+    { name: "Tharaka-Nithi", audited: 0, meetings: 0 },
+    { name: "Meru", audited: 0, meetings: 0 },
+    { name: "Nyandarua", audited: 0, meetings: 0 },
   ];
 
-  // Cause-of-death disaggregation (doc disaggregation: county; cause of death).
+  // Cause-of-death disaggregation — not reported on KHIS monthly; zeros.
   const causeOfDeathData = [
-    { name: "PPH", maternal: 42, neonatal: 0 },
-    { name: "Sepsis", maternal: 18, neonatal: 12 },
-    { name: "Pre-eclampsia/Eclampsia", maternal: 15, neonatal: 0 },
-    { name: "Obstructed labour", maternal: 8, neonatal: 14 },
-    { name: "Preterm / LBW", maternal: 0, neonatal: 38 },
-    { name: "Birth asphyxia", maternal: 0, neonatal: 26 },
-    { name: "Other", maternal: 9, neonatal: 10 },
+    { name: "PPH", maternal: 0, neonatal: 0 },
+    { name: "Sepsis", maternal: 0, neonatal: 0 },
+    { name: "Pre-eclampsia/Eclampsia", maternal: 0, neonatal: 0 },
+    { name: "Obstructed labour", maternal: 0, neonatal: 0 },
+    { name: "Preterm / LBW", maternal: 0, neonatal: 0 },
+    { name: "Birth asphyxia", maternal: 0, neonatal: 0 },
+    { name: "Other", maternal: 0, neonatal: 0 },
   ];
 
   const auditedBadge = mpdsr.loading ? (
@@ -3425,9 +3252,13 @@ function MpdsrSection({
     <span className="px-2 py-1 rounded-md bg-amber-50 text-amber-700 text-xs font-bold">
       No KHIS deaths reported for {peLabel} in this scope — showing zeros
     </span>
+  ) : mpdsr.error ? (
+    <span className="px-2 py-1 rounded-md bg-red-50 text-red-700 text-xs font-bold">
+      KHIS error — showing zeros
+    </span>
   ) : (
     <span className="px-2 py-1 rounded-md bg-slate-100 text-slate-600 text-xs font-bold">
-      Illustrative baselines — no KHIS deaths reported for this scope
+      Awaiting KHIS response — showing zeros
     </span>
   );
 
@@ -3453,15 +3284,7 @@ function MpdsrSection({
           <SubtabKpi
             code="4.1 · MPDSR"
             title="Maternal Deaths Audited"
-            value={
-              mpdsrNoData
-                ? "0%"
-                : matAudPct != null
-                  ? `${matAudPct}%`
-                  : mpdsrAnswered
-                    ? "0%"
-                    : "88%"
-            }
+            value={matAudPct != null ? `${matAudPct}%` : "0%"}
             sub={
               matAudPct != null
                 ? `KHIS · ${mpdsr.value("maternal_deaths_audited")} of ${mpdsr.value("maternal_deaths_reported")} audited`
@@ -3469,25 +3292,14 @@ function MpdsrSection({
                   ? "no KHIS deaths reported this period — showing zeros"
                   : mpdsrAnswered
                     ? "no maternal deaths reported on KHIS this period"
-                    : "Target 100% · KHIS monthly (est.)"
+                    : "Target 100% · not reported on KHIS this period"
             }
-            tone={toneOf(
-              mpdsrAnswered ? (matAudPct ?? 0) : (matAudPct ?? 88),
-              100,
-            )}
+            tone={toneOf(mpdsrAnswered ? (matAudPct ?? 0) : 0, 100)}
           />
           <SubtabKpi
             code="4.2 · MPDSR"
             title="Neonatal Deaths Audited"
-            value={
-              mpdsrNoData
-                ? "0%"
-                : neoAudPct != null
-                  ? `${neoAudPct}%`
-                  : mpdsrAnswered
-                    ? "0%"
-                    : "74%"
-            }
+            value={neoAudPct != null ? `${neoAudPct}%` : "0%"}
             sub={
               neoAudPct != null
                 ? `KHIS · ${mpdsr.value("neonatal_deaths_audited")} of ${mpdsr.value("neonatal_deaths")} audited`
@@ -3495,26 +3307,23 @@ function MpdsrSection({
                   ? "no KHIS deaths reported this period — showing zeros"
                   : mpdsrAnswered
                     ? "no neonatal deaths reported on KHIS this period"
-                    : "Target 100% (Y2) · KHIS monthly (est.)"
+                    : "Target 100% (Y2) · not reported on KHIS this period"
             }
-            tone={toneOf(
-              mpdsrAnswered ? (neoAudPct ?? 0) : (neoAudPct ?? 74),
-              100,
-            )}
+            tone={toneOf(mpdsrAnswered ? (neoAudPct ?? 0) : 0, 100)}
           />
           <SubtabKpi
             code="4.3 · Reviews"
             title="Monthly MPDSR/QI Meetings"
-            value="67%"
-            sub="Target 100% · county records (est.)"
-            tone={toneOf(67, 100)}
+            value="0%"
+            sub="Target 100% · not reported on KHIS — county registers"
+            tone={toneOf(0, 100)}
           />
           <SubtabKpi
             code="4.4 · Action"
             title="Recommendations Implemented"
-            value="55%"
-            sub="Target ≥ 90% (Y2) · action tracker (est.)"
-            tone={toneOf(55, 90)}
+            value="0%"
+            sub="Target ≥ 90% (Y2) · not reported on KHIS — action tracker"
+            tone={toneOf(0, 90)}
           />
         </div>
         {auditedBadge}
@@ -3528,12 +3337,12 @@ function MpdsrSection({
           </h3>
           <div className="flex items-center gap-2 flex-wrap">
             <span className="px-2 py-1 rounded-md bg-slate-100 text-slate-600 text-xs font-bold">
-              Illustrative — cause-of-death is not reported on KHIS monthly
+              Not reported on KHIS — showing zeros
             </span>
             <ViewDataButton
               title="Cause of Death Disaggregation"
               data={causeOfDeathData}
-              note="Illustrative — not available on KHIS"
+              note="Not reported on KHIS — cause-of-death disaggregation unavailable"
             />
           </div>
         </div>
@@ -3576,12 +3385,12 @@ function MpdsrSection({
           </h3>
           <div className="flex items-center gap-2 flex-wrap">
             <span className="px-2 py-1 rounded-md bg-slate-100 text-slate-600 text-xs font-bold">
-              Audited % live · remainder illustrative
+              Audited % live · zeros elsewhere
             </span>
             <ViewDataButton
               title="MPDSR Audit Loop — % vs Target"
               data={chartData}
-              note={`${mpdsr.loading ? "Loading KHIS…" : matAudPct != null || neoAudPct != null ? `Live audit % · KHIS · ${mpdsr.data?.scope} · ${mpdsr.data?.peLabel}` : mpdsrNoData ? "no KHIS data — zeros" : "Audit % illustrative — no KHIS deaths in scope"} · est = fallback`}
+              note={`${mpdsr.loading ? "Loading KHIS…" : matAudPct != null || neoAudPct != null ? `Live audit % · KHIS · ${mpdsr.data?.scope} · ${mpdsr.data?.peLabel}` : mpdsrNoData ? "no KHIS data — zeros" : mpdsr.error ? "KHIS error — showing zeros" : "Awaiting KHIS response — showing zeros"}`}
             />
           </div>
         </div>
@@ -3623,12 +3432,12 @@ function MpdsrSection({
           </h3>
           <div className="flex items-center gap-2 flex-wrap">
             <span className="px-2 py-1 rounded-md bg-slate-100 text-slate-600 text-xs font-bold">
-              Illustrative — county registers, not on KHIS
+              Not reported on KHIS — showing zeros
             </span>
             <ViewDataButton
               title={`MPDSR by County — ${partner}`}
               data={countyMpdsrData}
-              note="Illustrative — county registers"
+              note="Not reported on KHIS — county MPDSR registers not wired"
             />
           </div>
         </div>
@@ -3665,7 +3474,7 @@ function MpdsrSection({
             MPDSR &amp; Clinical Quality Indicators (4.1 – 4.8)
           </h3>
           <span className="px-2 py-1 rounded-md bg-slate-100 text-slate-600 text-xs font-bold">
-            Illustrative baselines — EMR/registers
+            Not reported on KHIS — EMR/registers
           </span>
         </div>
         <div className="space-y-5">
@@ -3673,7 +3482,13 @@ function MpdsrSection({
             <IndicatorBar
               key={ind.code}
               indicator={ind}
-              current={REPORTED_CURRENT[ind.code] ?? 0}
+              current={
+                ind.code === "4.1"
+                  ? matAudPct
+                  : ind.code === "4.2"
+                    ? neoAudPct
+                    : null
+              }
             />
           ))}
         </div>
@@ -3778,6 +3593,19 @@ function DataSystemsSection() {
     dqa: 0,
   }));
 
+  // Live average KHIS reporting rate across the scoped counties (MOH 731).
+  const avgReporting =
+    khisByCounty && Object.keys(khisByCounty).length > 0
+      ? Math.round(
+          Object.values(khisByCounty).reduce((a, b) => a + b, 0) /
+            Object.keys(khisByCounty).length,
+        )
+      : null;
+  const khisSub =
+    avgReporting != null
+      ? `Live · KHIS ${peLabel} · ${dCounties.length} counties reporting MOH 731`
+      : "Not reported on KHIS this period";
+
   // DQA measures (§5) — how data quality is assured.
   const dqaMeasures = [
     {
@@ -3834,30 +3662,30 @@ function DataSystemsSection() {
         <SubtabKpi
           code="5.1 · KHIS"
           title="Timely KHIS/DHIS2 Reports"
-          value="85%"
-          sub="Target 100% (Y2) · monthly"
-          tone={toneOf(85, 100)}
+          value={`${avgReporting ?? 0}%`}
+          sub={`Target 100% (Y2) · ${khisSub}`}
+          tone={toneOf(avgReporting ?? 0, 100)}
         />
         <SubtabKpi
           code="5.2 · EMR"
           title="Active EMR (MBP data)"
-          value="65%"
-          sub="Target ≥ 90% (Y2) · quarterly"
-          tone={toneOf(65, 90)}
+          value="0%"
+          sub="Target ≥ 90% (Y2) · not reported on KHIS this period"
+          tone={toneOf(0, 90)}
         />
         <SubtabKpi
           code="5.4 · Dashboard"
           title="EWENE Dashboard Upload"
-          value="60%"
-          sub="Target 100% · monthly"
-          tone={toneOf(60, 100)}
+          value="0%"
+          sub="Target 100% · not reported on KHIS this period"
+          tone={toneOf(0, 100)}
         />
         <SubtabKpi
           code="5.5 · DQA"
           title="Monthly Data Quality Audits"
-          value="70%"
-          sub="Target 100% (Y2) · monthly"
-          tone={toneOf(70, 100)}
+          value="0%"
+          sub="Target 100% (Y2) · not reported on KHIS this period"
+          tone={toneOf(0, 100)}
         />
       </div>
 
@@ -3946,7 +3774,7 @@ function DataSystemsSection() {
             <IndicatorBar
               key={ind.code}
               indicator={ind}
-              current={REPORTED_CURRENT[ind.code] ?? 0}
+              current={ind.code === "5.1" ? avgReporting : null}
             />
           ))}
         </div>

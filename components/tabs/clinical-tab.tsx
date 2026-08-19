@@ -28,10 +28,9 @@ import { ViewDataButton } from "@/components/view-data";
 //   1.A  Intake & Screening   (1st ANC → HIV testing, SHA enrollment)
 //   1.B  PMTCT & HIV Care     (HIV+ PBFW cascade, SBA among HIV+, HEI follow-up)
 // PrEP now lives in its own top-level tab (components/tabs/prep-tab.tsx).
-// The cascade rows (ANC → tested → HIV+ → ART → deliveries), HIV+ detection
-// and EID counts are LIVE from national KHIS (MOH 731). Items with no KHIS
-// org-unit source (VL suppression, 18-24m cohort, VIP follow-up, missed
-// opportunities) stay illustrative and are marked (est.).
+// All figures are LIVE from national KHIS (MOH 731) — no demo or estimate
+// fallbacks anywhere. Indicators KHIS does not report for the selected
+// period/scope show zeros or n/r (not reported), never fabricated values.
 // ---------------------------------------------------------------------------
 
 function Kpi({
@@ -137,26 +136,6 @@ export function ClinicalTab({
 // ===========================================================================
 // 1.A — Intake & Screening
 // ===========================================================================
-
-// DEMO fallbacks — used only when live KHIS is unreachable.
-const DEMO_ANC_TESTED = [
-  { name: "District 1", "ANC Visits": 3200, "HIV Tested": 3070 },
-  { name: "District 2", "ANC Visits": 2900, "HIV Tested": 2790 },
-  { name: "District 3", "ANC Visits": 3450, "HIV Tested": 3310 },
-  { name: "District 4", "ANC Visits": 2650, "HIV Tested": 2545 },
-];
-
-const DEMO_NP_KP = [
-  { name: "District 1", "Newly HIV+ (NP)": 148, "Known HIV+ (KP)": 102 },
-  { name: "District 2", "Newly HIV+ (NP)": 122, "Known HIV+ (KP)": 88 },
-  { name: "District 3", "Newly HIV+ (NP)": 110, "Known HIV+ (KP)": 84 },
-  { name: "District 4", "Newly HIV+ (NP)": 70, "Known HIV+ (KP)": 46 },
-];
-
-const DEMO_HIV_TESTING = [
-  { name: "HIV Tested", value: 96, fill: "#10b981" },
-  { name: "Not Tested", value: 4, fill: "#e5e7eb" },
-];
 
 type ClinicalSubtabProps = {
   onSetActiveChart: (chart: ChartInsight) => void;
@@ -265,24 +244,14 @@ const Subtab2A = ({
   const testedPct = livePct(live.tested, live.anc1);
   const knownStatusPct = testedPct;
 
-  // Bar chart: 1st ANC vs HIV Tested, per county (fallback: demo districts).
+  // Bar chart: 1st ANC vs HIV Tested, per county (zeros when KHIS has no value).
   const ancVsTestedData = useMemo(() => {
     const a = ancByCounty.data?.counties ?? [];
     const t = testedByCounty.data?.counties ?? [];
-    if (noPeriodData)
+    if (a.length === 0 && t.length === 0)
       return [
         { name: filter.county || "No data", "ANC Visits": 0, "HIV Tested": 0 },
       ];
-    if (a.length === 0 && t.length === 0)
-      return khisAnswered
-        ? [
-            {
-              name: filter.county || "No data",
-              "ANC Visits": 0,
-              "HIV Tested": 0,
-            },
-          ]
-        : DEMO_ANC_TESTED;
     const names = new Set<string>([
       ...a.map((c) => c.name),
       ...t.map((c) => c.name),
@@ -292,41 +261,28 @@ const Subtab2A = ({
       "ANC Visits": a.find((c) => c.name === name)?.value ?? 0,
       "HIV Tested": t.find((c) => c.name === name)?.value ?? 0,
     }));
-  }, [
-    ancByCounty.data,
-    testedByCounty.data,
-    noPeriodData,
-    khisAnswered,
-    filter.county,
-  ]);
+  }, [ancByCounty.data, testedByCounty.data, filter.county]);
 
   // Donut: HIV testing coverage (live pct when both values are live).
   const hivTestingData = useMemo(
     () =>
-      noPeriodData
+      testedPct != null
         ? [
+            { name: "HIV Tested", value: testedPct, fill: "#10b981" },
+            { name: "Not Tested", value: 100 - testedPct, fill: "#e5e7eb" },
+          ]
+        : [
             { name: "HIV Tested", value: 0, fill: "#10b981" },
             { name: "Not Reported", value: 100, fill: "#e5e7eb" },
-          ]
-        : testedPct != null
-          ? [
-              { name: "HIV Tested", value: testedPct, fill: "#10b981" },
-              { name: "Not Tested", value: 100 - testedPct, fill: "#e5e7eb" },
-            ]
-          : khisAnswered
-            ? [
-                { name: "HIV Tested", value: 0, fill: "#10b981" },
-                { name: "Not Reported", value: 100, fill: "#e5e7eb" },
-              ]
-            : DEMO_HIV_TESTING,
-    [testedPct, noPeriodData, khisAnswered],
+          ],
+    [testedPct],
   );
 
   // NP = need − KP (KHIS reports the combined "need" and the KP split).
   const npKpData = useMemo(() => {
     const need = needByCounty.data?.counties ?? [];
     const kp = kpByCounty.data?.counties ?? [];
-    if (noPeriodData)
+    if (need.length === 0 && kp.length === 0)
       return [
         {
           name: filter.county || "No data",
@@ -334,16 +290,6 @@ const Subtab2A = ({
           "Known HIV+ (KP)": 0,
         },
       ];
-    if (need.length === 0 && kp.length === 0)
-      return khisAnswered
-        ? [
-            {
-              name: filter.county || "No data",
-              "Newly HIV+ (NP)": 0,
-              "Known HIV+ (KP)": 0,
-            },
-          ]
-        : DEMO_NP_KP;
     const names = new Set<string>([
       ...need.map((c) => c.name),
       ...kp.map((c) => c.name),
@@ -357,24 +303,16 @@ const Subtab2A = ({
         "Known HIV+ (KP)": k,
       };
     });
-  }, [
-    needByCounty.data,
-    kpByCounty.data,
-    noPeriodData,
-    khisAnswered,
-    filter.county,
-  ]);
-
-  const noDataSub = `no KHIS data for ${peLabel} in this scope`;
+  }, [needByCounty.data, kpByCounty.data, filter.county]);
 
   const p = useMemo(
     () => ({
-      anc1: live.anc1 ?? (khisAnswered ? 0 : 1025),
-      tested: live.tested ?? (khisAnswered ? 0 : 984),
-      need: live.need ?? (khisAnswered ? 0 : 770),
-      kp: live.kp ?? (khisAnswered ? 0 : 320),
+      anc1: live.anc1 ?? 0,
+      tested: live.tested ?? 0,
+      need: live.need ?? 0,
+      kp: live.kp ?? 0,
     }),
-    [live, khisAnswered],
+    [live],
   );
   const np = Math.max(p.need - p.kp, 0);
 
@@ -400,7 +338,7 @@ const Subtab2A = ({
     </span>
   ) : (
     <span className="px-2 py-1 rounded-md bg-slate-100 text-slate-600 text-xs font-bold">
-      Demo data — no KHIS values for this partner/period
+      Awaiting KHIS response — showing zeros
     </span>
   );
 
@@ -420,34 +358,22 @@ const Subtab2A = ({
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           <DomainKpi
             title="1st ANC Attendance"
-            value={
-              live.anc1 != null
-                ? p.anc1.toLocaleString()
-                : khisAnswered
-                  ? "0"
-                  : "94%"
-            }
+            value={live.anc1 != null ? p.anc1.toLocaleString() : "0"}
             sub={
               live.anc1 != null
                 ? "1st ANC visits (MOH 731 HV02-01)"
-                : khisAnswered
-                  ? noDataSub
-                  : "PMTCT_STAT_D · target >95% (demo)"
+                : "not reported on KHIS this period"
             }
             tone="on"
             accent={live.anc1 != null ? "text-emerald-600" : "text-amber-600"}
           />
           <DomainKpi
             title="HIV Tested at 1st ANC"
-            value={
-              testedPct != null ? `${testedPct}%` : khisAnswered ? "0%" : "96%"
-            }
+            value={testedPct != null ? `${testedPct}%` : "0%"}
             sub={
               testedPct != null
                 ? `${p.tested.toLocaleString()} of ${p.anc1.toLocaleString()} tested · target >95%`
-                : khisAnswered
-                  ? noDataSub
-                  : "PMTCT_STAT_N · target >95% (demo)"
+                : "not reported on KHIS this period"
             }
             tone={testedPct != null ? (testedPct >= 95 ? "on" : "warn") : "on"}
             accent={
@@ -458,25 +384,21 @@ const Subtab2A = ({
           />
           <DomainKpi
             title="PBFW with known status"
-            value={khisAnswered ? "0" : p.tested.toLocaleString()}
+            value={live.tested != null ? p.tested.toLocaleString() : "0"}
             sub={
               knownStatusPct != null
                 ? `${knownStatusPct}% of ${p.anc1.toLocaleString()} 1st ANC attendees`
-                : khisAnswered
-                  ? noDataSub
-                  : "96% of 1,025 1st ANC attendees (demo)"
+                : "not reported on KHIS this period"
             }
             tone="on"
           />
           <DomainKpi
             title="HIV+ identified at intake"
-            value={khisAnswered ? "0" : p.need.toLocaleString()}
+            value={live.need != null ? p.need.toLocaleString() : "0"}
             sub={
               live.need != null && live.kp != null
                 ? `${np.toLocaleString()} NP + ${p.kp.toLocaleString()} KP · of those tested`
-                : khisAnswered
-                  ? noDataSub
-                  : "450 NP + 320 KP · 78% of those tested (demo)"
+                : "not reported on KHIS this period"
             }
             tone="on"
           />
@@ -525,7 +447,7 @@ const Subtab2A = ({
                 <ViewDataButton
                   title="1st ANC Attendance vs HIV Testing"
                   data={ancVsTestedData}
-                  note="per county — live KHIS when available, else demo"
+                  note="per county — live KHIS when available, else zeros"
                   detail={{
                     formula:
                       "per county: ANC Visits = PMTCT_STAT_N (1st ANC) · HIV Tested = PMTCT_STAT_N tested — the testing gap = ANC − tested",
@@ -543,7 +465,7 @@ const Subtab2A = ({
                     ],
                     notes: [
                       "Counties with no KHIS value for a series are shown as 0 on that bar.",
-                      "Where KHIS has no per-county values at all, the demo district figures are shown and tagged demo.",
+                      "Where KHIS has no per-county values at all, zeros are shown.",
                     ],
                   }}
                 />
@@ -575,7 +497,7 @@ const Subtab2A = ({
               <ViewDataButton
                 title="HIV Testing Coverage (1st ANC Visits)"
                 data={hivTestingData}
-                note={`${testedPct != null ? `live ratio ${testedPct}%` : khisAnswered ? "not reported this period" : "demo fallback"} · tested of ANC 1st visits`}
+                note={`${testedPct != null ? `live ratio ${testedPct}%` : "not reported this period"} · tested of ANC 1st visits`}
                 detail={{
                   formula:
                     "tested % = HIV tested at 1st ANC ÷ PBFW seen at 1st ANC × 100 · target > 95%",
@@ -606,7 +528,7 @@ const Subtab2A = ({
                     },
                   ],
                   notes: [
-                    "Both values must be live for the % to be computed — otherwise the donut shows demo/not-reported rather than a false ratio.",
+                    "Both values must be live for the % to be computed — otherwise the donut shows not-reported rather than a false ratio.",
                     `Scope: ${filter.partner}${filter.county ? ` · ${filter.county}` : ""} · ${peLabel}.`,
                   ],
                 }}
@@ -639,11 +561,7 @@ const Subtab2A = ({
                 </ResponsiveContainer>
                 <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
                   <p className="text-3xl font-bold text-emerald-600">
-                    {testedPct != null
-                      ? `${testedPct}%`
-                      : khisAnswered
-                        ? "0%"
-                        : "96%"}
+                    {testedPct != null ? `${testedPct}%` : "0%"}
                   </p>
                   <p className="text-xs text-gray-500">Tested</p>
                 </div>
@@ -678,7 +596,7 @@ const Subtab2A = ({
               <ViewDataButton
                 title="HIV+ PBFW identified at Intake — NP vs KP"
                 data={npKpData}
-                note="per county — live KHIS when available, else demo"
+                note="per county — live KHIS when available, else zeros"
               />
             </div>
           </div>
@@ -706,14 +624,12 @@ const Subtab2A = ({
                 HIV+ PBFW identified at 1st ANC (YTD)
               </p>
               <p className="text-5xl font-bold text-blue-700 mt-2">
-                {khisAnswered ? "0" : p.need.toLocaleString()}
+                {live.need != null ? p.need.toLocaleString() : "0"}
               </p>
               <p className="text-xs text-blue-700/80 mt-2">
                 {live.need != null && p.need > 0
                   ? `${((np / p.need) * 100).toFixed(0)}% newly identified (NP) · ${((p.kp / p.need) * 100).toFixed(0)}% known positive (KP)`
-                  : khisAnswered
-                    ? noDataSub
-                    : "58% newly identified (NP) · 42% known positive (KP) (demo)"}
+                  : "not reported on KHIS this period"}
               </p>
             </div>
           </div>
@@ -726,81 +642,6 @@ const Subtab2A = ({
 // ===========================================================================
 // 1.B — PMTCT & HIV Care (HIV+ cascade + HEI follow-up)
 // ===========================================================================
-
-// DEMO fallback values for 1.B (used only when live KHIS is unreachable).
-const DEMO_PBFW_NEW_POSITIVE = 450; // Number of PBFW newly identified HIV Positive (NP)
-const DEMO_PBFW_KNOWN_POSITIVE = 320; // Number of PBFW Known HIV Positive at 1st ANC (KP)
-const DEMO_PBFW_NEW_ART = 385; // PBFW New Positive initiated on ART (PMTCT_ART, New)
-const DEMO_PBFW_KNOWN_ART = 290; // PBFW Known Positive initiated on ART (PMTCT_ART, KP)
-const DEMO_HEI_EID_2_8_WEEKS = 192; // EID sample within 2-8 weeks incl. birth (PMTCT_EID)
-const DEMO_HEI_EID_3_12_MONTHS = 145; // EID samples collected within 3-12 months
-const DEMO_HEI_EID_PCT = 88; // % of HEI with EID samples collected within 2-8 weeks
-const DEMO_PCR_POSITIVE_HEI = 26; // Number of PCR Positive HEI results received
-const DEMO_HEI_POSITIVE_ART = 24; // Positive HEI initiated ART (PMTCT_HEI_ART)
-const DEMO_HIV_DELIVERIES = 380; // Deliveries among HIV+ mothers in supported facilities
-const DEMO_SBA_HIV_PCT = 92; // % skilled Birth attendance among HIV Positive mothers
-const DEMO_HEI_COHORT_ENROLLED = 410; // HEI enrolled in the Cohort 18-24 months (PMTCT_FO)
-const DEMO_HEI_COHORT_NEGATIVE = 396; // HEI discharged HIV negative 18-24 months (PMTCT_FO)
-const DEMO_PAIRS_CONTINUUM_PCT = 91; // % mother-baby pair across continuum of care at 18-24 months
-
-const DEMO_CONVERSION_FUNNEL = [
-  { stage: "New HIV+ PBFW", value: 450 },
-  { stage: "Eligible for ART", value: 425 },
-  { stage: "Initiated on ART", value: 385 },
-];
-
-const DEMO_SBA_HIV = [
-  { name: "Embu County", sba: 94 },
-  { name: "Runyenjes", sba: 90 },
-  { name: "Meru County", sba: 93 },
-  { name: "Nkubu", sba: 88 },
-];
-
-const missedOpportunitiesData = [
-  { month: "Jan", missed: 45 },
-  { month: "Feb", missed: 38 },
-  { month: "Mar", missed: 42 },
-  { month: "Apr", missed: 35 },
-  { month: "May", missed: 32 },
-  { month: "Jun", missed: 28 },
-];
-
-const heiSamplesData = [
-  { month: "Jan", samples: 120 },
-  { month: "Feb", samples: 135 },
-  { month: "Mar", samples: 148 },
-  { month: "Apr", samples: 165 },
-  { month: "May", samples: 178 },
-  { month: "Jun", samples: 192 },
-];
-
-const vipFollowUpData = [
-  { month: "Jan", enrolled: 95 },
-  { month: "Feb", enrolled: 108 },
-  { month: "Mar", enrolled: 122 },
-  { month: "Apr", enrolled: 135 },
-  { month: "May", enrolled: 149 },
-  { month: "Jun", enrolled: 162 },
-];
-
-const VIP_YTD = vipFollowUpData.reduce((acc, d) => acc + d.enrolled, 0);
-
-// ---- PMTCT Cascade — the mother–baby pair continuum "story" (demo fallback) ----
-const DEMO_CASCADE = [
-  { stage: "PBFW at 1st ANC (known HIV status)", count: 1025 },
-  { stage: "HIV tested at 1st ANC", count: 984 },
-  { stage: "HIV+ identified (NP + KP)", count: 770 },
-  { stage: "Initiated on ART", count: 675 },
-  { stage: "Delivered at supported facilities", count: 380 },
-];
-
-const DEMO_HEI_OUTCOME = [
-  {
-    stage: "HEI enrolled in 18–24 month cohort",
-    count: DEMO_HEI_COHORT_ENROLLED,
-  },
-  { stage: "HEI discharged HIV-negative", count: DEMO_HEI_COHORT_NEGATIVE },
-];
 
 // ---- Mother–baby pair pathway (§4 tracking approach) ----
 const MBP_PATHWAY = [
@@ -850,30 +691,8 @@ const MBP_PATHWAY = [
   },
 ];
 
-// Viral load (PMTCT_PVLS)
-const vlData = [
-  { name: "Suppressed", value: 94, fill: "#10b981" },
-  { name: "Unsuppressed", value: 6, fill: "#e5e7eb" },
-];
-
-const vlTrendData = [
-  { month: "Jan", uptake: 84, suppressed: 88 },
-  { month: "Feb", uptake: 86, suppressed: 89 },
-  { month: "Mar", uptake: 88, suppressed: 91 },
-  { month: "Apr", uptake: 89, suppressed: 92 },
-  { month: "May", uptake: 91, suppressed: 93 },
-  { month: "Jun", uptake: 92, suppressed: 94 },
-];
-
-// PCR → HEI ART donut (illustrative — EMR cohort, no KHIS org-unit source)
-const heiArtDonut = [
-  { name: "Initiated on ART", value: DEMO_HEI_POSITIVE_ART, fill: "#0d9488" },
-  {
-    name: "Not yet initiated",
-    value: DEMO_PCR_POSITIVE_HEI - DEMO_HEI_POSITIVE_ART,
-    fill: "#fee2e2",
-  },
-];
+// Viral load (PMTCT_PVLS) — live ratio computed from KHIS HV03 below; no static
+// trend/donut constants — monthly VL trend is not reported on KHIS.
 
 // One row of the Domain 1 indicator collection
 function IndicatorRow({
@@ -1075,13 +894,13 @@ const Subtab2B = ({
   const isLive = liveCount > 0;
 
   // KHIS answered for this period/scope at all (regardless of how many
-  // indicators have values) — never show demo numbers when we have a real
-  // KHIS response; indicators KHIS didn't report become n/r (when other
-  // stages are live) or 0 (when nothing is live), never estimates.
+  // indicators have values) — never show fabricated numbers when we have a
+  // real KHIS response; indicators KHIS didn't report become n/r (when other
+  // stages are live) or 0 (when nothing is live).
   const khisAnswered = !!data && !error && !loading;
 
   // KHIS answered but reported ZERO values for this period/scope — never show
-  // demo numbers in that case (e.g. a future month looks like "data").
+  // fabricated numbers in that case (e.g. a future month looks like "data").
   const noPeriodData = !isLive && !!data && !error && !loading;
 
   const livePct = (n: number | null, d: number | null) =>
@@ -1098,51 +917,34 @@ const Subtab2B = ({
     !khisAnswered || v != null || !isLive;
 
   // HEI 18–24m cohort pair (KHIS HV02-50 net cohort + HEI AB− 18m) — only used
-  // together when the pair is sane (negatives ≤ enrolled); otherwise the EMR
-  // cohort (est.) is shown.
+  // together when the pair is sane (negatives ≤ enrolled); otherwise n/r.
   const liveHeiPair =
     live.cohort24m != null &&
     live.cohort24m > 0 &&
     live.neg18m != null &&
     live.neg18m <= live.cohort24m;
 
-  // Live cascade stages with (est.) fallback when KHIS lacks a value.
-  const noDataSub = `no KHIS data for ${peLabel} in this scope`;
-
   const p = useMemo(
     () => ({
-      anc1: live.anc1 ?? (khisAnswered ? 0 : DEMO_CASCADE[0].count),
-      tested: live.tested ?? (khisAnswered ? 0 : DEMO_CASCADE[1].count),
-      need: live.need ?? (khisAnswered ? 0 : DEMO_CASCADE[2].count),
-      kp: live.kp ?? (khisAnswered ? 0 : DEMO_PBFW_KNOWN_POSITIVE),
-      art:
-        live.art ??
-        (khisAnswered ? 0 : DEMO_PBFW_NEW_ART + DEMO_PBFW_KNOWN_ART),
-      deliveries: live.deliveries ?? (khisAnswered ? 0 : DEMO_HIV_DELIVERIES),
-      eid: live.eid ?? (khisAnswered ? 0 : DEMO_HEI_EID_2_8_WEEKS),
-      pcrPos:
-        live.pcrPos6_8 ??
-        live.pcrPos ??
-        (khisAnswered ? 0 : DEMO_PCR_POSITIVE_HEI), // HV02 first-PCR +ve (live) over Infected_24mths
-      heiEid3_12: khisAnswered ? 0 : DEMO_HEI_EID_3_12_MONTHS, // no KHIS org-unit source (est.)
-      heiEidPct: khisAnswered ? 0 : DEMO_HEI_EID_PCT, // denominator not on KHIS monthly (est.)
-      heiArt: live.heiLinkage ?? (khisAnswered ? 0 : DEMO_HEI_POSITIVE_ART), // HEI linked to CCC (KHIS) over EMR cohort (est.)
-      sbaPct: khisAnswered ? 0 : DEMO_SBA_HIV_PCT, // denominator not on KHIS monthly (est.)
-      cohortEnrolled: liveHeiPair
-        ? (live.cohort24m as number)
-        : khisAnswered
-          ? 0
-          : DEMO_HEI_COHORT_ENROLLED, // KHIS HV02-50 net cohort (live) over EMR (est.)
-      cohortNegative: liveHeiPair
-        ? (live.neg18m as number)
-        : khisAnswered
-          ? 0
-          : DEMO_HEI_COHORT_NEGATIVE, // KHIS HEI AB− 18m (live) over EMR (est.)
-      pairsPct: khisAnswered ? 0 : DEMO_PAIRS_CONTINUUM_PCT, // 18-24m EMR cohort (est.)
+      anc1: live.anc1 ?? 0,
+      tested: live.tested ?? 0,
+      need: live.need ?? 0,
+      kp: live.kp ?? 0,
+      art: live.art ?? 0,
+      deliveries: live.deliveries ?? 0,
+      eid: live.eid ?? 0,
+      pcrPos: live.pcrPos6_8 ?? live.pcrPos ?? 0, // HV02 first-PCR +ve (live) over Infected_24mths
+      heiEid3_12: 0, // no KHIS org-unit source — not reported
+      heiEidPct: 0, // denominator not on KHIS monthly — not reported
+      heiArt: live.heiLinkage ?? 0, // HEI linked to CCC (KHIS) — no EMR estimate
+      sbaPct: 0, // denominator not on KHIS monthly — not reported
+      cohortEnrolled: liveHeiPair ? (live.cohort24m as number) : 0, // KHIS HV02-50 net cohort
+      cohortNegative: liveHeiPair ? (live.neg18m as number) : 0, // KHIS HEI AB− 18m
+      pairsPct: 0, // 18-24m pair % not on KHIS monthly — not reported
       haartTotal: live.haartTotal, // MOH 731 HV02-20
       haartStartAnc: live.haartStartAnc, // MOH 731 HV02-17
     }),
-    [live, liveHeiPair, khisAnswered],
+    [live, liveHeiPair],
   );
 
   // Viral-load suppression % — KHIS HV03-042 / HV03-043 when reported at scope.
@@ -1156,10 +958,10 @@ const Subtab2B = ({
     return null;
   }, [live.vlLt1000, live.vlResult]);
 
-  // VL donut data — live ratio when available, "Not Reported" once KHIS has
-  // answered for this scope (even partially), demo otherwise.
-  const vlChartData = khisAnswered
-    ? vlSuppPct != null
+  // VL donut data — live ratio when available, "Not Reported" otherwise (never
+  // a fabricated demo ratio).
+  const vlChartData =
+    vlSuppPct != null
       ? [
           { name: "Suppressed", value: vlSuppPct, fill: "#10b981" },
           { name: "Unsuppressed", value: 100 - vlSuppPct, fill: "#e5e7eb" },
@@ -1167,9 +969,8 @@ const Subtab2B = ({
       : [
           { name: "Suppressed", value: 0, fill: "#10b981" },
           { name: "Not Reported", value: 100, fill: "#e5e7eb" },
-        ]
-    : vlData;
-  const vlCenterPct = vlSuppPct ?? (khisAnswered ? 0 : 94);
+        ];
+  const vlCenterPct = vlSuppPct ?? 0;
 
   const np = Math.max(p.need - p.kp, 0);
   const testedPct = livePct(live.tested, live.anc1);
@@ -1247,17 +1048,17 @@ const Subtab2B = ({
       {
         stage: "HEI enrolled in 18–24 month cohort",
         count: p.cohortEnrolled,
-        est: true,
-        reported: !khisAnswered || liveHeiPair || !isLive,
+        est: false,
+        reported: liveHeiPair || !isLive,
       },
       {
         stage: "HEI discharged HIV-negative",
         count: p.cohortNegative,
-        est: true,
-        reported: !khisAnswered || liveHeiPair || !isLive,
+        est: false,
+        reported: liveHeiPair || !isLive,
       },
     ],
-    [p, liveHeiPair, khisAnswered, isLive],
+    [p, liveHeiPair, isLive],
   );
 
   const sourceBadge = loading ? (
@@ -1288,7 +1089,7 @@ const Subtab2B = ({
     </span>
   ) : (
     <span className="px-2 py-1 rounded-md bg-slate-100 text-slate-600 text-xs font-bold">
-      Demo data — no KHIS values for this partner/period
+      Awaiting KHIS response — showing zeros
     </span>
   );
 
@@ -1308,21 +1109,11 @@ const Subtab2B = ({
         <div className="grid grid-cols-2 lg:grid-cols-6 gap-4">
           <DomainKpi
             title="HIV Tested at 1st ANC"
-            value={
-              testedPct != null
-                ? `${testedPct}%`
-                : khisAnswered
-                  ? isLive
-                    ? "n/r"
-                    : "0%"
-                  : "96%"
-            }
+            value={testedPct != null ? `${testedPct}%` : isLive ? "n/r" : "0%"}
             sub={
               testedPct != null
                 ? `${p.tested.toLocaleString()} of ${p.anc1.toLocaleString()} · target >95%`
-                : khisAnswered
-                  ? "not reported on KHIS this period"
-                  : "PMTCT_STAT_N · target >95% (demo)"
+                : "not reported on KHIS this period"
             }
             tone={testedPct != null ? (testedPct >= 95 ? "on" : "warn") : "on"}
             accent={
@@ -1336,39 +1127,25 @@ const Subtab2B = ({
             value={
               pbfwInitiatedPct != null
                 ? `${pbfwInitiatedPct}%`
-                : khisAnswered
-                  ? isLive
-                    ? "n/r"
-                    : "0%"
-                  : "est."
+                : isLive
+                  ? "n/r"
+                  : "0%"
             }
             sub={
               pbfwInitiatedPct != null
                 ? `${p.art.toLocaleString()} of ${p.need.toLocaleString()} · target >95%`
-                : khisAnswered
-                  ? "not reported on KHIS this period"
-                  : `${p.art.toLocaleString()} of ${p.need.toLocaleString()} (demo)`
+                : "not reported on KHIS this period"
             }
             tone={artPct != null ? (artPct >= 95 ? "on" : "warn") : "warn"}
             accent="text-amber-600"
           />
           <DomainKpi
             title="VL Suppression"
-            value={
-              vlSuppPct != null
-                ? `${vlSuppPct}%`
-                : khisAnswered
-                  ? isLive
-                    ? "n/r"
-                    : "0%"
-                  : "94%"
-            }
+            value={vlSuppPct != null ? `${vlSuppPct}%` : isLive ? "n/r" : "0%"}
             sub={
               vlSuppPct != null
                 ? `${live.vlLt1000?.toLocaleString()} of ${live.vlResult?.toLocaleString()} VL results <1000 (HV03) · target >95%`
-                : khisAnswered
-                  ? "not reported on KHIS this period"
-                  : "PMTCT_PVLS · target >95% (est.)"
+                : "not reported on KHIS this period"
             }
             tone={
               vlSuppPct != null ? (vlSuppPct >= 95 ? "on" : "warn") : "warn"
@@ -1382,20 +1159,12 @@ const Subtab2B = ({
           <DomainKpi
             title="EID ≤ 8 weeks"
             value={
-              live.eid != null
-                ? p.eid.toLocaleString()
-                : khisAnswered
-                  ? isLive
-                    ? "n/r"
-                    : "0"
-                  : `${p.heiEidPct}%`
+              live.eid != null ? p.eid.toLocaleString() : isLive ? "n/r" : "0"
             }
             sub={
               live.eid != null
                 ? "EID samples ≤ 8wk (MOH 731 HV02-44)"
-                : khisAnswered
-                  ? "not reported on KHIS this period"
-                  : "PMTCT_EID · target >98% (demo)"
+                : "not reported on KHIS this period"
             }
             tone="off"
             accent="text-red-600"
@@ -1405,38 +1174,24 @@ const Subtab2B = ({
             value={
               live.deliveries != null
                 ? p.deliveries.toLocaleString()
-                : khisAnswered
-                  ? isLive
-                    ? "n/r"
-                    : "0"
-                  : `${p.sbaPct}%`
+                : isLive
+                  ? "n/r"
+                  : "0"
             }
             sub={
               live.deliveries != null
                 ? "deliveries from HIV+ mothers (HV02-02)"
-                : khisAnswered
-                  ? "not reported on KHIS this period"
-                  : "SBA among HIV+ · target >90% (demo)"
+                : "not reported on KHIS this period"
             }
             tone="on"
           />
           <DomainKpi
             title="HEI HIV-free 18–24m"
-            value={
-              liveHeiPair
-                ? `${heiNegativePct}%`
-                : khisAnswered
-                  ? isLive
-                    ? "n/r"
-                    : "0%"
-                  : `${heiNegativePct}%`
-            }
+            value={liveHeiPair ? `${heiNegativePct}%` : isLive ? "n/r" : "0%"}
             sub={
               liveHeiPair
                 ? `${p.cohortNegative.toLocaleString()} of ${p.cohortEnrolled.toLocaleString()} HEI HIV-free at 18–24m · target >95% (KHIS HV02-50/18m)`
-                : khisAnswered
-                  ? "not reported on KHIS this period"
-                  : "PMTCT_FO · target >95% (est.)"
+                : "not reported on KHIS this period"
             }
             tone="on"
           />
@@ -1452,11 +1207,6 @@ const Subtab2B = ({
               <span className="px-2 py-1 rounded-md bg-emerald-50 text-emerald-800 text-xs font-bold">
                 Mother–baby pair continuum
               </span>
-              {!khisAnswered && (
-                <span className="px-2 py-1 rounded-md bg-teal-50 text-teal-800 text-xs font-bold">
-                  {VIP_YTD.toLocaleString()} VIP follow-ups enrolled YTD (est.)
-                </span>
-              )}
               <ViewDataButton
                 title="The PMTCT Cascade"
                 data={cascadeData.map((c) => ({
@@ -1464,7 +1214,7 @@ const Subtab2B = ({
                   count: c.reported ? c.count : "n/r",
                   est: c.est,
                 }))}
-                note={`${isLive ? `Live · KHIS · ${data?.scope} · ${data?.peLabel}` : noPeriodData ? "no KHIS data — zeros" : "demo"} · n/r = not reported on KHIS this period`}
+                note={`${isLive ? `Live · KHIS · ${data?.scope} · ${data?.peLabel}` : "no KHIS data — zeros"} · n/r = not reported on KHIS this period`}
                 detail={{
                   formula:
                     "cascade % = stage count ÷ PBFW at 1st ANC × 100 · drop = previous stage − this stage (only between two reported stages)",
@@ -1525,7 +1275,7 @@ const Subtab2B = ({
                   notes: [
                     `Scope: ${data?.scope ?? "—"} · ${data?.peLabel ?? peLabel}. KHIS reports ${liveCount}/16 indicators this period.`,
                     "Stages KHIS did not report are shown as n/r — no impossible drops are implied between live stages.",
-                    "HEI outcomes are only treated as live when the KHIS pair is sane (negatives ≤ enrolled); otherwise the EMR cohort (est.) is used.",
+                    "HEI outcomes are only treated as live when the KHIS pair is sane (negatives ≤ enrolled); otherwise n/r.",
                   ],
                 }}
               />
@@ -1545,21 +1295,18 @@ const Subtab2B = ({
           <div className="space-y-3">
             {cascadeData.map((item, idx) => {
               const prev = cascadeData[idx - 1];
-              const estTag = item.est && !khisAnswered ? " (est.)" : "";
               let note: string | undefined;
               if (idx > 0 && prev) {
                 if (prev.reported && item.reported) {
                   note =
                     prev.count > item.count
-                      ? `−${(prev.count - item.count).toLocaleString()} vs prev stage${estTag}`
-                      : `▲${(item.count - prev.count).toLocaleString()} vs prev stage${estTag}`;
+                      ? `−${(prev.count - item.count).toLocaleString()} vs prev stage`
+                      : `▲${(item.count - prev.count).toLocaleString()} vs prev stage`;
                 } else if (item.reported) {
                   note = "prev stage not reported on KHIS this period";
                 } else {
                   note = "not reported on KHIS this period";
                 }
-              } else if (estTag) {
-                note = "(est.)";
               }
               return (
                 <CascadeBar
@@ -1578,7 +1325,7 @@ const Subtab2B = ({
           <div className="mt-6 pt-5 border-t border-slate-100 grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div>
               <h4 className="text-sm font-semibold text-gray-700 mb-3">
-                HEI outcomes at 18–24 months (PMTCT_FO) — EMR cohort (est.)
+                HEI outcomes at 18–24 months (PMTCT_FO)
               </h4>
               <div className="space-y-3">
                 {heiOutcomeData.map((item, idx) => (
@@ -1605,20 +1352,12 @@ const Subtab2B = ({
                 HIV-free survival among exposed infants
               </p>
               <p className="text-5xl font-bold text-emerald-700 mt-2">
-                {liveHeiPair
-                  ? `${heiNegativePct}%`
-                  : khisAnswered
-                    ? isLive
-                      ? "n/r"
-                      : "0%"
-                    : `${heiNegativePct}%`}
+                {liveHeiPair ? `${heiNegativePct}%` : isLive ? "n/r" : "0%"}
               </p>
               <p className="text-xs text-emerald-700/80 mt-2">
                 {liveHeiPair
                   ? `${p.cohortNegative.toLocaleString()} of ${p.cohortEnrolled.toLocaleString()} HEI discharged HIV-negative · target >95% · KHIS cohort (HV02-50/18m)`
-                  : khisAnswered
-                    ? "not reported on KHIS this period"
-                    : `${p.cohortNegative.toLocaleString()} of ${p.cohortEnrolled.toLocaleString()} HEI discharged HIV-negative · target >95% · EMR cohort (est.)`}
+                  : "not reported on KHIS this period"}
               </p>
             </div>
           </div>
@@ -1682,7 +1421,7 @@ const Subtab2B = ({
               <ViewDataButton
                 title="Viral Load Suppression (donut)"
                 data={vlChartData}
-                note={`${vlSuppPct != null ? `live ratio ${vlSuppPct}% (KHIS HV03)` : "demo"} · % of VL results <1000`}
+                note={`${vlSuppPct != null ? `live ratio ${vlSuppPct}% (KHIS HV03)` : "not reported this period"} · % of VL results <1000`}
                 detail={{
                   formula:
                     "suppression % = VL results < 1000 copies ÷ VL results with result × 100 (HV03-042 / HV03-043) · target ≥ 95%",
@@ -1720,8 +1459,8 @@ const Subtab2B = ({
               />
               <ViewDataButton
                 title="VL Uptake & Suppression Trend (Jan–Jun)"
-                data={vlTrendData}
-                note="Illustrative trend — not on KHIS monthly"
+                data={[]}
+                note="No data — monthly VL trend is not reported on KHIS"
               />
             </div>
           </div>
@@ -1784,7 +1523,7 @@ const Subtab2B = ({
                 Uptake &amp; suppression trend (Jan–Jun)
               </h4>
               <ResponsiveContainer width="100%" height={240}>
-                <LineChart data={khisAnswered ? [] : vlTrendData}>
+                <LineChart data={[]}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="month" />
                   <YAxis domain={[70, 100]} />
@@ -1886,7 +1625,7 @@ const Subtab2B = ({
                 <ViewDataButton
                   title="HIV Treatment Conversion Funnel"
                   data={conversionFunnelData}
-                  note={`${isLive ? `Live · KHIS · ${data?.scope}` : noPeriodData ? "no KHIS data — zeros" : "demo"} · est = fallback`}
+                  note={`${isLive ? `Live · KHIS · ${data?.scope}` : "no KHIS data — zeros"} · n/r = not reported on KHIS this period`}
                   detail={{
                     formula:
                       "funnel % = stage ÷ new HIV+ PBFW × 100 · eligible = HIV+ identified (NP+KP) · initiated = started ART",
@@ -1940,11 +1679,6 @@ const Subtab2B = ({
                           {item.reported
                             ? `${item.value.toLocaleString()} (${percentage}%)`
                             : "n/r"}
-                          {item.est && item.reported && (
-                            <span className="text-xs font-medium text-gray-400 ml-1">
-                              (est.)
-                            </span>
-                          )}
                         </span>
                       </div>
                       <div className="w-full bg-gray-200 rounded-full h-8 overflow-hidden">
@@ -1975,12 +1709,12 @@ const Subtab2B = ({
                 </h4>
                 <ViewDataButton
                   title="Missed Opportunities Trend"
-                  data={missedOpportunitiesData}
-                  note="Illustrative — computed from demo figures, not KHIS"
+                  data={[]}
+                  note="No data — monthly missed-opportunity trend not reported on KHIS"
                 />
               </div>
               <ResponsiveContainer width="100%" height={200}>
-                <LineChart data={khisAnswered ? [] : missedOpportunitiesData}>
+                <LineChart data={[]}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="month" />
                   <YAxis />
@@ -2012,52 +1746,26 @@ const Subtab2B = ({
               label={
                 live.eid != null
                   ? "HEI with EID sample collected within 2-8 weeks (incl. birth testing)"
-                  : khisAnswered
-                    ? "HEI with EID sample within 2-8 weeks (HV02-44) — not reported this period"
-                    : "HEI with EID sample collected within 2-8 weeks (incl. birth testing)"
+                  : "HEI with EID sample within 2-8 weeks (HV02-44) — not reported this period"
               }
-              value={
-                live.eid != null
-                  ? p.eid
-                  : khisAnswered
-                    ? isLive
-                      ? "n/r"
-                      : 0
-                    : p.eid
-              }
+              value={live.eid != null ? p.eid : isLive ? "n/r" : 0}
             />
             <IndicatorRow
               code="EID 3-12m"
-              label="HEI with EID samples collected within 3-12 months"
-              value={
-                live.eid != null
-                  ? p.heiEid3_12
-                  : khisAnswered
-                    ? isLive
-                      ? "n/r"
-                      : p.heiEid3_12
-                    : p.heiEid3_12
-              }
+              label="HEI with EID samples collected within 3-12 months — not reported on KHIS (no org-unit source)"
+              value={isLive ? "n/r" : 0}
             />
             <IndicatorRow
               code="% EID ≤ 8wk"
-              label="% of HEI with EID samples collected within 2-8 weeks"
-              value={
-                live.eid != null
-                  ? p.heiEidPct
-                  : khisAnswered
-                    ? isLive
-                      ? "n/r"
-                      : p.heiEidPct
-                    : p.heiEidPct
-              }
+              label="% of HEI with EID samples collected within 2-8 weeks — denominator not on KHIS monthly"
+              value={isLive ? "n/r" : 0}
               isPct
             />
           </div>
           <p className="text-xs text-gray-400 mb-3">
             EID ≤ 8 weeks is live from KHIS (MOH 731 HV02-44); the 3-12 month
-            bucket and the % require cohort denominators not reported on KHIS
-            monthly — shown as (est.).
+            bucket and the % need cohort denominators not reported on KHIS
+            monthly — shown as n/r, never estimates.
           </p>
           <div className="flex items-center justify-between gap-2 mb-3">
             <h4 className="text-sm font-semibold text-gray-700">
@@ -2065,12 +1773,12 @@ const Subtab2B = ({
             </h4>
             <ViewDataButton
               title="EID Sample Collection Trend"
-              data={heiSamplesData}
-              note="Illustrative — monthly trend not on KHIS"
+              data={[]}
+              note="No data — monthly EID trend not reported on KHIS"
             />
           </div>
           <ResponsiveContainer width="100%" height={280}>
-            <LineChart data={khisAnswered ? [] : heiSamplesData}>
+            <LineChart data={[]}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="month" />
               <YAxis />
@@ -2096,38 +1804,18 @@ const Subtab2B = ({
             label={
               live.pcrPos6_8 != null
                 ? "HEI tested positive by first PCR at 6-8 weeks (KHIS)"
-                : khisAnswered
-                  ? "HEI positive by first PCR at 6-8 weeks (HV02-42) — not reported this period"
-                  : "Number of PCR Positive HEI results received (est.)"
+                : "HEI positive by first PCR at 6-8 weeks (HV02-42) — not reported this period"
             }
-            value={
-              live.pcrPos6_8 != null
-                ? p.pcrPos
-                : khisAnswered
-                  ? isLive
-                    ? "n/r"
-                    : 0
-                  : p.pcrPos
-            }
+            value={live.pcrPos6_8 != null ? p.pcrPos : isLive ? "n/r" : 0}
           />
           <IndicatorRow
             code="PMTCT_HEI_ART"
             label={
               live.heiLinkage != null
                 ? "HEI HIV+ infants 0-9m linked to CCC (KHIS)"
-                : khisAnswered
-                  ? "HEI HIV+ infants 0-9m linked to CCC — not reported this period"
-                  : "Number of positive HEI initiated ART (EMR — est.)"
+                : "HEI HIV+ infants 0-9m linked to CCC — not reported this period"
             }
-            value={
-              live.heiLinkage != null
-                ? p.heiArt
-                : khisAnswered
-                  ? isLive
-                    ? "n/r"
-                    : 0
-                  : p.heiArt
-            }
+            value={live.heiLinkage != null ? p.heiArt : isLive ? "n/r" : 0}
           />
           <IndicatorRow
             code="% HEI ART"
@@ -2135,18 +1823,14 @@ const Subtab2B = ({
             value={
               live.pcrPos6_8 != null && live.heiLinkage != null
                 ? p.heiArt
-                : khisAnswered
-                  ? isLive
-                    ? "n/r"
-                    : p.heiArt
-                  : p.heiArt
+                : isLive
+                  ? "n/r"
+                  : 0
             }
             pct={
               live.pcrPos6_8 != null && live.heiLinkage != null
                 ? heiArtPct
-                : khisAnswered
-                  ? undefined
-                  : heiArtPct
+                : undefined
             }
           />
         </div>
@@ -2159,8 +1843,8 @@ const Subtab2B = ({
             </h3>
             <ViewDataButton
               title="Delivery Care among HIV+ Mothers"
-              data={DEMO_SBA_HIV}
-              note="Illustrative — SBA % among HIV+ not disaggregated on KHIS monthly"
+              data={[]}
+              note="No data — SBA % among HIV+ not disaggregated on KHIS monthly"
             />
           </div>
           <p className="text-sm text-gray-500 mb-4">
@@ -2171,32 +1855,18 @@ const Subtab2B = ({
               code="Deliveries"
               label="Number of Deliveries among HIV-positive mothers in supported facilities"
               value={
-                live.deliveries != null
-                  ? p.deliveries
-                  : khisAnswered
-                    ? isLive
-                      ? "n/r"
-                      : 0
-                    : p.deliveries
+                live.deliveries != null ? p.deliveries : isLive ? "n/r" : 0
               }
             />
             <IndicatorRow
               code="% SBA"
-              label="% skilled Birth attendance among HIV Positive mothers (est.)"
-              value={
-                live.deliveries != null
-                  ? p.sbaPct
-                  : khisAnswered
-                    ? isLive
-                      ? "n/r"
-                      : p.sbaPct
-                    : p.sbaPct
-              }
+              label="% skilled Birth attendance among HIV Positive mothers — not reported on KHIS monthly"
+              value={isLive ? "n/r" : 0}
               isPct
             />
           </div>
           <ResponsiveContainer width="100%" height={280}>
-            <BarChart data={khisAnswered ? [] : DEMO_SBA_HIV}>
+            <BarChart data={[]}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="name" />
               <YAxis domain={[0, 100]} />
@@ -2214,8 +1884,8 @@ const Subtab2B = ({
             </h3>
             <ViewDataButton
               title="HEI Cohort Follow-up Trend"
-              data={vipFollowUpData}
-              note="Illustrative — cohort follow-up not on KHIS monthly"
+              data={[]}
+              note="No data — cohort follow-up not reported on KHIS monthly"
             />
           </div>
           <p className="text-sm text-gray-500 mb-4">
@@ -2228,80 +1898,38 @@ const Subtab2B = ({
               label={
                 liveHeiPair
                   ? "Number of HEI in the 18–24 month net cohort (KHIS HV02-50)"
-                  : khisAnswered
-                    ? "Number of HEI in the 18–24 month net cohort (HV02-50) — not reported this period"
-                    : "Number of HEI enrolled in the Cohort 18-24 months (EMR — est.)"
+                  : "Number of HEI in the 18–24 month net cohort (HV02-50) — not reported this period"
               }
-              value={
-                liveHeiPair
-                  ? p.cohortEnrolled
-                  : khisAnswered
-                    ? isLive
-                      ? "n/r"
-                      : 0
-                    : p.cohortEnrolled
-              }
+              value={liveHeiPair ? p.cohortEnrolled : isLive ? "n/r" : 0}
             />
             <IndicatorRow
               code="PMTCT_FO (−)"
               label={
                 liveHeiPair
                   ? "Number of HEI antibody-negative at 18 months (KHIS)"
-                  : khisAnswered
-                    ? "Number of HEI antibody-negative at 18 months — not reported this period"
-                    : "Number of HEI discharged HIV negative 18–24 months (EMR — est.)"
+                  : "Number of HEI antibody-negative at 18 months — not reported this period"
               }
-              value={
-                liveHeiPair
-                  ? p.cohortNegative
-                  : khisAnswered
-                    ? isLive
-                      ? "n/r"
-                      : 0
-                    : p.cohortNegative
-              }
+              value={liveHeiPair ? p.cohortNegative : isLive ? "n/r" : 0}
             />
             <IndicatorRow
               code="% Negative"
               label={
                 liveHeiPair
                   ? "% of HEI discharged HIV Negative at 18-24 months (KHIS)"
-                  : khisAnswered
-                    ? "% of HEI discharged HIV Negative at 18-24 months — not reported this period"
-                    : "% of HEI discharged HIV Negative at 18-24 months"
+                  : "% of HEI discharged HIV Negative at 18-24 months — not reported this period"
               }
-              value={
-                liveHeiPair
-                  ? p.cohortNegative
-                  : khisAnswered
-                    ? isLive
-                      ? "n/r"
-                      : p.cohortNegative
-                    : p.cohortNegative
-              }
-              pct={
-                liveHeiPair
-                  ? heiNegativePct
-                  : khisAnswered
-                    ? undefined
-                    : heiNegativePct
-              }
+              value={liveHeiPair ? p.cohortNegative : isLive ? "n/r" : 0}
+              pct={liveHeiPair ? heiNegativePct : undefined}
             />
             <IndicatorRow
               code="% Pairs"
-              label="% of mother–baby pair across the continuum of care reported at 18-24 months (est.)"
-              value={
-                liveHeiPair || !khisAnswered
-                  ? p.pairsPct
-                  : isLive
-                    ? "n/r"
-                    : p.pairsPct
-              }
+              label="% of mother–baby pair across the continuum of care reported at 18-24 months — not reported on KHIS monthly"
+              value={isLive ? "n/r" : 0}
               isPct
             />
           </div>
           <ResponsiveContainer width="100%" height={280}>
-            <LineChart data={khisAnswered ? [] : vipFollowUpData}>
+            <LineChart data={[]}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="month" />
               <YAxis />
