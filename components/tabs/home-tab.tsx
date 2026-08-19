@@ -819,8 +819,8 @@ function PartnerIndicatorChart({
                 })),
               ),
               notes: [
-                "Live KHIS values where reported (ANC coverage, HIV testing, ART initiation, MPDSR audits) — indicators not disaggregated on KHIS this period show zero.",
-                "A blank bar means no value was reported for that county.",
+                "Live KHIS values where reported (ANC coverage, HIV testing, ART initiation, EID ≤ 8 weeks, PCR+ ART linkage, VL suppression, MPDSR audits) — indicators not disaggregated on KHIS this period show gray stubs.",
+                "A gray stub means no value was reported for that county on KHIS.",
               ],
             }}
           />
@@ -849,10 +849,15 @@ function PartnerIndicatorChart({
             />
             <Tooltip
               cursor={{ fill: "rgba(148,163,184,0.12)" }}
-              formatter={(v, name) => [
-                `${Number(v).toFixed(1)}%`,
-                String(name),
-              ]}
+              formatter={(v, name) => {
+                const n = Number(v);
+                return [
+                  n > 0
+                    ? `${n.toFixed(1)}%`
+                    : "Not reported on KHIS this period",
+                  String(name),
+                ];
+              }}
               labelFormatter={(label) => {
                 const r = rows.find((row) => row.label === label);
                 return r ? `${r.full} · target ≥ ${r.target}%` : String(label);
@@ -866,7 +871,22 @@ function PartnerIndicatorChart({
                 fill={COUNTY_COLORS[i % COUNTY_COLORS.length]}
                 radius={[3, 3, 0, 0]}
                 maxBarSize={32}
-              />
+                minPointSize={3}
+              >
+                {data.map((d) => {
+                  const v = Number(d[c] ?? 0);
+                  return (
+                    <Cell
+                      key={`${d.label}-${c}`}
+                      fill={
+                        v > 0
+                          ? COUNTY_COLORS[i % COUNTY_COLORS.length]
+                          : "rgba(148,163,184,0.18)"
+                      }
+                    />
+                  );
+                })}
+              </Bar>
             ))}
           </BarChart>
         </ResponsiveContainer>
@@ -1215,7 +1235,8 @@ export function HomeTab({
   // -----------------------------------------------------------------------
   // Per-county VTP quality-of-care numerators — used by the VTP scoreboard
   // (§5.3) and Safe Systems MPDSR row (§5.4) so every partner chart shows
-  // real KHIS bars: ANC coverage, HIV testing, ART initiation and audit %.
+  // real KHIS bars: ANC coverage, HIV testing, ART initiation, EID ≤ 8 weeks,
+  // PCR+ ART linkage, VL suppression and MPDSR audit %.
   // -----------------------------------------------------------------------
   const [vtpCounty, setVtpCounty] = useState<
     Record<
@@ -1224,6 +1245,9 @@ export function HomeTab({
         ancCov?: number;
         hivTest?: number;
         artInit?: number;
+        eidPct?: number;
+        pcrArt?: number;
+        vlSup?: number;
         audited?: number;
       }
     >
@@ -1239,7 +1263,7 @@ export function HomeTab({
         fetch(
           `/api/khis?county=${encodeURIComponent(
             c,
-          )}&pe=${pe}&indicators=pmtct_anc1_visits,anc4_visits,anc1_4_dropout,pmtct_initial_test,pmtct_need,pmtct_art,maternal_deaths_reported,maternal_deaths_audited,neonatal_deaths,neonatal_deaths_audited`,
+          )}&pe=${pe}&indicators=pmtct_anc1_visits,anc4_visits,anc1_4_dropout,pmtct_initial_test,pmtct_need,pmtct_art,hei_eid_pct,hei_art_linkage,hei_pcr_pos_6_8wks,vl_suppression_pct,maternal_deaths_reported,maternal_deaths_audited,neonatal_deaths,neonatal_deaths_audited`,
         )
           .then((r) => (r.ok ? r.json() : null))
           .catch(() => null),
@@ -1252,6 +1276,9 @@ export function HomeTab({
           ancCov?: number;
           hivTest?: number;
           artInit?: number;
+          eidPct?: number;
+          pcrArt?: number;
+          vlSup?: number;
           audited?: number;
         }
       > = {};
@@ -1281,6 +1308,9 @@ export function HomeTab({
           ancCov?: number;
           hivTest?: number;
           artInit?: number;
+          eidPct?: number;
+          pcrArt?: number;
+          vlSup?: number;
           audited?: number;
         } = {};
         // ANC coverage = 100 − ANC1→4 dropout; fall back to ANC4/ANC1 when
@@ -1295,6 +1325,24 @@ export function HomeTab({
         }
         if (need != null && need > 0 && art != null) {
           entry.artInit = r1(clampPct((art / need) * 100));
+        }
+        // EID ≤ 8 weeks — KHIS-computed % of HEI tested with PCR at 6–8 weeks
+        // with results available (reported at county level in many counties).
+        const heiEidPct = ind("hei_eid_pct");
+        if (heiEidPct != null) {
+          entry.eidPct = r1(clampPct(heiEidPct));
+        }
+        // Timely ART for PCR+ infants — HIV+ infants linked to CCC ÷ those
+        // tested positive by first PCR at 6–8 weeks (KHIS MOH 731).
+        const pcrPos = ind("hei_pcr_pos_6_8wks");
+        const artLink = ind("hei_art_linkage");
+        if (pcrPos != null && pcrPos > 0 && artLink != null) {
+          entry.pcrArt = r1(clampPct((artLink / pcrPos) * 100));
+        }
+        // VL suppression — KHIS-computed % when the county reports it.
+        const vlSupPct = ind("vl_suppression_pct");
+        if (vlSupPct != null) {
+          entry.vlSup = r1(clampPct(vlSupPct));
         }
         // MPDSR audit % = audited deaths ÷ reported deaths (maternal + neo).
         const deathsReported = (matRep ?? 0) + (neoRep ?? 0);
@@ -1414,9 +1462,11 @@ export function HomeTab({
   );
 
   // §5.3 — VTP QoC per partner, each indicator compared across its counties.
-  // Rows 1–3 (ANC coverage, HIV testing, ART initiation) are pulled per
-  // county from KHIS — real bars wherever the county reports; the remaining
-  // rows have no KHIS county disaggregation this period and stay at zero.
+  // Each row is pulled per county from KHIS — ANC coverage, HIV testing and
+  // ART initiation from raw counts; EID ≤ 8 weeks and VL suppression from
+  // KHIS-computed %; PCR+ ART linkage from HEI linkage ÷ PCR+ counts.
+  // Rows without a KHIS county value this period stay at zero (rendered as
+  // a gray "not reported" stub — never a fabricated baseline).
   const vtpByPartner = useMemo(
     () =>
       partners.map((p) => {
@@ -1441,7 +1491,13 @@ export function HomeTab({
                       ? c?.hivTest
                       : idx === 2
                         ? c?.artInit
-                        : null;
+                        : idx === 3
+                          ? c?.vlSup
+                          : idx === 4
+                            ? c?.eidPct
+                            : idx === 5
+                              ? c?.pcrArt
+                              : null;
                 const v = pending ? 0 : (perCounty ?? partnerBase ?? null);
                 return {
                   county,
@@ -1928,9 +1984,10 @@ export function HomeTab({
             <p className="text-sm text-gray-500 mt-0.5">
               The nine core PMTCT indicators per partner — each indicator
               compared across the partner's supported counties (§5.3). ANC
-              coverage, HIV testing and ART initiation are pulled live per
-              county from KHIS; rows without a KHIS disaggregation this period
-              show zero.
+              coverage, HIV testing, ART initiation, EID ≤ 8 weeks, PCR+ ART
+              linkage and VL suppression are pulled live per county from KHIS;
+              rows without a KHIS disaggregation this period show gray "not
+              reported" stubs.
             </p>
           </div>
           <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-rose-50 text-rose-700 border border-rose-200">
