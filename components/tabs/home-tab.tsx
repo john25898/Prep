@@ -480,28 +480,24 @@ const PILLARS = [
     label: "ANC Coverage",
     indicator: "At least four ANC visits",
     target: 90,
-    current: 52,
   },
   {
     pillar: "90",
     label: "Skilled Delivery",
     indicator: "Skilled birth attendance coverage",
     target: 90,
-    current: 70,
   },
   {
     pillar: "80",
     label: "Early PNC",
     indicator: "Postnatal care within 48 hours",
     target: 80,
-    current: 66.6,
   },
   {
     pillar: "80",
     label: "Continuity of Care",
     indicator: "Retention of the mother–baby pair",
     target: 80,
-    current: 68.4,
   },
 ];
 
@@ -515,7 +511,6 @@ const VTP_QOC = [
     source: "KHIS",
     target: 95,
     op: ">",
-    current: 94,
   },
   {
     no: 2,
@@ -525,7 +520,6 @@ const VTP_QOC = [
     source: "KHIS",
     target: 95,
     op: ">",
-    current: 96,
   },
   {
     no: 3,
@@ -535,7 +529,6 @@ const VTP_QOC = [
     source: "KHIS",
     target: 95,
     op: ">",
-    current: 87.7,
   },
   {
     no: 4,
@@ -545,7 +538,6 @@ const VTP_QOC = [
     source: "NDW/EMR",
     target: 95,
     op: ">",
-    current: 94,
   },
   {
     no: 5,
@@ -555,7 +547,6 @@ const VTP_QOC = [
     source: "KHIS/NASCOP",
     target: 98,
     op: ">",
-    current: 88,
   },
   {
     no: 6,
@@ -565,7 +556,6 @@ const VTP_QOC = [
     source: "NASCOP/EMR",
     target: 100,
     op: "=",
-    current: 92.3,
   },
   {
     no: 7,
@@ -575,7 +565,6 @@ const VTP_QOC = [
     source: "KHIS",
     target: 90,
     op: ">",
-    current: 92,
   },
   {
     no: 8,
@@ -585,7 +574,6 @@ const VTP_QOC = [
     source: "EMR",
     target: 95,
     op: ">",
-    current: 96.6,
   },
   {
     no: 9,
@@ -595,7 +583,6 @@ const VTP_QOC = [
     source: "EMR",
     target: 95,
     op: ">",
-    current: 91,
   },
 ];
 
@@ -608,7 +595,6 @@ const SAFE_SYSTEMS = [
     source: "LMIS/KHIS",
     freq: "Monthly",
     target: 100,
-    current: 72,
   },
   {
     label: "Functional blood transfusion services",
@@ -617,7 +603,6 @@ const SAFE_SYSTEMS = [
     source: "HFA-QOC",
     freq: "Quarterly",
     target: 75,
-    current: 66,
   },
   {
     label: "Functional oxygen/CPAP for neonates",
@@ -626,7 +611,6 @@ const SAFE_SYSTEMS = [
     source: "HFA-QOC",
     freq: "Quarterly",
     target: 60,
-    current: 20,
   },
   {
     label: "Procured equipment functional & in use",
@@ -635,7 +619,6 @@ const SAFE_SYSTEMS = [
     source: "Facility assessment",
     freq: "Semi-annual",
     target: 90,
-    current: 88,
   },
   {
     label: "Maternal & neonatal deaths audited (MPDSR)",
@@ -644,7 +627,6 @@ const SAFE_SYSTEMS = [
     source: "KHIS",
     freq: "Monthly",
     target: 100,
-    current: 81,
   },
 ];
 
@@ -837,7 +819,7 @@ function PartnerIndicatorChart({
                 })),
               ),
               notes: [
-                "Live KHIS values where reported (HIV testing, ART initiation) — indicators not disaggregated on KHIS this period show zero.",
+                "Live KHIS values where reported (ANC coverage, HIV testing, ART initiation, MPDSR audits) — indicators not disaggregated on KHIS this period show zero.",
                 "A blank bar means no value was reported for that county.",
               ],
             }}
@@ -938,6 +920,7 @@ export function HomeTab({
       lb?: number;
       nd?: number;
       sb?: number;
+      matRep?: number;
     }
   > | null>(null);
 
@@ -949,7 +932,7 @@ export function HomeTab({
         fetch(
           `/api/khis?county=${encodeURIComponent(
             c,
-          )}&pe=${pe}&indicators=pmtct_anc1_visits,anc4_visits,anc1_4_dropout,sba_pct_live,pnc_48h_mother,pnc_48h_infant,mmr,moh711_live_births,neonatal_deaths,stillbirths`,
+          )}&pe=${pe}&indicators=pmtct_anc1_visits,anc4_visits,anc1_4_dropout,sba_pct_live,pnc_48h_mother,pnc_48h_infant,maternal_deaths_reported,mmr,moh711_live_births,neonatal_deaths,stillbirths`,
         )
           .then((r) => (r.ok ? r.json() : null))
           .catch(() => null),
@@ -969,6 +952,7 @@ export function HomeTab({
           lb?: number;
           nd?: number;
           sb?: number;
+          matRep?: number;
         }
       > = {};
       results.forEach((res, i) => {
@@ -1016,17 +1000,28 @@ export function HomeTab({
           lb != null && lb > 0 && sb != null
             ? Math.round((sb / (lb + sb)) * 1000 * 10) / 10
             : undefined;
+        // MMR: use the KHIS MMR indicator where reported; when it is null but
+        // maternal deaths and live births are both reported, derive the ratio
+        // from the raw counts (real KHIS values — no demo fallback).
+        const matRep = ind("maternal_deaths_reported");
+        const mmrInd = r1(ind("mmr"));
+        const mmr =
+          mmrInd ??
+          (matRep != null && matRep > 0 && lb != null && lb > 0
+            ? Math.round((matRep / lb) * 100000 * 10) / 10
+            : undefined);
         map[name] = {
           anc: anc != null ? Math.round(anc * 10) / 10 : undefined,
           sba: r1(ind("sba_pct_live")),
           pncM: r1(ind("pnc_48h_mother")),
           pncI: r1(ind("pnc_48h_infant")),
-          mmr: r1(ind("mmr")),
+          mmr,
           nmr,
           sbr,
           lb: lb ?? undefined,
           nd: nd ?? undefined,
           sb: sb ?? undefined,
+          matRep: matRep ?? undefined,
         };
       });
       if (!cancelled) setPillarByCounty(map);
@@ -1061,7 +1056,7 @@ export function HomeTab({
     };
     // Rates from summed counts across the reported counties — statistically
     // more honest than averaging the per-county ratios.
-    const sum = (key: "lb" | "nd" | "sb") =>
+    const sum = (key: "lb" | "nd" | "sb" | "matRep") =>
       rows
         .map((r) => r[key])
         .filter((v): v is number => v != null)
@@ -1069,18 +1064,32 @@ export function HomeTab({
     const lb = sum("lb");
     const nd = sum("nd");
     const sb = sum("sb");
+    // Zero is a legitimate rate — a scope can report live births with zero
+    // neonatal deaths / stillbirths. Only suppress the rate when no county
+    // reported the numerator at all.
+    const ndReported = rows.some((r) => r.nd != null);
+    const sbReported = rows.some((r) => r.sb != null);
     const nmr =
-      lb > 0 && nd > 0 ? Math.round((nd / lb) * 1000 * 10) / 10 : undefined;
+      lb > 0 && ndReported ? Math.round((nd / lb) * 1000 * 10) / 10 : undefined;
     const sbr =
-      lb > 0 && sb > 0
+      lb > 0 && sbReported
         ? Math.round((sb / (lb + sb)) * 1000 * 10) / 10
         : undefined;
+    // MMR: average the per-county MMRs, falling back to a count-derived
+    // ratio when KHIS reports the deaths/births but not the MMR indicator.
+    const mmrAvg = avg("mmr");
+    const matRep = sum("matRep");
+    const mmr =
+      mmrAvg ??
+      (matRep > 0 && lb > 0
+        ? Math.round((matRep / lb) * 100000 * 10) / 10
+        : undefined);
     const res = {
       anc: avg("anc"),
       sba: avg("sba"),
       pncM: avg("pncM"),
       pncI: avg("pncI"),
-      mmr: avg("mmr"),
+      mmr,
       nmr,
       sbr,
     };
@@ -1203,6 +1212,108 @@ export function HomeTab({
     };
   }, [partners, pe]);
 
+  // -----------------------------------------------------------------------
+  // Per-county VTP quality-of-care numerators — used by the VTP scoreboard
+  // (§5.3) and Safe Systems MPDSR row (§5.4) so every partner chart shows
+  // real KHIS bars: ANC coverage, HIV testing, ART initiation and audit %.
+  // -----------------------------------------------------------------------
+  const [vtpCounty, setVtpCounty] = useState<
+    Record<
+      string,
+      {
+        ancCov?: number;
+        hivTest?: number;
+        artInit?: number;
+        audited?: number;
+      }
+    >
+  >({});
+  const [vtpCountyLoaded, setVtpCountyLoaded] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    setVtpCountyLoaded(false);
+    const counties = Array.from(new Set(partners.flatMap((p) => p.counties)));
+    Promise.all(
+      counties.map((c) =>
+        fetch(
+          `/api/khis?county=${encodeURIComponent(
+            c,
+          )}&pe=${pe}&indicators=pmtct_anc1_visits,anc4_visits,anc1_4_dropout,pmtct_initial_test,pmtct_need,pmtct_art,maternal_deaths_reported,maternal_deaths_audited,neonatal_deaths,neonatal_deaths_audited`,
+        )
+          .then((r) => (r.ok ? r.json() : null))
+          .catch(() => null),
+      ),
+    ).then((results) => {
+      if (cancelled) return;
+      const map: Record<
+        string,
+        {
+          ancCov?: number;
+          hivTest?: number;
+          artInit?: number;
+          audited?: number;
+        }
+      > = {};
+      results.forEach((res, i) => {
+        const name = counties[i];
+        if (!name || !res?.indicators) return;
+        const ind = (key: string): number | null => {
+          const found = res.indicators.find(
+            (x: { id: string; value: number | null }) => x.id === key,
+          );
+          return found?.value ?? null;
+        };
+        const clampPct = (v: number) => Math.max(0, Math.min(100, v));
+        const r1 = (v: number | null) =>
+          v != null ? Math.round(v * 10) / 10 : undefined;
+        const anc1 = ind("pmtct_anc1_visits");
+        const dropout = ind("anc1_4_dropout");
+        const anc4 = ind("anc4_visits");
+        const tested = ind("pmtct_initial_test");
+        const need = ind("pmtct_need");
+        const art = ind("pmtct_art");
+        const matRep = ind("maternal_deaths_reported");
+        const matAud = ind("maternal_deaths_audited");
+        const neoRep = ind("neonatal_deaths");
+        const neoAud = ind("neonatal_deaths_audited");
+        const entry: {
+          ancCov?: number;
+          hivTest?: number;
+          artInit?: number;
+          audited?: number;
+        } = {};
+        // ANC coverage = 100 − ANC1→4 dropout; fall back to ANC4/ANC1 when
+        // the dropout indicator is not reported.
+        if (dropout != null && dropout >= 0 && dropout <= 100) {
+          entry.ancCov = r1(100 - dropout);
+        } else if (anc1 != null && anc1 > 0 && anc4 != null) {
+          entry.ancCov = r1(clampPct((anc4 / anc1) * 100));
+        }
+        if (anc1 != null && anc1 > 0 && tested != null) {
+          entry.hivTest = r1(clampPct((tested / anc1) * 100));
+        }
+        if (need != null && need > 0 && art != null) {
+          entry.artInit = r1(clampPct((art / need) * 100));
+        }
+        // MPDSR audit % = audited deaths ÷ reported deaths (maternal + neo).
+        const deathsReported = (matRep ?? 0) + (neoRep ?? 0);
+        const deathsAudited = (matAud ?? 0) + (neoAud ?? 0);
+        if (deathsReported > 0 && (matAud != null || neoAud != null)) {
+          entry.audited = r1(clampPct((deathsAudited / deathsReported) * 100));
+        }
+        map[name] = entry;
+      });
+      if (!cancelled) {
+        setVtpCounty(map);
+        setVtpCountyLoaded(true);
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [partners, pe]);
+
   // Domain 3 readiness per partner — computed live from entered assessments
   // scoped to the partner's counties.
   const readinessByPartner = useMemo(() => {
@@ -1303,8 +1414,9 @@ export function HomeTab({
   );
 
   // §5.3 — VTP QoC per partner, each indicator compared across its counties.
-  // Rows 2 (HIV testing) & 3 (ART initiation) use live KHIS partner values
-  // when reported; all other rows are not reported on KHIS and show zero.
+  // Rows 1–3 (ANC coverage, HIV testing, ART initiation) are pulled per
+  // county from KHIS — real bars wherever the county reports; the remaining
+  // rows have no KHIS county disaggregation this period and stay at zero.
   const vtpByPartner = useMemo(
     () =>
       partners.map((p) => {
@@ -1314,29 +1426,39 @@ export function HomeTab({
           partner: p,
           pending,
           rows: VTP_QOC.map((ind, idx) => {
-            const liveBase =
-              idx === 1 && l.testedPct != null
-                ? l.testedPct
-                : idx === 2 && l.artPct != null
-                  ? l.artPct
-                  : null;
+            const partnerBase =
+              idx === 1 ? l.testedPct : idx === 2 ? l.artPct : null;
             return {
               label: ind.short,
               full: ind.label,
               target: ind.target,
-              values: p.counties.map((county) => ({
-                county,
-                value: pending ? 0 : (liveBase ?? 0),
-              })),
+              values: p.counties.map((county) => {
+                const c = vtpCounty[county];
+                const perCounty =
+                  idx === 0
+                    ? c?.ancCov
+                    : idx === 1
+                      ? c?.hivTest
+                      : idx === 2
+                        ? c?.artInit
+                        : null;
+                const v = pending ? 0 : (perCounty ?? partnerBase ?? null);
+                return {
+                  county,
+                  value: v != null ? Math.round(v * 10) / 10 : 0,
+                };
+              }),
             };
           }),
         };
       }),
-    [partners, liveByPartner],
+    [partners, liveByPartner, vtpCounty],
   );
 
   // §5.4 — Safe systems per partner, each enabler compared across counties.
-  // No per-county KHIS feed exists for these enablers — honest zeros.
+  // Only the MPDSR audit enabler has a KHIS feed — it is computed per county
+  // from reported vs audited deaths; the others have no KHIS disaggregation
+  // this period and stay at zero (never baselines).
   const safeByPartner = useMemo(
     () =>
       partners.map((p) => {
@@ -1344,15 +1466,19 @@ export function HomeTab({
         return {
           partner: p,
           pending,
-          rows: SAFE_SYSTEMS.map((ind) => ({
+          rows: SAFE_SYSTEMS.map((ind, idx) => ({
             label: ind.short,
             full: ind.label,
             target: ind.target,
-            values: p.counties.map((county) => ({ county, value: 0 })),
+            values: p.counties.map((county) => ({
+              county,
+              value:
+                pending || idx !== 4 ? 0 : (vtpCounty[county]?.audited ?? 0),
+            })),
           })),
         };
       }),
-    [partners],
+    [partners, vtpCounty],
   );
 
   return (
@@ -1541,7 +1667,7 @@ export function HomeTab({
                     {c.target}
                   </span>
                 </div>
-                {liveNow != null && (
+                {liveNow != null ? (
                   <div className="mt-3 rounded-lg bg-white/85 border border-rose-200 p-3 shadow-sm">
                     <div className="flex items-center justify-between gap-2">
                       <p className="text-[10px] font-bold text-rose-700 uppercase tracking-wide">
@@ -1576,6 +1702,21 @@ export function HomeTab({
                         : near
                           ? " — close, keep pushing"
                           : " — work needed to close the gap"}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="mt-3 rounded-lg bg-white/70 border border-dashed border-slate-300 p-3 text-center">
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">
+                      Not reported on KHIS · {peLabel}
+                    </p>
+                    <p className="text-[11px] mt-1 text-slate-500">
+                      no{" "}
+                      {c.key === "MMR"
+                        ? "maternal deaths or live births"
+                        : c.key === "NMR"
+                          ? "neonatal deaths or live births"
+                          : "stillbirths or live births"}{" "}
+                      reported for this scope
                     </p>
                   </div>
                 )}
@@ -1786,11 +1927,16 @@ export function HomeTab({
             </h3>
             <p className="text-sm text-gray-500 mt-0.5">
               The nine core PMTCT indicators per partner — each indicator
-              compared across the partner's supported counties (§5.3).
+              compared across the partner's supported counties (§5.3). ANC
+              coverage, HIV testing and ART initiation are pulled live per
+              county from KHIS; rows without a KHIS disaggregation this period
+              show zero.
             </p>
           </div>
-          <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-slate-100 text-slate-600 border border-slate-200">
-            Monthly · KHIS / NASCOP / EMR / NDW
+          <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-rose-50 text-rose-700 border border-rose-200">
+            {vtpCountyLoaded
+              ? `Live · KHIS ${peLabel} · per county`
+              : "Loading KHIS…"}
           </span>
         </div>
         <div className="px-6 pb-6 space-y-5">
