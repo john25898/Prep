@@ -251,6 +251,11 @@ const Subtab2A = ({
   // demo numbers in that case (e.g. a future month looks like "data").
   const noPeriodData = !isLive && !!data && !error && !loading;
 
+  // KHIS answered for this period/scope at all (regardless of how many
+  // indicators have values) — never show demo numbers when we have a real
+  // KHIS response; indicators KHIS didn't report become 0, never estimates.
+  const khisAnswered = !!data && !error && !loading;
+
   // A percentage is only meaningful when BOTH values are live.
   const livePct = (n: number | null, d: number | null) =>
     n != null && d != null && d > 0
@@ -268,7 +273,16 @@ const Subtab2A = ({
       return [
         { name: filter.county || "No data", "ANC Visits": 0, "HIV Tested": 0 },
       ];
-    if (a.length === 0 && t.length === 0) return DEMO_ANC_TESTED;
+    if (a.length === 0 && t.length === 0)
+      return khisAnswered
+        ? [
+            {
+              name: filter.county || "No data",
+              "ANC Visits": 0,
+              "HIV Tested": 0,
+            },
+          ]
+        : DEMO_ANC_TESTED;
     const names = new Set<string>([
       ...a.map((c) => c.name),
       ...t.map((c) => c.name),
@@ -278,7 +292,13 @@ const Subtab2A = ({
       "ANC Visits": a.find((c) => c.name === name)?.value ?? 0,
       "HIV Tested": t.find((c) => c.name === name)?.value ?? 0,
     }));
-  }, [ancByCounty.data, testedByCounty.data, noPeriodData, filter.county]);
+  }, [
+    ancByCounty.data,
+    testedByCounty.data,
+    noPeriodData,
+    khisAnswered,
+    filter.county,
+  ]);
 
   // Donut: HIV testing coverage (live pct when both values are live).
   const hivTestingData = useMemo(
@@ -293,8 +313,13 @@ const Subtab2A = ({
               { name: "HIV Tested", value: testedPct, fill: "#10b981" },
               { name: "Not Tested", value: 100 - testedPct, fill: "#e5e7eb" },
             ]
-          : DEMO_HIV_TESTING,
-    [testedPct, noPeriodData],
+          : khisAnswered
+            ? [
+                { name: "HIV Tested", value: 0, fill: "#10b981" },
+                { name: "Not Reported", value: 100, fill: "#e5e7eb" },
+              ]
+            : DEMO_HIV_TESTING,
+    [testedPct, noPeriodData, khisAnswered],
   );
 
   // NP = need − KP (KHIS reports the combined "need" and the KP split).
@@ -309,7 +334,16 @@ const Subtab2A = ({
           "Known HIV+ (KP)": 0,
         },
       ];
-    if (need.length === 0 && kp.length === 0) return DEMO_NP_KP;
+    if (need.length === 0 && kp.length === 0)
+      return khisAnswered
+        ? [
+            {
+              name: filter.county || "No data",
+              "Newly HIV+ (NP)": 0,
+              "Known HIV+ (KP)": 0,
+            },
+          ]
+        : DEMO_NP_KP;
     const names = new Set<string>([
       ...need.map((c) => c.name),
       ...kp.map((c) => c.name),
@@ -323,18 +357,24 @@ const Subtab2A = ({
         "Known HIV+ (KP)": k,
       };
     });
-  }, [needByCounty.data, kpByCounty.data, noPeriodData, filter.county]);
+  }, [
+    needByCounty.data,
+    kpByCounty.data,
+    noPeriodData,
+    khisAnswered,
+    filter.county,
+  ]);
 
   const noDataSub = `no KHIS data for ${peLabel} in this scope`;
 
   const p = useMemo(
     () => ({
-      anc1: live.anc1 ?? (noPeriodData ? 0 : 1025),
-      tested: live.tested ?? (noPeriodData ? 0 : 984),
-      need: live.need ?? (noPeriodData ? 0 : 770),
-      kp: live.kp ?? (noPeriodData ? 0 : 320),
+      anc1: live.anc1 ?? (khisAnswered ? 0 : 1025),
+      tested: live.tested ?? (khisAnswered ? 0 : 984),
+      need: live.need ?? (khisAnswered ? 0 : 770),
+      kp: live.kp ?? (khisAnswered ? 0 : 320),
     }),
-    [live, noPeriodData],
+    [live, khisAnswered],
   );
   const np = Math.max(p.need - p.kp, 0);
 
@@ -383,14 +423,14 @@ const Subtab2A = ({
             value={
               live.anc1 != null
                 ? p.anc1.toLocaleString()
-                : noPeriodData
+                : khisAnswered
                   ? "0"
                   : "94%"
             }
             sub={
               live.anc1 != null
                 ? "1st ANC visits (MOH 731 HV02-01)"
-                : noPeriodData
+                : khisAnswered
                   ? noDataSub
                   : "PMTCT_STAT_D · target >95% (demo)"
             }
@@ -400,12 +440,12 @@ const Subtab2A = ({
           <DomainKpi
             title="HIV Tested at 1st ANC"
             value={
-              testedPct != null ? `${testedPct}%` : noPeriodData ? "0%" : "96%"
+              testedPct != null ? `${testedPct}%` : khisAnswered ? "0%" : "96%"
             }
             sub={
               testedPct != null
                 ? `${p.tested.toLocaleString()} of ${p.anc1.toLocaleString()} tested · target >95%`
-                : noPeriodData
+                : khisAnswered
                   ? noDataSub
                   : "PMTCT_STAT_N · target >95% (demo)"
             }
@@ -418,11 +458,11 @@ const Subtab2A = ({
           />
           <DomainKpi
             title="PBFW with known status"
-            value={noPeriodData ? "0" : p.tested.toLocaleString()}
+            value={khisAnswered ? "0" : p.tested.toLocaleString()}
             sub={
               knownStatusPct != null
                 ? `${knownStatusPct}% of ${p.anc1.toLocaleString()} 1st ANC attendees`
-                : noPeriodData
+                : khisAnswered
                   ? noDataSub
                   : "96% of 1,025 1st ANC attendees (demo)"
             }
@@ -430,11 +470,11 @@ const Subtab2A = ({
           />
           <DomainKpi
             title="HIV+ identified at intake"
-            value={noPeriodData ? "0" : p.need.toLocaleString()}
+            value={khisAnswered ? "0" : p.need.toLocaleString()}
             sub={
-              isLive
+              live.need != null && live.kp != null
                 ? `${np.toLocaleString()} NP + ${p.kp.toLocaleString()} KP · of those tested`
-                : noPeriodData
+                : khisAnswered
                   ? noDataSub
                   : "450 NP + 320 KP · 78% of those tested (demo)"
             }
@@ -535,7 +575,7 @@ const Subtab2A = ({
               <ViewDataButton
                 title="HIV Testing Coverage (1st ANC Visits)"
                 data={hivTestingData}
-                note={`${testedPct != null ? `live ratio ${testedPct}%` : noPeriodData ? "no KHIS data — zeros" : "demo fallback"} · tested of ANC 1st visits`}
+                note={`${testedPct != null ? `live ratio ${testedPct}%` : khisAnswered ? "not reported this period" : "demo fallback"} · tested of ANC 1st visits`}
                 detail={{
                   formula:
                     "tested % = HIV tested at 1st ANC ÷ PBFW seen at 1st ANC × 100 · target > 95%",
@@ -601,7 +641,7 @@ const Subtab2A = ({
                   <p className="text-3xl font-bold text-emerald-600">
                     {testedPct != null
                       ? `${testedPct}%`
-                      : noPeriodData
+                      : khisAnswered
                         ? "0%"
                         : "96%"}
                   </p>
@@ -666,12 +706,12 @@ const Subtab2A = ({
                 HIV+ PBFW identified at 1st ANC (YTD)
               </p>
               <p className="text-5xl font-bold text-blue-700 mt-2">
-                {noPeriodData ? "0" : p.need.toLocaleString()}
+                {khisAnswered ? "0" : p.need.toLocaleString()}
               </p>
               <p className="text-xs text-blue-700/80 mt-2">
-                {isLive
+                {live.need != null && p.need > 0
                   ? `${((np / p.need) * 100).toFixed(0)}% newly identified (NP) · ${((p.kp / p.need) * 100).toFixed(0)}% known positive (KP)`
-                  : noPeriodData
+                  : khisAnswered
                     ? noDataSub
                     : "58% newly identified (NP) · 42% known positive (KP) (demo)"}
               </p>
