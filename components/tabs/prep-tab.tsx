@@ -201,6 +201,16 @@ export function PrepTab({
       "prep_current_msm",
       "prep_current_pwid",
       "prep_current_dc",
+      "prep_new_gp",
+      "prep_new_fsw",
+      "prep_new_msm",
+      "prep_new_pwid",
+      "prep_new_dc",
+      "prep_discontinued_gp",
+      "prep_discontinued_fsw",
+      "prep_discontinued_msm",
+      "prep_discontinued_pwid",
+      "prep_discontinued_dc",
     ],
   });
 
@@ -229,9 +239,40 @@ export function PrepTab({
     county: countyScope,
     subCounty: subCountyScope,
     facility: facilityUid,
-    indicators: ["prep_new_total"],
+    indicators: [
+      "prep_new_gp",
+      "prep_new_fsw",
+      "prep_new_msm",
+      "prep_new_pwid",
+      "prep_new_dc",
+    ],
     byFacility: true,
     top: 8,
+  });
+
+  // Live monthly momentum — the trailing 12 months from KHIS. New initiations
+  // are the sum of the five population-group elements per month; Active is the
+  // sum of the five Currently-on-PrEP elements per month (a stock, so it can
+  // exceed the monthly flow).
+  const momentum = useKhis({
+    partner,
+    pe: "LAST_12_MONTHS",
+    county: countyScope,
+    subCounty: subCountyScope,
+    facility: facilityUid,
+    indicators: [
+      "prep_new_gp",
+      "prep_new_fsw",
+      "prep_new_msm",
+      "prep_new_pwid",
+      "prep_new_dc",
+      "prep_current_gp",
+      "prep_current_fsw",
+      "prep_current_msm",
+      "prep_current_pwid",
+      "prep_current_dc",
+    ],
+    byPeriod: true,
   });
 
   // Live values — merged per stage. KHIS facilities report the five
@@ -265,7 +306,15 @@ export function PrepTab({
           "prep_eligible_pwid",
           "prep_eligible_dc",
         ),
-      initiated: value("prep_new_total"),
+      initiated:
+        value("prep_new_total") ??
+        sumGroups(
+          "prep_new_gp",
+          "prep_new_fsw",
+          "prep_new_msm",
+          "prep_new_pwid",
+          "prep_new_dc",
+        ),
       refill:
         value("prep_refill_total") ??
         sumGroups(
@@ -294,6 +343,26 @@ export function PrepTab({
         : 0,
     [liveVals],
   );
+
+  // Live Discontinued count — used by the retention donut so no discontinuation
+  // number is fabricated as initiated − current when KHIS reports it. Same
+  // pattern: Total element when filled, else the sum of the five population-
+  // group elements.
+  const discontinuedVal = useMemo(() => {
+    if (!data) return null;
+    const t = value("prep_discontinued_total");
+    if (t != null) return t;
+    let total = 0;
+    let any = false;
+    for (const g of ["gp", "fsw", "msm", "pwid", "dc"]) {
+      const v = value(`prep_discontinued_${g}`);
+      if (v != null) {
+        total += v;
+        any = true;
+      }
+    }
+    return any ? total : null;
+  }, [data, value]);
 
   const isLive = liveCount > 0;
 
@@ -337,6 +406,48 @@ export function PrepTab({
       (initiatedByFac.data?.facilities?.length ?? 0) > 0,
     [eligibleByFac.data, initiatedByFac.data],
   );
+
+  // Live monthly momentum rows — merges the per-period series of the five
+  // Initiated (New) elements and the five Currently-on-PrEP elements into
+  // [{ month, initiated, active }]. Returns null when KHIS returned nothing.
+  const momentumChartData = useMemo(() => {
+    const periods = momentum.data?.periods;
+    if (!periods || periods.length === 0) return null;
+    const sumByPe = (ids: string[]) => {
+      const byPe = new Map<string, number>();
+      for (const p of periods) {
+        if (!ids.includes(p.id)) continue;
+        for (const s of p.series)
+          if (s.value != null) byPe.set(s.pe, (byPe.get(s.pe) ?? 0) + s.value);
+      }
+      return byPe;
+    };
+    const newByPe = sumByPe([
+      "prep_new_gp",
+      "prep_new_fsw",
+      "prep_new_msm",
+      "prep_new_pwid",
+      "prep_new_dc",
+    ]);
+    const curByPe = sumByPe([
+      "prep_current_gp",
+      "prep_current_fsw",
+      "prep_current_msm",
+      "prep_current_pwid",
+      "prep_current_dc",
+    ]);
+    if (newByPe.size === 0 && curByPe.size === 0) return null;
+    const peNames = new Map<string, string>();
+    for (const p of periods)
+      for (const s of p.series) peNames.set(s.pe, s.peName);
+    return [...new Set([...newByPe.keys(), ...curByPe.keys()])]
+      .sort()
+      .map((pe) => ({
+        month: (peNames.get(pe) ?? pe).split(" ")[0],
+        initiated: newByPe.get(pe) ?? 0,
+        active: curByPe.get(pe) ?? 0,
+      }));
+  }, [momentum.data]);
 
   // KHIS never reports facility-level eligibility for this indicator set —
   // suppress the Eligible series rather than draw 0 bars beside live
@@ -409,7 +520,7 @@ export function PrepTab({
       reported: reported(liveVals?.screened),
     },
     {
-      stage: "Eligible for PrEP (Total)",
+      stage: "Assessed & eligible for PrEP (all key populations)",
       count: p.eligible,
       est: liveVals?.eligible == null,
       reported: reported(liveVals?.eligible),
@@ -436,14 +547,26 @@ export function PrepTab({
 
   // Retention is only meaningful when current AND initiated are both live —
   // otherwise "0 currently on PrEP / N discontinued" would be fabricated.
+  // Discontinued comes from KHIS when reported (sum of the five population-
+  // group elements); only when KHIS does NOT report it do we fall back to the
+  // computed initiated − current (and only when that is non-negative).
   const retentionNotReported = nrOf(liveVals?.current);
+  const discontinuedComputed = Math.max(p.initiated - p.current, 0);
+  const retentionLivePct =
+    discontinuedVal != null && p.current + discontinuedVal > 0
+      ? Math.round((p.current / (p.current + discontinuedVal)) * 100)
+      : null;
   const retentionData = retentionNotReported
     ? [{ name: "Currently on PrEP", value: 0, fill: "#e5e7eb" }]
     : [
         { name: "Currently on PrEP", value: p.current, fill: "#8b5cf6" },
         {
-          name: "Discontinued / lost",
-          value: Math.max(p.initiated - p.current, 0),
+          name:
+            discontinuedVal != null
+              ? "Discontinued (KHIS)"
+              : "Discontinued / lost",
+          value:
+            discontinuedVal != null ? discontinuedVal : discontinuedComputed,
           fill: "#e5e7eb",
         },
       ];
@@ -494,7 +617,7 @@ export function PrepTab({
           noPeriodData
             ? `No KHIS numbers were reported for ${peLabel} in this scope — the charts below show zeros. Select a period with reported data to see the live ANC screening → PrEP cascade.`
             : isLive
-              ? `Live numbers from national KHIS (MOH 731 PLUS PrEP) for the selected partner's facilities — ANC screening → eligibility → initiation → continuation → retention. KHIS facilities report the five population-group rows per stage (General popn, FSW, MSM, PWID, Discordant Couple) and leave the Total column blank — Eligible / Refill / Current here are the live sums of those groups. A stage shows “n/r” only when none of its groups was reported this period.`
+              ? `Live numbers from national KHIS (MOH 731 PLUS PrEP) for the selected partner's facilities — ANC screening → eligibility → initiation → continuation → retention. KHIS facilities report the five population-group rows per stage (General popn, FSW, MSM, PWID, Discordant Couple) and often leave the Total column blank, so Eligible / Initiated / Refill / Current here are live sums of those groups (falling back to the Total element when it is reported). Eligible is assessed across all key populations — including non-ANC entry points — so it can exceed the ANC1 screening count. A stage shows “n/r” only when none of its groups was reported this period.`
               : "A distinct prevention track: ANC screening → eligibility → initiation → continuation → retention. Kept separate from the PMTCT treatment cascade. (Demo values until KHIS is reachable.)"
         }
       />
@@ -523,7 +646,7 @@ export function PrepTab({
                 eligiblePct != null && eligiblePct <= 100
                   ? `${eligiblePct}% of women seen`
                   : liveVals?.eligible != null
-                    ? "sum of 5 KHIS population groups (GP/FSW/MSM/PWID/DC)"
+                    ? "sum of 5 KHIS population groups (GP/FSW/MSM/PWID/DC) — covers all entry points, not only ANC1 PBFW"
                     : nrOf(liveVals?.eligible)
                       ? "not reported on KHIS this period"
                       : khisAnswered
@@ -640,7 +763,7 @@ export function PrepTab({
                   note={`${isLive ? `Live · KHIS · ${data?.scope} · ${data?.peLabel}` : noPeriodData ? "no KHIS data — zeros" : "demo"} · n/r = not reported on KHIS this period`}
                   detail={{
                     formula:
-                      "cascade % = stage count ÷ PBFW seen at 1st ANC × 100 · retention = continuing ÷ initiated · KHIS facilities report the five population-group rows (General popn, FSW, MSM, PWID, Discordant Couple) and leave the Total column blank — the totals here are the sum of those groups",
+                      "cascade % = stage count ÷ PBFW seen at 1st ANC × 100 · retention = continuing ÷ initiated · KHIS facilities report the five population-group rows (General popn, FSW, MSM, PWID, Discordant Couple) and often leave the Total column blank — the totals here are the sum of those groups (Total element used when it is reported)",
                     inputs: [
                       {
                         label: "PBFW seen at 1st ANC",
@@ -651,7 +774,7 @@ export function PrepTab({
                             : ("n/r" as const),
                       },
                       {
-                        label: "Eligible for PrEP (Total) — sum of 5 groups",
+                        label: "Assessed & eligible for PrEP — sum of 5 groups",
                         value: liveVals?.eligible ?? null,
                         source:
                           liveVals?.eligible != null
@@ -667,13 +790,22 @@ export function PrepTab({
                             : ("n/r" as const),
                       })),
                       {
-                        label: "Initiated on PrEP (New, Total)",
+                        label:
+                          "Initiated on PrEP (New, Total) — fallback: sum of 5 groups",
                         value: liveVals?.initiated ?? null,
                         source:
                           liveVals?.initiated != null
                             ? ("live" as const)
                             : ("n/r" as const),
                       },
+                      ...["gp", "fsw", "msm", "pwid", "dc"].map((g) => ({
+                        label: `  · Initiated (New) PrEP — ${g.toUpperCase()}`,
+                        value: value(`prep_new_${g}`) ?? null,
+                        source:
+                          value(`prep_new_${g}`) != null
+                            ? ("live" as const)
+                            : ("n/r" as const),
+                      })),
                       {
                         label: "Continuing on PrEP (Refills) — sum of 5 groups",
                         value: liveVals?.refill ?? null,
@@ -710,7 +842,8 @@ export function PrepTab({
                     ],
                     notes: [
                       `Scope: ${data?.scope ?? "—"} · ${data?.peLabel ?? peLabel}.`,
-                      "KHIS does not fill the Eligible / Refill / Current “Total” columns — facilities report the five population-group rows instead. The totals here are the live sums of those groups, so the cascade stages are real KHIS numbers, not estimates.",
+                      "KHIS does not reliably fill the Eligible / Initiated / Refill / Current “Total” columns — facilities report the five population-group rows instead. The totals here are the live sums of those groups, so the cascade stages are real KHIS numbers, not estimates.",
+                      "Eligible is assessed across all five key populations — including non-ANC entry points — so it can exceed the PBFW seen at 1st ANC (that is expected, not an error).",
                       "A stage is shown as n/r only when none of its five groups has a value on KHIS for this period/scope.",
                       "Drop arrows appear only between two reported stages — no impossible gaps are implied between live stages.",
                     ],
@@ -722,7 +855,13 @@ export function PrepTab({
               Every HIV-negative PBFW screened at ANC is a prevention
               opportunity: eligibility is confirmed, PrEP is started, and
               adherence is sustained so that seroconversion is avoided through
-              the highest-risk window.
+              the highest-risk window.{" "}
+              <span className="text-gray-600">
+                Eligibility is also assessed for clients seen through other
+                services — the five KHIS key-population groups (GP, FSW, MSM,
+                PWID, Discordant Couple) — so the eligible count covers all
+                entry points and can exceed the ANC1 screening total.
+              </span>
             </p>
             {isLive && khisAnswered && liveCount < 5 && (
               <p className="text-xs font-medium text-amber-800 bg-amber-50 border border-amber-200 rounded-md px-3 py-2 mb-4">
@@ -747,6 +886,14 @@ export function PrepTab({
                       ? `↓ ${diff.toLocaleString()} drop${estTag}`
                       : `↑ ${Math.abs(diff).toLocaleString()} more${estTag}`
                     : undefined;
+                // Eligible is assessed across ALL key populations (not only the
+                // PBFW seen at 1st ANC), so it can legitimately exceed the
+                // screening count — explain that right where it would look
+                // impossible instead of showing a confusing "↑ N more".
+                const eligibleExplainer =
+                  idx === 1 && item.reported && prevReported
+                    ? `eligible is assessed across all 5 key populations (GP/FSW/MSM/PWID/DC) — including non-ANC entry points — so it can exceed the ${prev.count.toLocaleString()} PBFW seen at 1st ANC`
+                    : undefined;
                 return (
                   <CascadeBar
                     key={idx}
@@ -755,15 +902,17 @@ export function PrepTab({
                     max={cascade[0].count}
                     reported={item.reported}
                     note={
-                      idx === 0
-                        ? item.est && !khisAnswered
-                          ? "(est.)"
-                          : undefined
-                        : dropNote
-                          ? dropNote
-                          : item.reported
-                            ? "prev stage not reported on KHIS this period"
-                            : "not reported on KHIS this period"
+                      eligibleExplainer
+                        ? eligibleExplainer
+                        : idx === 0
+                          ? item.est && !khisAnswered
+                            ? "(est.)"
+                            : undefined
+                          : dropNote
+                            ? dropNote
+                            : item.reported
+                              ? "prev stage not reported on KHIS this period"
+                              : "not reported on KHIS this period"
                     }
                   />
                 );
@@ -818,10 +967,10 @@ export function PrepTab({
                   <ViewDataButton
                     title="PrEP Eligible vs Initiated by Facility"
                     data={facilityChartData}
-                    note={`${hasLiveFacilities ? `Live per-facility · KHIS · ${partner}` : khisAnswered ? "no KHIS data — zeros" : "illustrative"} · ${khisAnswered && !eligibleReportedAny ? "eligibility not reported at facility level this period — initiated shown only" : "eligible (sum of 5 population groups) vs initiated per facility"}`}
+                    note={`${hasLiveFacilities ? `Live per-facility · KHIS · ${partner}` : khisAnswered ? "no KHIS data — zeros" : "illustrative"} · ${khisAnswered && !eligibleReportedAny ? "eligibility not reported at facility level this period — initiated shown only" : "eligible & initiated (each the sum of the 5 population groups) per facility"}`}
                     detail={{
                       formula:
-                        "eligible = PBFW assessed eligible for PrEP (sum of the five KHIS population-group elements per facility) · initiated = PBFW started PrEP · initiation coverage % = initiated ÷ eligible × 100 (per facility)",
+                        "eligible and initiated per facility = each the sum of the five KHIS population-group elements (General popn, FSW, MSM, PWID, Discordant Couple) · initiation coverage % = initiated ÷ eligible × 100 (per facility)",
                       inputs: [
                         ...(eligibleByFac.data?.facilities ?? []).map((f) => ({
                           label: `${f.name} · eligible`,
@@ -836,7 +985,7 @@ export function PrepTab({
                       ],
                       notes: [
                         `Per-facility values from KHIS · ${partner} · ${data?.peLabel ?? peLabel}.`,
-                        "Eligible per facility = the sum of the five population-group elements (General popn, FSW, MSM, PWID, Discordant Couple) KHIS reports for that facility.",
+                        "Eligible and initiated per facility = each the sum of the five population-group elements (General popn, FSW, MSM, PWID, Discordant Couple) KHIS reports for that facility.",
                         "Facilities with no KHIS value this period are omitted from both the chart and this list.",
                       ],
                     }}
@@ -849,7 +998,7 @@ export function PrepTab({
                 {hasLiveFacilities
                   ? khisAnswered && !eligibleReportedAny
                     ? " Live per-facility initiations from national KHIS; eligibility was not reported at facility level this period, so the Eligible series is hidden."
-                    : ` Live per-facility values from national KHIS (eligible = sum of the five population-group elements) · ${partner}.`
+                    : ` Live per-facility values from national KHIS (eligible & initiated = each the sum of the five population-group elements) · ${partner}.`
                   : khisAnswered
                     ? " No KHIS per-facility values for this period/scope — zeros shown."
                     : " (illustrative until facility-level analytics is enabled)"}
@@ -909,10 +1058,10 @@ export function PrepTab({
                     name: r.name,
                     value: retentionNotReported ? "n/r" : r.value,
                   }))}
-                  note={`${retentionNotReported ? "currently on PrEP not reported on KHIS this period" : sixMoPct != null && sixMoPct <= 100 ? `live ratio ${sixMoPct}%` : liveVals?.current != null ? `live · ${p.current.toLocaleString()} active vs ${p.initiated.toLocaleString()} initiated` : khisAnswered ? "no KHIS data — zeros" : "est."} · current vs initiated`}
+                  note={`${retentionNotReported ? "currently on PrEP not reported on KHIS this period" : retentionLivePct != null && retentionLivePct <= 100 ? `live retention ${retentionLivePct}%` : liveVals?.current != null ? `live · ${p.current.toLocaleString()} active vs ${discontinuedVal != null ? discontinuedVal.toLocaleString() : p.initiated.toLocaleString()} ${discontinuedVal != null ? "discontinued" : "initiated"}` : khisAnswered ? "no KHIS data — zeros" : "est."} · current vs ${discontinuedVal != null ? "discontinued (KHIS)" : "initiated"}`}
                   detail={{
                     formula:
-                      "retention % = currently on PrEP ÷ initiated on PrEP × 100 · discontinued = initiated − currently on PrEP",
+                      "retention % = currently on PrEP ÷ (currently on PrEP + discontinued) × 100 · discontinued = the five Discontinued PrEP group elements when KHIS reports them, else computed as initiated − currently on PrEP",
                     inputs: [
                       {
                         label: "Initiated on PrEP (New, Total)",
@@ -931,38 +1080,62 @@ export function PrepTab({
                             : ("n/r" as const),
                       },
                       {
-                        label: "Retention % (computed)",
-                        value:
-                          sixMoPct != null && sixMoPct <= 100
-                            ? `${sixMoPct}%`
+                        label:
+                          discontinuedVal != null
+                            ? "Discontinued PrEP (sum of 5 groups)"
+                            : "Discontinued PrEP (computed: initiated − current)",
+                        value: discontinuedVal ?? discontinuedComputed,
+                        source:
+                          discontinuedVal != null
+                            ? ("live" as const)
                             : liveVals?.current != null &&
                                 liveVals?.initiated != null
-                              ? ">100% — active includes clients started in earlier months"
-                              : retentionNotReported
-                                ? "n/r"
-                                : null,
+                              ? ("est" as const)
+                              : ("n/r" as const),
+                      },
+                      ...["gp", "fsw", "msm", "pwid", "dc"].map((g) => ({
+                        label: `  · Discontinued PrEP — ${g.toUpperCase()}`,
+                        value: value(`prep_discontinued_${g}`) ?? null,
                         source:
-                          liveVals?.current != null &&
-                          liveVals?.initiated != null
+                          value(`prep_discontinued_${g}`) != null
+                            ? ("live" as const)
+                            : ("n/r" as const),
+                      })),
+                      {
+                        label: "Retention %",
+                        value:
+                          retentionLivePct != null && retentionLivePct <= 100
+                            ? `${retentionLivePct}%`
+                            : retentionLivePct != null
+                              ? ">100% — active includes clients started in earlier months"
+                              : liveVals?.current != null &&
+                                  liveVals?.initiated != null
+                                ? "n/r — discontinued not reported on KHIS this period"
+                                : retentionNotReported
+                                  ? "n/r"
+                                  : null,
+                        source:
+                          retentionLivePct != null
                             ? ("live" as const)
                             : ("n/r" as const),
                       },
                     ],
                     notes: [
-                      "Currently on PrEP = the sum of the five KHIS population-group elements (General popn, FSW, MSM, PWID, Discordant Couple); Initiated = the New-Total element.",
-                      "Both values must be reported for the retention % to be computed — otherwise the donut shows n/r instead of a fabricated number.",
-                      "No discontinuation count is invented when “Currently on PrEP” is missing.",
+                      "Currently on PrEP = the sum of the five KHIS population-group elements (General popn, FSW, MSM, PWID, Discordant Couple); Initiated = the New-Total element (or the sum of the five New group elements when blank).",
+                      "Discontinued = the sum of the five Discontinued PrEP group elements when KHIS reports them; otherwise computed as initiated − current (shown only when non-negative). Retention % = currently on PrEP ÷ (currently on PrEP + discontinued).",
+                      "When “Currently on PrEP” is missing the donut shows n/r — no discontinuation count is invented.",
                     ],
                   }}
                 />
               </div>
               <p className="text-sm text-gray-500 mb-4">
                 Of all clients initiated on PrEP, the share still actively on
-                PrEP at six months — the measure that matters for
-                seroconversion prevention.
+                PrEP — the measure that matters for seroconversion prevention.
                 {retentionNotReported
                   ? " “Currently on PrEP” is not reported on KHIS this period, so the retention % cannot be computed — no fabricated discontinuation count is shown."
-                  : ""}
+                  : discontinuedVal != null
+                    ? " Discontinued is reported live by KHIS (sum of the five population-group elements), so retention is measured against real discontinuations rather than a computed difference."
+                    : ""}
               </p>
               <div className="flex flex-col items-center justify-center gap-4">
                 <div className="relative">
@@ -989,8 +1162,8 @@ export function PrepTab({
                     <p className="text-3xl font-bold text-violet-700">
                       {retentionNotReported
                         ? "n/r"
-                        : sixMoPct != null && sixMoPct <= 100
-                          ? `${sixMoPct}%`
+                        : retentionLivePct != null && retentionLivePct <= 100
+                          ? `${retentionLivePct}%`
                           : liveVals?.current != null
                             ? p.current.toLocaleString()
                             : khisAnswered
@@ -1000,7 +1173,7 @@ export function PrepTab({
                     <p className="text-xs text-gray-500">
                       {retentionNotReported
                         ? "not reported"
-                        : sixMoPct != null && sixMoPct <= 100
+                        : retentionLivePct != null && retentionLivePct <= 100
                           ? "Retained"
                           : liveVals?.current != null
                             ? "active on PrEP"
@@ -1072,25 +1245,36 @@ export function PrepTab({
                 </button>
                 <ViewDataButton
                   title="PrEP Momentum"
-                  data={khisAnswered ? [] : prepInitiationData}
+                  data={
+                    momentumChartData ??
+                    (khisAnswered ? [] : prepInitiationData)
+                  }
                   note={
-                    khisAnswered
-                      ? "monthly trend not reported on KHIS"
-                      : "Illustrative — monthly trend not on KHIS"
+                    momentumChartData
+                      ? `Live monthly · KHIS · ${data?.scope} · trailing 12 months`
+                      : khisAnswered
+                        ? "monthly trend not reported on KHIS"
+                        : "Illustrative — monthly trend not on KHIS"
                   }
                 />
               </div>
             </div>
             <p className="text-sm text-gray-500 mb-4">
-              Monthly new starts (violet) versus the cumulative number actively
-              on PrEP (dashed) — the gap shows discontinuations in near real
-              time.{" "}
-              {khisAnswered
-                ? "(Monthly trend series not reported on KHIS — chart hidden; single-period values are in the KPIs above.)"
-                : "(Illustrative trend until monthly analytics is enabled.)"}
+              Monthly new starts (violet) versus the number actively on PrEP
+              (dashed) — the gap shows discontinuations in near real time.{" "}
+              {momentumChartData
+                ? `(Live monthly series from national KHIS · ${data?.scope} · trailing 12 months — new initiations are the sum of the five population-group elements per month; active is the sum of the five Currently-on-PrEP elements, a stock that can exceed the monthly flow.)`
+                : khisAnswered
+                  ? "(Monthly trend series not reported on KHIS — chart hidden; single-period values are in the KPIs above.)"
+                  : "(Illustrative trend until monthly analytics is enabled.)"}
             </p>
             <ResponsiveContainer width="100%" height={280}>
-              <LineChart data={khisAnswered ? [] : prepInitiationData}>
+              <LineChart
+                data={
+                  momentumChartData ?? (khisAnswered ? [] : prepInitiationData)
+                }
+              >
+                {" "}
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="month" />
                 <YAxis />

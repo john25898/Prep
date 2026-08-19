@@ -206,6 +206,94 @@ export const KHIS_INDICATORS: KhisIndicator[] = [
     khisName: "Continuing (Refills) PrEP Discordant Couple",
     domain: "P",
   },
+  // Initiated (New) — same pattern as above: KHIS facilities may leave the
+  // "Total" column blank and fill the five population-group rows instead, so
+  // the dashboard sums the groups when the Total is not reported:
+  //   Initiated = new_gp + new_fsw + new_msm + new_pwid + new_dc
+  // (UIDs verified as members of the MOH 731 PLUS PrEP data sets
+  //  A01SsXzNsbD / zxyaWpqkTlP and live in analytics.)
+  {
+    id: "prep_new_gp",
+    label: "Initiated on PrEP (New) — General population",
+    dx: "m5tdPqpqQKa",
+    isIndicator: false,
+    khisName: "Initiated (New) PrEP General popn",
+    domain: "P",
+  },
+  {
+    id: "prep_new_fsw",
+    label: "Initiated on PrEP (New) — FSW",
+    dx: "tvkamFcbjEa",
+    isIndicator: false,
+    khisName: "Initiated (New) PrEP FSW",
+    domain: "P",
+  },
+  {
+    id: "prep_new_msm",
+    label: "Initiated on PrEP (New) — MSM",
+    dx: "cucGQCux2ld",
+    isIndicator: false,
+    khisName: "Initiated (New) PrEP MSM",
+    domain: "P",
+  },
+  {
+    id: "prep_new_pwid",
+    label: "Initiated on PrEP (New) — PWID",
+    dx: "IibqwYumcez",
+    isIndicator: false,
+    khisName: "Initiated (New) PrEP PWID",
+    domain: "P",
+  },
+  {
+    id: "prep_new_dc",
+    label: "Initiated on PrEP (New) — Discordant Couple",
+    dx: "TtvO6ol7Kq7",
+    isIndicator: false,
+    khisName: "Initiated (New) PrEP Discordant Couple",
+    domain: "P",
+  },
+  // Discontinued PrEP — same pattern; used by the retention donut so no
+  // discontinuation count is fabricated as initiated − current.
+  {
+    id: "prep_discontinued_gp",
+    label: "Discontinued PrEP — General population",
+    dx: "R3xxj8DCGNg",
+    isIndicator: false,
+    khisName: "Discontinued PrEP General popn",
+    domain: "P",
+  },
+  {
+    id: "prep_discontinued_fsw",
+    label: "Discontinued PrEP — FSW",
+    dx: "Foz7zB6Amwr",
+    isIndicator: false,
+    khisName: "Discontinued PrEP FSW",
+    domain: "P",
+  },
+  {
+    id: "prep_discontinued_msm",
+    label: "Discontinued PrEP — MSM",
+    dx: "FB9YUSlbLhU",
+    isIndicator: false,
+    khisName: "Discontinued PrEP MSM",
+    domain: "P",
+  },
+  {
+    id: "prep_discontinued_pwid",
+    label: "Discontinued PrEP — PWID",
+    dx: "BA5rdvmvi2a",
+    isIndicator: false,
+    khisName: "Discontinued PrEP PWID",
+    domain: "P",
+  },
+  {
+    id: "prep_discontinued_dc",
+    label: "Discontinued PrEP — Discordant Couple",
+    dx: "ixgJAkkClLk",
+    isIndicator: false,
+    khisName: "Discontinued PrEP Discordant Couple",
+    domain: "P",
+  },
 
   // ---- PMTCT / VTP QoC (Domain 1) --------------------------------------
   {
