@@ -22,7 +22,6 @@ import { useKhis } from "@/lib/use-khis";
 import { PARTNER_FACILITIES } from "@/lib/partners";
 import { AIAssistant, type ChartInsight } from "@/components/ai-assistant";
 import { ViewDataButton } from "@/components/view-data";
-import { NoDataState } from "@/components/no-data";
 
 // ---------------------------------------------------------------------------
 // PrEP — separate prevention track (own top-level tab)
@@ -109,7 +108,7 @@ function CascadeBar({
   max: number;
   note?: string;
 }) {
-  const pct = (count / max) * 100;
+  const pct = max > 0 ? (count / max) * 100 : 0;
   return (
     <div>
       <div className="flex justify-between items-baseline gap-2 mb-1">
@@ -199,30 +198,6 @@ export function PrepTab({
     top: 8,
   });
 
-  // Merge the two per-facility series into chart rows: [{name, eligible, initiated}].
-  const facilityChartData = useMemo(() => {
-    const e = eligibleByFac.data?.facilities ?? [];
-    const i = initiatedByFac.data?.facilities ?? [];
-    if (e.length === 0 && i.length === 0) return prepFacilityData;
-    const names = new Set<string>();
-    for (const f of [...e, ...i]) names.add(f.name);
-    return [...names]
-      .map((name) => ({
-        name,
-        eligible: e.find((f) => f.name === name)?.value ?? 0,
-        initiated: i.find((f) => f.name === name)?.value ?? 0,
-      }))
-      .sort((a, b) => b.eligible - a.eligible)
-      .slice(0, 8);
-  }, [eligibleByFac.data, initiatedByFac.data]);
-
-  const hasLiveFacilities = useMemo(
-    () =>
-      (eligibleByFac.data?.facilities?.length ?? 0) > 0 ||
-      (initiatedByFac.data?.facilities?.length ?? 0) > 0,
-    [eligibleByFac.data, initiatedByFac.data],
-  );
-
   // Live values — merged per stage. KHIS doesn't report every stage at
   // facility level for this period (e.g. eligible/refills/current come from
   // the 132 report), so each stage falls back to the demo estimate when the
@@ -248,19 +223,57 @@ export function PrepTab({
 
   const isLive = liveCount > 0;
 
+  // KHIS answered for this period/scope at all (regardless of how many
+  // indicators have values) — never show demo numbers when we have a real
+  // KHIS response; indicators KHIS didn't report become 0, not estimates.
+  const khisAnswered = !!data && !error && !loading;
+
   // KHIS answered but reported ZERO values for this period/scope — never show
   // demo numbers in that case (e.g. a future month looks like "data").
-  const noPeriodData = !isLive && !!data && !error && !loading;
+  const noPeriodData = !isLive && khisAnswered;
+  const noDataSub = `no KHIS data for ${peLabel} in this scope`;
+
+  // Merge the two per-facility series into chart rows: [{name, eligible, initiated}].
+  const facilityChartData = useMemo(() => {
+    if (khisAnswered) {
+      const e = eligibleByFac.data?.facilities ?? [];
+      const i = initiatedByFac.data?.facilities ?? [];
+      if (e.length === 0 && i.length === 0) {
+        return [
+          { name: filter.county || "No data", eligible: 0, initiated: 0 },
+        ];
+      }
+      const names = new Set<string>();
+      for (const f of [...e, ...i]) names.add(f.name);
+      return [...names]
+        .map((name) => ({
+          name,
+          eligible: e.find((f) => f.name === name)?.value ?? 0,
+          initiated: i.find((f) => f.name === name)?.value ?? 0,
+        }))
+        .sort((a, b) => b.eligible - a.eligible)
+        .slice(0, 8);
+    }
+    return prepFacilityData;
+  }, [eligibleByFac.data, initiatedByFac.data, khisAnswered, filter.county]);
+
+  const hasLiveFacilities = useMemo(
+    () =>
+      (eligibleByFac.data?.facilities?.length ?? 0) > 0 ||
+      (initiatedByFac.data?.facilities?.length ?? 0) > 0,
+    [eligibleByFac.data, initiatedByFac.data],
+  );
 
   const p = useMemo(
     () => ({
-      screened: liveVals?.screened ?? DEMO_PREP.screened,
-      eligible: liveVals?.eligible ?? DEMO_PREP.eligible,
-      initiated: liveVals?.initiated ?? DEMO_PREP.initiated,
-      refill: liveVals?.refill ?? DEMO_PREP.refill,
-      current: liveVals?.current ?? DEMO_PREP.current,
+      screened: liveVals?.screened ?? (khisAnswered ? 0 : DEMO_PREP.screened),
+      eligible: liveVals?.eligible ?? (khisAnswered ? 0 : DEMO_PREP.eligible),
+      initiated:
+        liveVals?.initiated ?? (khisAnswered ? 0 : DEMO_PREP.initiated),
+      refill: liveVals?.refill ?? (khisAnswered ? 0 : DEMO_PREP.refill),
+      current: liveVals?.current ?? (khisAnswered ? 0 : DEMO_PREP.current),
     }),
-    [liveVals],
+    [liveVals, khisAnswered],
   );
 
   // Percentages are only meaningful when BOTH values are live — mixing a live
@@ -356,11 +369,11 @@ export function PrepTab({
     </span>
   ) : noPeriodData && periodFuture ? (
     <span className="px-2 py-1 rounded-md bg-amber-50 text-amber-700 text-xs font-bold">
-      No KHIS data yet for {peLabel} — period is in the future
+      No KHIS data yet for {peLabel} — period is in the future (showing zeros)
     </span>
   ) : noPeriodData ? (
     <span className="px-2 py-1 rounded-md bg-amber-50 text-amber-700 text-xs font-bold">
-      No KHIS data for {peLabel} in this scope
+      No KHIS data for {peLabel} in this scope — showing zeros
     </span>
   ) : (
     <span className="px-2 py-1 rounded-md bg-slate-100 text-slate-600 text-xs font-bold">
@@ -374,9 +387,9 @@ export function PrepTab({
         title="PrEP — Pre-Exposure Prophylaxis for Pregnant & Breastfeeding Women (PBFW)"
         subtitle={
           noPeriodData
-            ? `No KHIS numbers were reported for ${peLabel} in this scope. Select a period with reported data to see the live ANC screening → PrEP cascade.`
+            ? `No KHIS numbers were reported for ${peLabel} in this scope — the charts below show zeros. Select a period with reported data to see the live ANC screening → PrEP cascade.`
             : isLive
-              ? `Live numbers from national KHIS (MOH 731 HTS) for the selected partner's facilities — ANC screening → eligibility → initiation → continuation → retention. Stages not reported at facility level this period show estimates marked (est.).`
+              ? `Live numbers from national KHIS (MOH 731 HTS) for the selected partner's facilities — ANC screening → eligibility → initiation → continuation → retention. Stages KHIS did not report this period show zeros, never estimates.`
               : "A distinct prevention track: ANC screening → eligibility → initiation → continuation → retention. Kept separate from the PMTCT treatment cascade. (Demo values until KHIS is reachable.)"
         }
       />
@@ -386,13 +399,7 @@ export function PrepTab({
         onSaveToPlayground={addChartToPlayground}
       />
 
-      {noPeriodData ? (
-        <NoDataState
-          peLabel={peLabel}
-          future={periodFuture}
-          scope={data?.scope}
-        />
-      ) : (
+      {
         <>
           {/* KPI Cards — the PrEP story at a glance */}
           <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
@@ -408,7 +415,11 @@ export function PrepTab({
               sub={
                 eligiblePct != null
                   ? `${eligiblePct}% of women seen`
-                  : "eligibility estimate"
+                  : khisAnswered
+                    ? "not reported on KHIS this period"
+                    : noPeriodData
+                      ? noDataSub
+                      : "eligibility estimate"
               }
               accent="text-violet-600"
             />
@@ -418,7 +429,11 @@ export function PrepTab({
               sub={
                 coveragePct != null
                   ? `${coveragePct}% of eligible (target ≥ 90%)`
-                  : "initiation estimate (target ≥ 90%)"
+                  : khisAnswered
+                    ? "not reported on KHIS this period"
+                    : noPeriodData
+                      ? noDataSub
+                      : "initiation estimate (target ≥ 90%)"
               }
               accent={
                 coveragePct != null && coveragePct >= 90
@@ -428,8 +443,24 @@ export function PrepTab({
             />
             <Kpi
               title="Continuing (Refills)"
-              value={threeMoPct != null ? `${threeMoPct}%` : "est."}
-              sub={`${p.refill.toLocaleString()} of ${p.initiated.toLocaleString()} initiated`}
+              value={
+                threeMoPct != null
+                  ? `${threeMoPct}%`
+                  : khisAnswered
+                    ? "0"
+                    : noPeriodData
+                      ? "0%"
+                      : "est."
+              }
+              sub={
+                khisAnswered
+                  ? threeMoPct != null
+                    ? `${p.refill.toLocaleString()} of ${p.initiated.toLocaleString()} initiated`
+                    : "not reported on KHIS this period"
+                  : noPeriodData
+                    ? noDataSub
+                    : `${p.refill.toLocaleString()} of ${p.initiated.toLocaleString()} initiated`
+              }
               accent={
                 threeMoPct != null && threeMoPct >= 80
                   ? "text-emerald-600"
@@ -438,8 +469,24 @@ export function PrepTab({
             />
             <Kpi
               title="Currently on PrEP"
-              value={sixMoPct != null ? `${sixMoPct}%` : "est."}
-              sub={`${p.current.toLocaleString()} of ${p.initiated.toLocaleString()} initiated`}
+              value={
+                sixMoPct != null
+                  ? `${sixMoPct}%`
+                  : khisAnswered
+                    ? "0"
+                    : noPeriodData
+                      ? "0%"
+                      : "est."
+              }
+              sub={
+                khisAnswered
+                  ? sixMoPct != null
+                    ? `${p.current.toLocaleString()} of ${p.initiated.toLocaleString()} initiated`
+                    : "not reported on KHIS this period"
+                  : noPeriodData
+                    ? noDataSub
+                    : `${p.current.toLocaleString()} of ${p.initiated.toLocaleString()} initiated`
+              }
               accent={
                 sixMoPct != null && sixMoPct >= 70
                   ? "text-emerald-600"
@@ -459,7 +506,7 @@ export function PrepTab({
                 <ViewDataButton
                   title="The PrEP Cascade"
                   data={cascade}
-                  note={`${isLive ? `Live · KHIS · ${data?.scope} · ${data?.peLabel}` : "demo"} · est = not reported this period`}
+                  note={`${isLive ? `Live · KHIS · ${data?.scope} · ${data?.peLabel}` : noPeriodData ? "no KHIS data — zeros" : "demo"} · est = not reported this period`}
                 />
               </div>
             </div>
@@ -470,21 +517,24 @@ export function PrepTab({
               the highest-risk window.
             </p>
             <div className="space-y-3">
-              {cascade.map((item, idx) => (
-                <CascadeBar
-                  key={idx}
-                  stage={item.stage}
-                  count={item.count}
-                  max={cascade[0].count}
-                  note={
-                    idx > 0
-                      ? `↓ ${(cascade[idx - 1].count - item.count).toLocaleString()} drop${item.est ? " (est.)" : ""}`
-                      : item.est
-                        ? "(est.)"
-                        : undefined
-                  }
-                />
-              ))}
+              {cascade.map((item, idx) => {
+                const estTag = item.est && !khisAnswered ? " (est.)" : "";
+                return (
+                  <CascadeBar
+                    key={idx}
+                    stage={item.stage}
+                    count={item.count}
+                    max={cascade[0].count}
+                    note={
+                      idx > 0
+                        ? `↓ ${(cascade[idx - 1].count - item.count).toLocaleString()} drop${estTag}`
+                        : item.est && !khisAnswered
+                          ? "(est.)"
+                          : undefined
+                    }
+                  />
+                );
+              })}
             </div>
           </div>
 
@@ -535,7 +585,7 @@ export function PrepTab({
                   <ViewDataButton
                     title="PrEP Eligible vs Initiated by Facility"
                     data={facilityChartData}
-                    note={`${hasLiveFacilities ? `Live per-facility · KHIS · ${partner}` : "illustrative"} · eligible vs initiated per facility`}
+                    note={`${hasLiveFacilities ? `Live per-facility · KHIS · ${partner}` : khisAnswered ? "no KHIS data — zeros" : "illustrative"} · eligible vs initiated per facility`}
                   />
                 </div>
               </div>
@@ -544,7 +594,9 @@ export function PrepTab({
                 per supported facility.
                 {hasLiveFacilities
                   ? ` Live per-facility values from national KHIS · ${partner}.`
-                  : " (illustrative until facility-level analytics is enabled)"}
+                  : khisAnswered
+                    ? " No KHIS per-facility values for this period/scope — zeros shown."
+                    : " (illustrative until facility-level analytics is enabled)"}
               </p>
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart
@@ -587,7 +639,7 @@ export function PrepTab({
                 <ViewDataButton
                   title="PrEP Retention at 6 Months"
                   data={retentionData}
-                  note={`${sixMoPct != null ? `live ratio ${sixMoPct}%` : "est."} · current vs initiated`}
+                  note={`${sixMoPct != null ? `live ratio ${sixMoPct}%` : khisAnswered ? "no KHIS data — zeros" : "est."} · current vs initiated`}
                 />
               </div>
               <p className="text-sm text-gray-500 mb-4">
@@ -619,10 +671,16 @@ export function PrepTab({
                     <p className="text-3xl font-bold text-violet-700">
                       {sixMoPct != null
                         ? `${sixMoPct}%`
-                        : p.current.toLocaleString()}
+                        : khisAnswered
+                          ? "0%"
+                          : p.current.toLocaleString()}
                     </p>
                     <p className="text-xs text-gray-500">
-                      {sixMoPct != null ? "Retained" : "on PrEP (est.)"}
+                      {sixMoPct != null
+                        ? "Retained"
+                        : khisAnswered
+                          ? "on PrEP (no KHIS)"
+                          : "on PrEP (est.)"}
                     </p>
                   </div>
                 </div>
@@ -688,18 +746,25 @@ export function PrepTab({
                 </button>
                 <ViewDataButton
                   title="PrEP Momentum"
-                  data={prepInitiationData}
-                  note="Illustrative — monthly trend not on KHIS"
+                  data={khisAnswered ? [] : prepInitiationData}
+                  note={
+                    khisAnswered
+                      ? "monthly trend not reported on KHIS"
+                      : "Illustrative — monthly trend not on KHIS"
+                  }
                 />
               </div>
             </div>
             <p className="text-sm text-gray-500 mb-4">
               Monthly new starts (violet) versus the cumulative number actively
               on PrEP (dashed) — the gap shows discontinuations in near real
-              time. (Illustrative trend until monthly analytics is enabled.)
+              time.{" "}
+              {khisAnswered
+                ? "(Monthly trend series not reported on KHIS — chart hidden; single-period values are in the KPIs above.)"
+                : "(Illustrative trend until monthly analytics is enabled.)"}
             </p>
             <ResponsiveContainer width="100%" height={280}>
-              <LineChart data={prepInitiationData}>
+              <LineChart data={khisAnswered ? [] : prepInitiationData}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="month" />
                 <YAxis />
@@ -724,7 +789,7 @@ export function PrepTab({
             </ResponsiveContainer>
           </div>
         </>
-      )}
+      }
 
       {/* Why it matters */}
       <div className="bg-gradient-to-r from-violet-50 to-purple-50 rounded-lg p-5 border border-violet-200 text-violet-900">

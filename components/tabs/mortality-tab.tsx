@@ -19,7 +19,6 @@ import { useKhis } from "@/lib/use-khis";
 import { PARTNER_FACILITIES } from "@/lib/partners";
 import { AIAssistant, type ChartInsight } from "@/components/ai-assistant";
 import { ViewDataButton } from "@/components/view-data";
-import { NoDataState } from "@/components/no-data";
 
 // ---------------------------------------------------------------------------
 // Domain 4 — MPDSR, Clinical Quality & Accountability
@@ -185,9 +184,14 @@ export function MortalityTab({
   );
   const isLive = liveCount > 0;
 
+  // KHIS answered for this period/scope at all — never show demo numbers when
+  // we have a real KHIS response; indicators KHIS didn't report become 0.
+  const khisAnswered = !!data && !error && !loading;
+
   // KHIS answered but reported ZERO values for this period/scope — never show
   // demo numbers in that case (e.g. a future month looks like "data").
-  const noPeriodData = !isLive && !!data && !error && !loading;
+  const noPeriodData = !isLive && khisAnswered;
+  const noDataSub = `no KHIS data for ${peLabel} in this scope`;
 
   // Facilities reporting — from the reporting=1 facet (facilities with a
   // non-null value for each indicator this period).
@@ -200,15 +204,20 @@ export function MortalityTab({
 
   const p = useMemo(
     () => ({
-      maternal: liveVals?.maternal ?? DEMO_SUMMARY.maternal,
+      maternal:
+        liveVals?.maternal ?? (khisAnswered ? 0 : DEMO_SUMMARY.maternal),
       maternalAudited:
-        liveVals?.maternalAudited ?? DEMO_SUMMARY.maternalAudited,
-      neonatal: liveVals?.neonatal ?? DEMO_SUMMARY.neonatal,
+        liveVals?.maternalAudited ??
+        (khisAnswered ? 0 : DEMO_SUMMARY.maternalAudited),
+      neonatal:
+        liveVals?.neonatal ?? (khisAnswered ? 0 : DEMO_SUMMARY.neonatal),
       neonatalAudited:
-        liveVals?.neonatalAudited ?? DEMO_SUMMARY.neonatalAudited,
-      stillbirths: liveVals?.stillbirths ?? DEMO_SUMMARY.stillbirths,
+        liveVals?.neonatalAudited ??
+        (khisAnswered ? 0 : DEMO_SUMMARY.neonatalAudited),
+      stillbirths:
+        liveVals?.stillbirths ?? (khisAnswered ? 0 : DEMO_SUMMARY.stillbirths),
     }),
-    [liveVals],
+    [liveVals, khisAnswered],
   );
 
   // Current-period overview bars: maternal vs neonatal (live when available).
@@ -281,11 +290,11 @@ export function MortalityTab({
     </span>
   ) : noPeriodData && periodFuture ? (
     <span className="px-2 py-1 rounded-md bg-amber-50 text-amber-700 text-xs font-bold">
-      No KHIS data yet for {peLabel} — period is in the future
+      No KHIS data yet for {peLabel} — period is in the future (showing zeros)
     </span>
   ) : noPeriodData ? (
     <span className="px-2 py-1 rounded-md bg-amber-50 text-amber-700 text-xs font-bold">
-      No KHIS data for {peLabel} in this scope
+      No KHIS data for {peLabel} in this scope — showing zeros
     </span>
   ) : (
     <span className="px-2 py-1 rounded-md bg-slate-100 text-slate-600 text-xs font-bold">
@@ -300,13 +309,7 @@ export function MortalityTab({
         onSaveToPlayground={addChartToPlayground}
       />
 
-      {noPeriodData ? (
-        <NoDataState
-          peLabel={peLabel}
-          future={periodFuture}
-          scope={data?.scope}
-        />
-      ) : (
+      {
         <>
           {/* KPI Cards — Domain 4 indicator collection */}
           <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
@@ -315,12 +318,18 @@ export function MortalityTab({
               value={
                 facilitiesReportingMaternal != null
                   ? String(facilitiesReportingMaternal)
-                  : String(DEMO_SUMMARY.facilitiesReportingMaternal)
+                  : khisAnswered
+                    ? "0"
+                    : String(DEMO_SUMMARY.facilitiesReportingMaternal)
               }
               sub={
-                facilitiesReportingMaternal != null
-                  ? `of ${data?.ouCount ?? 0} org units scoped — KHIS this period`
-                  : "of 6 supported facilities (demo)"
+                noPeriodData
+                  ? noDataSub
+                  : facilitiesReportingMaternal != null
+                    ? `of ${data?.ouCount ?? 0} org units scoped — KHIS this period`
+                    : khisAnswered
+                      ? "not reported on KHIS this period"
+                      : "of 6 supported facilities (demo)"
               }
               accent="text-red-600"
             />
@@ -329,12 +338,18 @@ export function MortalityTab({
               value={
                 facilitiesReportingNeonatal != null
                   ? String(facilitiesReportingNeonatal)
-                  : String(DEMO_SUMMARY.facilitiesReportingNeonatal)
+                  : khisAnswered
+                    ? "0"
+                    : String(DEMO_SUMMARY.facilitiesReportingNeonatal)
               }
               sub={
-                facilitiesReportingNeonatal != null
-                  ? `of ${data?.ouCount ?? 0} org units scoped — KHIS this period`
-                  : "of 6 supported facilities (demo)"
+                noPeriodData
+                  ? noDataSub
+                  : facilitiesReportingNeonatal != null
+                    ? `of ${data?.ouCount ?? 0} org units scoped — KHIS this period`
+                    : khisAnswered
+                      ? "not reported on KHIS this period"
+                      : "of 6 supported facilities (demo)"
               }
               accent="text-rose-600"
             />
@@ -342,11 +357,17 @@ export function MortalityTab({
               title="Maternal Deaths Reported"
               value={p.maternal.toLocaleString()}
               sub={
-                maternalAuditedPct != null
-                  ? `${maternalAuditedPct}% audited (${p.maternalAudited.toLocaleString()})`
-                  : liveVals?.maternalAudited != null
-                    ? `${p.maternalAudited.toLocaleString()} audited`
-                    : "reported this period"
+                noPeriodData
+                  ? noDataSub
+                  : liveVals?.maternal == null
+                    ? khisAnswered
+                      ? "not reported on KHIS this period"
+                      : "demo estimate"
+                    : maternalAuditedPct != null
+                      ? `${maternalAuditedPct}% audited (${p.maternalAudited.toLocaleString()})`
+                      : liveVals?.maternalAudited != null
+                        ? `${p.maternalAudited.toLocaleString()} audited`
+                        : "reported this period"
               }
               accent="text-red-600"
             />
@@ -354,11 +375,17 @@ export function MortalityTab({
               title="Neonatal Deaths Reported"
               value={p.neonatal.toLocaleString()}
               sub={
-                neonatalAuditedPct != null
-                  ? `${neonatalAuditedPct}% audited (${p.neonatalAudited.toLocaleString()})`
-                  : liveVals?.neonatalAudited != null
-                    ? `${p.neonatalAudited.toLocaleString()} audited`
-                    : "reported this period"
+                noPeriodData
+                  ? noDataSub
+                  : liveVals?.neonatal == null
+                    ? khisAnswered
+                      ? "not reported on KHIS this period"
+                      : "demo estimate"
+                    : neonatalAuditedPct != null
+                      ? `${neonatalAuditedPct}% audited (${p.neonatalAudited.toLocaleString()})`
+                      : liveVals?.neonatalAudited != null
+                        ? `${p.neonatalAudited.toLocaleString()} audited`
+                        : "reported this period"
               }
               accent="text-rose-600"
             />
@@ -412,7 +439,7 @@ export function MortalityTab({
                 <ViewDataButton
                   title="Deaths Reported by Supported Facilities"
                   data={maternalNeonatalData}
-                  note={`${isLive ? `Live · KHIS · ${data?.scope} · ${data?.peLabel}` : "demo"} · reported this period`}
+                  note={`${isLive ? `Live · KHIS · ${data?.scope} · ${data?.peLabel}` : noPeriodData ? "no KHIS data — zeros" : "demo"} · reported this period`}
                 />
               </div>
             </div>
@@ -423,7 +450,11 @@ export function MortalityTab({
               {liveVals?.stillbirths != null && (
                 <> · {p.stillbirths.toLocaleString()} stillbirths</>
               )}
-              {isLive ? " (live KHIS)" : " (demo)"}
+              {isLive
+                ? " (live KHIS)"
+                : noPeriodData
+                  ? " (no KHIS data — zeros)"
+                  : " (demo)"}
             </p>
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={maternalNeonatalData}>
@@ -441,7 +472,7 @@ export function MortalityTab({
             </ResponsiveContainer>
           </div>
         </>
-      )}
+      }
 
       {/* Monthly reported deaths trend */}
       <div className="bg-white rounded-lg p-6 border border-slate-200">

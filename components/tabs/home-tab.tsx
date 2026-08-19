@@ -3094,27 +3094,26 @@ function MpdsrSection({
         )
       : null;
 
-  // KHIS answered but reported ZERO deaths for this period/scope — show "—"
+  // KHIS answered for this period/scope at all — never show illustrative
+  // 88%/74% baselines as if they were data.
+  const mpdsrAnswered = !!mpdsr.data && !mpdsr.loading && !mpdsr.error;
+
+  // KHIS answered but reported ZERO deaths for this period/scope — show 0
   // instead of the illustrative 88%/74% baselines (they would read as data).
-  const mpdsrNoData =
-    !!mpdsr.data &&
-    !mpdsr.loading &&
-    !mpdsr.error &&
-    matAudPct == null &&
-    neoAudPct == null;
+  const mpdsrNoData = mpdsrAnswered && matAudPct == null && neoAudPct == null;
 
   const chartData = [
     {
       name: "Maternal deaths audited",
-      current: matAudPct ?? 88,
+      current: mpdsrAnswered ? (matAudPct ?? 0) : (matAudPct ?? 88),
       target: 100,
-      est: matAudPct == null,
+      est: matAudPct == null && !mpdsrAnswered,
     },
     {
       name: "Neonatal deaths audited",
-      current: neoAudPct ?? 74,
+      current: mpdsrAnswered ? (neoAudPct ?? 0) : (neoAudPct ?? 74),
       target: 100,
-      est: neoAudPct == null,
+      est: neoAudPct == null && !mpdsrAnswered,
     },
     { name: "Monthly MPDSR/QI meetings", current: 67, target: 100, est: true },
     {
@@ -3156,7 +3155,7 @@ function MpdsrSection({
     </span>
   ) : mpdsrNoData ? (
     <span className="px-2 py-1 rounded-md bg-amber-50 text-amber-700 text-xs font-bold">
-      No KHIS deaths reported for {peLabel} in this scope
+      No KHIS deaths reported for {peLabel} in this scope — showing zeros
     </span>
   ) : (
     <span className="px-2 py-1 rounded-md bg-slate-100 text-slate-600 text-xs font-bold">
@@ -3187,31 +3186,53 @@ function MpdsrSection({
             code="4.1 · MPDSR"
             title="Maternal Deaths Audited"
             value={
-              mpdsrNoData ? "—" : matAudPct != null ? `${matAudPct}%` : "88%"
+              mpdsrNoData
+                ? "0%"
+                : matAudPct != null
+                  ? `${matAudPct}%`
+                  : mpdsrAnswered
+                    ? "0%"
+                    : "88%"
             }
             sub={
               matAudPct != null
                 ? `KHIS · ${mpdsr.value("maternal_deaths_audited")} of ${mpdsr.value("maternal_deaths_reported")} audited`
                 : mpdsrNoData
-                  ? "no KHIS deaths reported this period"
-                  : "Target 100% · KHIS monthly (est.)"
+                  ? "no KHIS deaths reported this period — showing zeros"
+                  : mpdsrAnswered
+                    ? "no maternal deaths reported on KHIS this period"
+                    : "Target 100% · KHIS monthly (est.)"
             }
-            tone={toneOf(mpdsrNoData ? 0 : (matAudPct ?? 88), 100)}
+            tone={toneOf(
+              mpdsrAnswered ? (matAudPct ?? 0) : (matAudPct ?? 88),
+              100,
+            )}
           />
           <SubtabKpi
             code="4.2 · MPDSR"
             title="Neonatal Deaths Audited"
             value={
-              mpdsrNoData ? "—" : neoAudPct != null ? `${neoAudPct}%` : "74%"
+              mpdsrNoData
+                ? "0%"
+                : neoAudPct != null
+                  ? `${neoAudPct}%`
+                  : mpdsrAnswered
+                    ? "0%"
+                    : "74%"
             }
             sub={
               neoAudPct != null
                 ? `KHIS · ${mpdsr.value("neonatal_deaths_audited")} of ${mpdsr.value("neonatal_deaths")} audited`
                 : mpdsrNoData
-                  ? "no KHIS deaths reported this period"
-                  : "Target 100% (Y2) · KHIS monthly (est.)"
+                  ? "no KHIS deaths reported this period — showing zeros"
+                  : mpdsrAnswered
+                    ? "no neonatal deaths reported on KHIS this period"
+                    : "Target 100% (Y2) · KHIS monthly (est.)"
             }
-            tone={toneOf(mpdsrNoData ? 0 : (neoAudPct ?? 74), 100)}
+            tone={toneOf(
+              mpdsrAnswered ? (neoAudPct ?? 0) : (neoAudPct ?? 74),
+              100,
+            )}
           />
           <SubtabKpi
             code="4.3 · Reviews"
@@ -3292,7 +3313,7 @@ function MpdsrSection({
             <ViewDataButton
               title="MPDSR Audit Loop — % vs Target"
               data={chartData}
-              note={`${mpdsr.loading ? "Loading KHIS…" : matAudPct != null || neoAudPct != null ? `Live audit % · KHIS · ${mpdsr.data?.scope} · ${mpdsr.data?.peLabel}` : "Audit % illustrative — no KHIS deaths in scope"} · est = fallback`}
+              note={`${mpdsr.loading ? "Loading KHIS…" : matAudPct != null || neoAudPct != null ? `Live audit % · KHIS · ${mpdsr.data?.scope} · ${mpdsr.data?.peLabel}` : mpdsrNoData ? "no KHIS data — zeros" : "Audit % illustrative — no KHIS deaths in scope"} · est = fallback`}
             />
           </div>
         </div>
