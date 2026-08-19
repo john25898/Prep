@@ -261,13 +261,16 @@ export function MortalityTab({
       ?.length ?? 0) === 0;
 
   // Audit completeness (both values must be live for the ratio to be shown).
+  // Clamp at 100 — KHIS audit tallies occasionally exceed the deaths reported
+  // in the same period (e.g. Nakuru 67 audited vs 65 deaths), which would
+  // otherwise render as an impossible >100% "completeness".
   const maternalAuditedPct =
     liveVals?.maternal != null && liveVals?.maternalAudited != null
-      ? Math.round((p.maternalAudited / p.maternal) * 100)
+      ? Math.min(100, Math.round((p.maternalAudited / p.maternal) * 100))
       : null;
   const neonatalAuditedPct =
     liveVals?.neonatal != null && liveVals?.neonatalAudited != null
-      ? Math.round((p.neonatalAudited / p.neonatal) * 100)
+      ? Math.min(100, Math.round((p.neonatalAudited / p.neonatal) * 100))
       : null;
 
   const sourceBadge = loading ? (

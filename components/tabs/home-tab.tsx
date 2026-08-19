@@ -1573,6 +1573,10 @@ export function HomeTab({
                   : c.key === "SB"
                     ? livePillars.sbr
                     : undefined;
+            const targetVal = parseFloat(c.target.replace(/[^0-9.]/g, ""));
+            const met = liveNow != null && liveNow <= targetVal;
+            const near =
+              liveNow != null && !met && liveNow <= targetVal * 1.25;
             return (
               <div
                 key={c.key}
@@ -1605,9 +1609,38 @@ export function HomeTab({
                   </span>
                 </div>
                 {liveNow != null && (
-                  <p className="text-[11px] mt-2 font-semibold text-rose-600">
-                    ● Now (KHIS {peLabel}): {liveNow}
-                  </p>
+                  <div className="mt-3 rounded-lg bg-white/85 border border-rose-200 p-3 shadow-sm">
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="text-[10px] font-bold text-rose-700 uppercase tracking-wide">
+                        Current · KHIS {peLabel}
+                      </p>
+                      <span
+                        className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                          met
+                            ? "bg-emerald-100 text-emerald-700"
+                            : near
+                              ? "bg-amber-100 text-amber-700"
+                              : "bg-rose-100 text-rose-700"
+                        }`}
+                      >
+                        {met ? "On track" : near ? "Near target" : "Above target"}
+                      </span>
+                    </div>
+                    <div className="flex items-end gap-1.5 mt-1.5">
+                      <p className="text-4xl font-extrabold leading-none text-rose-700">
+                        {liveNow}
+                      </p>
+                      <p className="text-xs text-gray-500 pb-0.5">{c.unit}</p>
+                    </div>
+                    <p className="text-[11px] mt-1.5 font-semibold text-gray-600">
+                      Target {c.target}
+                      {met
+                        ? " — already met, protect the gains"
+                        : near
+                          ? " — close, keep pushing"
+                          : " — work needed to close the gap"}
+                    </p>
+                  </div>
                 )}
                 <p className="text-[11px] mt-3 text-gray-500">{c.note}</p>
               </div>
@@ -1665,7 +1698,12 @@ export function HomeTab({
                 <p className="text-xs text-gray-500 mt-0.5">{p.indicator}</p>
                 <div className="flex items-end gap-1.5 mt-3">
                   <p className="text-3xl font-extrabold text-gray-900">
-                    {current}%
+                    {current > 100 ? 100 : current}%
+                    {current > 100 && (
+                      <span className="text-sm font-bold text-amber-600">
+                        *
+                      </span>
+                    )}
                   </p>
                   <p className="text-xs text-gray-500 pb-1">
                     target ≥ {p.target}%
@@ -1683,6 +1721,12 @@ export function HomeTab({
                   <span className={`w-1.5 h-1.5 rounded-full ${tone.dot}`} />
                   {tone.label}
                 </p>
+                {current > 100 && (
+                  <p className="text-[10px] mt-1 text-amber-600">
+                    * KHIS reports &gt;100% — likely double-counted visits
+                    (clamped to 100)
+                  </p>
+                )}
                 {liveVal != null && (
                   <p className="text-[10px] mt-1 text-teal-600 font-semibold">
                     ● Live KHIS
