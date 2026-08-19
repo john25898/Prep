@@ -1,7 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { Table2, X, Download, Check } from "lucide-react";
+import {
+  Table2,
+  X,
+  Download,
+  Check,
+  ChevronRight,
+  ChevronDown,
+} from "lucide-react";
 
 export type DataRow = Record<string, unknown>;
 
@@ -91,6 +98,7 @@ export function ViewDataButton({
 }) {
   const [open, setOpen] = useState(false);
   const [downloaded, setDownloaded] = useState(false);
+  const [showDetail, setShowDetail] = useState(false);
 
   const rows = (data ?? []).filter(Boolean) as DataRow[];
   const columns =
@@ -214,9 +222,27 @@ export function ViewDataButton({
               </div>
             </div>
             {detail && (
+              <button
+                type="button"
+                onClick={() => setShowDetail((s) => !s)}
+                className="w-full flex items-center justify-between gap-3 px-5 py-2.5 border-b border-slate-200 bg-slate-50/70 text-left hover:bg-slate-100/80"
+              >
+                <span className="text-[11px] font-bold text-teal-800 uppercase tracking-wide">
+                  How this is calculated — the inputs behind these values
+                </span>
+                <span className="text-teal-700">
+                  {showDetail ? (
+                    <ChevronDown className="h-4 w-4" />
+                  ) : (
+                    <ChevronRight className="h-4 w-4" />
+                  )}
+                </span>
+              </button>
+            )}
+            {showDetail && detail && (
               <div className="px-5 py-4 border-b border-slate-200 bg-teal-50/40">
                 <p className="text-[11px] font-bold text-teal-800 uppercase tracking-wide mb-2">
-                  How this is calculated — the inputs behind these values
+                  The raw inputs and formula behind these values
                 </p>
                 {detail.formula && (
                   <p className="text-xs font-mono text-slate-800 bg-white border border-slate-200 rounded-md px-3 py-2 mb-3">
@@ -310,8 +336,9 @@ export function ViewDataButton({
             <div className="px-5 py-3 border-t border-slate-200 bg-slate-50/70 text-xs text-gray-500">
               The exact rows behind this chart as rendered — including
               estimated/fallback values where KHIS has no live number. Where a
-              value is calculated, the inputs and formula are shown above. Use
-              Download CSV to export both the rows and the calculation details.
+              value is calculated, the raw inputs and formula are available via
+              "Calculation details" above (and are included in the downloaded
+              CSV).
             </div>
           </div>
         </div>

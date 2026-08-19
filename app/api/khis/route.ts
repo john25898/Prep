@@ -11,7 +11,10 @@
 //               (default: ALL_DX — the full registry in one call)
 //   county      optional — restrict to one county (name as in geo.ts)
 //   facility    optional — restrict to one facility UID
-//   byFacility=1   return the top-N facilities per (single) dx
+//   byFacility=1   return the top-N facilities for the dx list — with several
+//                  dx the per-facility values are summed across them (used to
+//                  combine the five PrEP population-group elements into one
+//                  "eligible by facility" series)
 //   byCounty=1     return per-county sums for the (single) dx
 //   byPeriod=1     ALSO return per-period values (for trend charts; use with
 //                  pe=LAST_12_MONTHS so the client gets the monthly series)
@@ -47,7 +50,8 @@ export async function GET(req: NextRequest) {
   const subcounty = params.get("subcounty");
   const facility = params.get("facility");
   // byFacility=1 — return the top-N facilities per indicator (per-facility
-  // breakdown for the scoped org units). Requires a single dx in `indicators`.
+  // breakdown for the scoped org units). With several dx, per-facility values
+  // are summed across all of them (e.g. PrEP population-group elements).
   const byFacility = params.get("byFacility") === "1";
   const byCounty = params.get("byCounty") === "1";
   const byPeriod = params.get("byPeriod") === "1";
@@ -166,14 +170,16 @@ export async function GET(req: NextRequest) {
       });
     }
 
-    // Optional per-facility breakdown: top-N facilities by the (single)
-    // requested indicator, used by charts like "Eligible vs Initiated".
+    // Optional per-facility breakdown: top-N facilities by the requested
+    // indicator(s). With several dx, per-facility values are summed across
+    // them — e.g. "Eligible by facility" = sum of the five PrEP population-
+    // group elements (General popn + FSW + MSM + PWID + Discordant Couple).
     let facilities: { name: string; value: number | null }[] | undefined;
-    if (byFacility && dxIds.length === 1) {
-      const dx = dxIds[0];
+    if (byFacility) {
+      const dxSet = new Set(dxIds);
       const sums = new Map<string, number>();
       for (const row of analytics.rows) {
-        if (row.dx !== dx || row.value == null) continue;
+        if (!dxSet.has(row.dx) || row.value == null) continue;
         sums.set(
           row.ouName || row.ou,
           (sums.get(row.ouName || row.ou) ?? 0) + row.value,

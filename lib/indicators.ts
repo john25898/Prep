@@ -79,6 +79,133 @@ export const KHIS_INDICATORS: KhisIndicator[] = [
     khisName: "Discontinued PrEP Total",
     domain: "P",
   },
+  // Population-group breakdowns — facilities report these rows and leave the
+  // "Total" column blank, so the dashboard sums the five groups per stage:
+  //   Eligible = elig_gp + elig_fsw + elig_msm + elig_pwid + elig_dc
+  //   Current  = cur_gp + cur_fsw + cur_msm + cur_pwid + cur_dc
+  //   Refills  = ref_gp + ref_fsw + ref_msm + ref_pwid + ref_dc
+  // (all UIDs verified as members of the MOH 731 PLUS PrEP data sets
+  //  A01SsXzNsbD facility / zxyaWpqkTlP dice, and live in analytics.)
+  {
+    id: "prep_eligible_gp",
+    label: "Eligible for PrEP — General population",
+    dx: "TmJeb0ttJXO",
+    isIndicator: false,
+    khisName: "Eligible PrEP General popn",
+    domain: "P",
+  },
+  {
+    id: "prep_eligible_fsw",
+    label: "Eligible for PrEP — FSW",
+    dx: "GK5eHJVjf45",
+    isIndicator: false,
+    khisName: "Eligible PrEP FSW",
+    domain: "P",
+  },
+  {
+    id: "prep_eligible_msm",
+    label: "Eligible for PrEP — MSM",
+    dx: "RAxC6dok0ZU",
+    isIndicator: false,
+    khisName: "Eligible PrEP MSM",
+    domain: "P",
+  },
+  {
+    id: "prep_eligible_pwid",
+    label: "Eligible for PrEP — PWID",
+    dx: "N9v5DeqnxRo",
+    isIndicator: false,
+    khisName: "Eligible PrEP PWID",
+    domain: "P",
+  },
+  {
+    id: "prep_eligible_dc",
+    label: "Eligible for PrEP — Discordant Couple",
+    dx: "d5oDbyxUZNw",
+    isIndicator: false,
+    khisName: "Eligible PrEP Discordant Couple",
+    domain: "P",
+  },
+  {
+    id: "prep_current_gp",
+    label: "Currently on PrEP — General population",
+    dx: "SvUs6rPKruy",
+    isIndicator: false,
+    khisName: "Currently on PrEP ( New + Refill+ Restart) General popn",
+    domain: "P",
+  },
+  {
+    id: "prep_current_fsw",
+    label: "Currently on PrEP — FSW",
+    dx: "DWOXcLFInzC",
+    isIndicator: false,
+    khisName: "Currently on PrEP ( New + Refill+ Restart) FSW",
+    domain: "P",
+  },
+  {
+    id: "prep_current_msm",
+    label: "Currently on PrEP — MSM",
+    dx: "eUXDNCzAWO7",
+    isIndicator: false,
+    khisName: "Currently on PrEP ( New + Refill+ Restart) MSM",
+    domain: "P",
+  },
+  {
+    id: "prep_current_pwid",
+    label: "Currently on PrEP — PWID",
+    dx: "uJGBLoQwCb4",
+    isIndicator: false,
+    khisName: "Currently on PrEP ( New + Refill+ Restart) PWID",
+    domain: "P",
+  },
+  {
+    id: "prep_current_dc",
+    label: "Currently on PrEP — Discordant Couple",
+    dx: "Tikx6x3xghp",
+    isIndicator: false,
+    khisName: "Currently on PrEP ( New + Refill+ Restart) Discordant Couple",
+    domain: "P",
+  },
+  {
+    id: "prep_refill_gp",
+    label: "Continuing on PrEP (Refills) — General population",
+    dx: "w6bbU6qwRLF",
+    isIndicator: false,
+    khisName: "Continuing (Refills) PrEP General popn",
+    domain: "P",
+  },
+  {
+    id: "prep_refill_fsw",
+    label: "Continuing on PrEP (Refills) — FSW",
+    dx: "Mc8JPUVVMfD",
+    isIndicator: false,
+    khisName: "Continuing (Refills) PrEP FSW",
+    domain: "P",
+  },
+  {
+    id: "prep_refill_msm",
+    label: "Continuing on PrEP (Refills) — MSM",
+    dx: "RwRT4W7fdzz",
+    isIndicator: false,
+    khisName: "Continuing (Refills) PrEP MSM",
+    domain: "P",
+  },
+  {
+    id: "prep_refill_pwid",
+    label: "Continuing on PrEP (Refills) — PWID",
+    dx: "hZxuehBbUcT",
+    isIndicator: false,
+    khisName: "Continuing (Refills) PrEP PWID",
+    domain: "P",
+  },
+  {
+    id: "prep_refill_dc",
+    label: "Continuing on PrEP (Refills) — Discordant Couple",
+    dx: "qBAWpz9z1CA",
+    isIndicator: false,
+    khisName: "Continuing (Refills) PrEP Discordant Couple",
+    domain: "P",
+  },
 
   // ---- PMTCT / VTP QoC (Domain 1) --------------------------------------
   {
