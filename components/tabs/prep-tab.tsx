@@ -454,9 +454,7 @@ export function PrepTab({
             <Kpi
               title="Assessed Eligible"
               value={
-                nrOf(liveVals?.eligible)
-                  ? "n/r"
-                  : p.eligible.toLocaleString()
+                nrOf(liveVals?.eligible) ? "n/r" : p.eligible.toLocaleString()
               }
               sub={
                 eligiblePct != null
@@ -561,6 +559,57 @@ export function PrepTab({
                     est: c.est,
                   }))}
                   note={`${isLive ? `Live · KHIS · ${data?.scope} · ${data?.peLabel}` : noPeriodData ? "no KHIS data — zeros" : "demo"} · n/r = not reported on KHIS this period`}
+                  detail={{
+                    formula:
+                      "cascade % = stage count ÷ PBFW seen at 1st ANC × 100 · retention = continuing ÷ initiated",
+                    inputs: [
+                      {
+                        label: "PBFW seen at 1st ANC",
+                        value: liveVals?.screened ?? null,
+                        source:
+                          liveVals?.screened != null
+                            ? ("live" as const)
+                            : ("n/r" as const),
+                      },
+                      {
+                        label: "Eligible for PrEP (Total)",
+                        value: liveVals?.eligible ?? null,
+                        source:
+                          liveVals?.eligible != null
+                            ? ("live" as const)
+                            : ("n/r" as const),
+                      },
+                      {
+                        label: "Initiated on PrEP (New, Total)",
+                        value: liveVals?.initiated ?? null,
+                        source:
+                          liveVals?.initiated != null
+                            ? ("live" as const)
+                            : ("n/r" as const),
+                      },
+                      {
+                        label: "Continuing on PrEP (Refills)",
+                        value: liveVals?.refill ?? null,
+                        source:
+                          liveVals?.refill != null
+                            ? ("live" as const)
+                            : ("n/r" as const),
+                      },
+                      {
+                        label: "Currently on PrEP (New+Refill+Restart)",
+                        value: liveVals?.current ?? null,
+                        source:
+                          liveVals?.current != null
+                            ? ("live" as const)
+                            : ("n/r" as const),
+                      },
+                    ],
+                    notes: [
+                      `Scope: ${data?.scope ?? "—"} · ${data?.peLabel ?? peLabel}.`,
+                      "KHIS reports Initiated (and Screened where ANC is reported); Eligible / Refill / Current are not reported monthly — shown as n/r, never a fabricated 0.",
+                      "Drop arrows appear only between two reported stages — no impossible gaps are implied between live stages.",
+                    ],
+                  }}
                 />
               </div>
             </div>
@@ -572,9 +621,9 @@ export function PrepTab({
             </p>
             {isLive && khisAnswered && liveCount < 5 && (
               <p className="text-xs font-medium text-amber-800 bg-amber-50 border border-amber-200 rounded-md px-3 py-2 mb-4">
-                KHIS reports {liveCount}/5 of these stages for {peLabel} in
-                this scope. Stages shown as “n/r” were not reported this period
-                — drop arrows are only shown between two reported stages, so no
+                KHIS reports {liveCount}/5 of these stages for {peLabel} in this
+                scope. Stages shown as “n/r” were not reported this period —
+                drop arrows are only shown between two reported stages, so no
                 impossible gaps are implied.
               </p>
             )}
@@ -659,6 +708,27 @@ export function PrepTab({
                     title="PrEP Eligible vs Initiated by Facility"
                     data={facilityChartData}
                     note={`${hasLiveFacilities ? `Live per-facility · KHIS · ${partner}` : khisAnswered ? "no KHIS data — zeros" : "illustrative"} · ${khisAnswered && !eligibleReportedAny ? "eligibility not reported at facility level this period — initiated shown only" : "eligible vs initiated per facility"}`}
+                    detail={{
+                      formula:
+                        "eligible = PBFW assessed eligible for PrEP at the facility · initiated = PBFW started PrEP · initiation coverage % = initiated ÷ eligible × 100 (per facility)",
+                      inputs: [
+                        ...(eligibleByFac.data?.facilities ?? []).map((f) => ({
+                          label: `${f.name} · eligible`,
+                          value: f.value,
+                          source: "live" as const,
+                        })),
+                        ...(initiatedByFac.data?.facilities ?? []).map((f) => ({
+                          label: `${f.name} · initiated`,
+                          value: f.value,
+                          source: "live" as const,
+                        })),
+                      ],
+                      notes: [
+                        `Per-facility values from KHIS · ${partner} · ${data?.peLabel ?? peLabel}.`,
+                        "Eligibility is not reported at facility level on KHIS for some scopes — the Eligible series is then hidden rather than shown as zero.",
+                        "Facilities with no KHIS value this period are omitted from both the chart and this list.",
+                      ],
+                    }}
                   />
                 </div>
               </div>
@@ -729,6 +799,45 @@ export function PrepTab({
                     value: retentionNotReported ? "n/r" : r.value,
                   }))}
                   note={`${retentionNotReported ? "currently on PrEP not reported on KHIS this period" : sixMoPct != null ? `live ratio ${sixMoPct}%` : khisAnswered ? "no KHIS data — zeros" : "est."} · current vs initiated`}
+                  detail={{
+                    formula:
+                      "retention % = currently on PrEP ÷ initiated on PrEP × 100 · discontinued = initiated − currently on PrEP",
+                    inputs: [
+                      {
+                        label: "Initiated on PrEP (New, Total)",
+                        value: liveVals?.initiated ?? null,
+                        source:
+                          liveVals?.initiated != null
+                            ? ("live" as const)
+                            : ("n/r" as const),
+                      },
+                      {
+                        label: "Currently on PrEP (New+Refill+Restart)",
+                        value: liveVals?.current ?? null,
+                        source:
+                          liveVals?.current != null
+                            ? ("live" as const)
+                            : ("n/r" as const),
+                      },
+                      {
+                        label: "Retention % (computed)",
+                        value:
+                          sixMoPct != null
+                            ? `${sixMoPct}%`
+                            : retentionNotReported
+                              ? "n/r"
+                              : null,
+                        source:
+                          sixMoPct != null
+                            ? ("live" as const)
+                            : ("n/r" as const),
+                      },
+                    ],
+                    notes: [
+                      "Both values must be reported for the retention % to be computed — otherwise the donut shows n/r instead of a fabricated number.",
+                      "No discontinuation count is invented when “Currently on PrEP” is missing.",
+                    ],
+                  }}
                 />
               </div>
               <p className="text-sm text-gray-500 mb-4">
@@ -788,8 +897,7 @@ export function PrepTab({
                         style={{ backgroundColor: item.fill }}
                       />
                       <span className="text-sm text-gray-700">
-                        {item.name}:{" "}
-                        {retentionNotReported ? "n/r" : item.value}
+                        {item.name}: {retentionNotReported ? "n/r" : item.value}
                       </span>
                     </div>
                   ))}

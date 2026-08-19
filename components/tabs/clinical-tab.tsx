@@ -486,6 +486,26 @@ const Subtab2A = ({
                   title="1st ANC Attendance vs HIV Testing"
                   data={ancVsTestedData}
                   note="per county — live KHIS when available, else demo"
+                  detail={{
+                    formula:
+                      "per county: ANC Visits = PMTCT_STAT_N (1st ANC) · HIV Tested = PMTCT_STAT_N tested — the testing gap = ANC − tested",
+                    inputs: [
+                      ...(ancByCounty.data?.counties ?? []).map((c) => ({
+                        label: `${c.name} · 1st ANC visits`,
+                        value: c.value,
+                        source: "live" as const,
+                      })),
+                      ...(testedByCounty.data?.counties ?? []).map((c) => ({
+                        label: `${c.name} · HIV tested`,
+                        value: c.value,
+                        source: "live" as const,
+                      })),
+                    ],
+                    notes: [
+                      "Counties with no KHIS value for a series are shown as 0 on that bar.",
+                      "Where KHIS has no per-county values at all, the demo district figures are shown and tagged demo.",
+                    ],
+                  }}
                 />
               </div>
             </div>
@@ -516,6 +536,40 @@ const Subtab2A = ({
                 title="HIV Testing Coverage (1st ANC Visits)"
                 data={hivTestingData}
                 note={`${testedPct != null ? `live ratio ${testedPct}%` : noPeriodData ? "no KHIS data — zeros" : "demo fallback"} · tested of ANC 1st visits`}
+                detail={{
+                  formula:
+                    "tested % = HIV tested at 1st ANC ÷ PBFW seen at 1st ANC × 100 · target > 95%",
+                  inputs: [
+                    {
+                      label: "PBFW seen at 1st ANC (PMTCT_STAT_N)",
+                      value: live.anc1 ?? null,
+                      source:
+                        live.anc1 != null
+                          ? ("live" as const)
+                          : ("n/r" as const),
+                    },
+                    {
+                      label: "HIV tested at 1st ANC",
+                      value: live.tested ?? null,
+                      source:
+                        live.tested != null
+                          ? ("live" as const)
+                          : ("n/r" as const),
+                    },
+                    {
+                      label: "Tested % (computed)",
+                      value: testedPct != null ? `${testedPct}%` : null,
+                      source:
+                        testedPct != null
+                          ? ("live" as const)
+                          : ("n/r" as const),
+                    },
+                  ],
+                  notes: [
+                    "Both values must be live for the % to be computed — otherwise the donut shows demo/not-reported rather than a false ratio.",
+                    `Scope: ${filter.partner}${filter.county ? ` · ${filter.county}` : ""} · ${peLabel}.`,
+                  ],
+                }}
               />
             </div>
             <p className="text-sm text-gray-500 mb-4">
@@ -1024,8 +1078,7 @@ const Subtab2B = ({
       art:
         live.art ??
         (khisAnswered ? 0 : DEMO_PBFW_NEW_ART + DEMO_PBFW_KNOWN_ART),
-      deliveries:
-        live.deliveries ?? (khisAnswered ? 0 : DEMO_HIV_DELIVERIES),
+      deliveries: live.deliveries ?? (khisAnswered ? 0 : DEMO_HIV_DELIVERIES),
       eid: live.eid ?? (khisAnswered ? 0 : DEMO_HEI_EID_2_8_WEEKS),
       pcrPos:
         live.pcrPos6_8 ??
@@ -1372,6 +1425,69 @@ const Subtab2B = ({
                   est: c.est,
                 }))}
                 note={`${isLive ? `Live · KHIS · ${data?.scope} · ${data?.peLabel}` : noPeriodData ? "no KHIS data — zeros" : "demo"} · n/r = not reported on KHIS this period`}
+                detail={{
+                  formula:
+                    "cascade % = stage count ÷ PBFW at 1st ANC × 100 · drop = previous stage − this stage (only between two reported stages)",
+                  inputs: [
+                    {
+                      label: "PBFW at 1st ANC (known HIV status)",
+                      value: live.anc1 ?? null,
+                      source:
+                        live.anc1 != null
+                          ? ("live" as const)
+                          : ("n/r" as const),
+                    },
+                    {
+                      label: "HIV tested at 1st ANC",
+                      value: live.tested ?? null,
+                      source:
+                        live.tested != null
+                          ? ("live" as const)
+                          : ("n/r" as const),
+                    },
+                    {
+                      label: "HIV+ identified (NP + KP)",
+                      value: live.need ?? null,
+                      source:
+                        live.need != null
+                          ? ("live" as const)
+                          : ("n/r" as const),
+                    },
+                    {
+                      label: "Initiated on ART",
+                      value: live.art ?? null,
+                      source:
+                        live.art != null ? ("live" as const) : ("n/r" as const),
+                    },
+                    {
+                      label: "Delivered at supported facilities",
+                      value: live.deliveries ?? null,
+                      source:
+                        live.deliveries != null
+                          ? ("live" as const)
+                          : ("n/r" as const),
+                    },
+                    {
+                      label: "HEI enrolled in 18–24m cohort (HV02-50)",
+                      value: live.cohort24m ?? null,
+                      source: liveHeiPair
+                        ? ("live" as const)
+                        : ("n/r" as const),
+                    },
+                    {
+                      label: "HEI HIV-free at 18–24m (AB− 18m)",
+                      value: live.neg18m ?? null,
+                      source: liveHeiPair
+                        ? ("live" as const)
+                        : ("n/r" as const),
+                    },
+                  ],
+                  notes: [
+                    `Scope: ${data?.scope ?? "—"} · ${data?.peLabel ?? peLabel}. KHIS reports ${liveCount}/16 indicators this period.`,
+                    "Stages KHIS did not report are shown as n/r — no impossible drops are implied between live stages.",
+                    "HEI outcomes are only treated as live when the KHIS pair is sane (negatives ≤ enrolled); otherwise the EMR cohort (est.) is used.",
+                  ],
+                }}
               />
             </div>
           </div>
@@ -1527,6 +1643,40 @@ const Subtab2B = ({
                 title="Viral Load Suppression (donut)"
                 data={vlChartData}
                 note={`${vlSuppPct != null ? `live ratio ${vlSuppPct}% (KHIS HV03)` : "demo"} · % of VL results <1000`}
+                detail={{
+                  formula:
+                    "suppression % = VL results < 1000 copies ÷ VL results with result × 100 (HV03-042 / HV03-043) · target ≥ 95%",
+                  inputs: [
+                    {
+                      label: "VL < 1000 copies/mL",
+                      value: live.vlLt1000 ?? null,
+                      source:
+                        live.vlLt1000 != null
+                          ? ("live" as const)
+                          : ("n/r" as const),
+                    },
+                    {
+                      label: "VL results with result",
+                      value: live.vlResult ?? null,
+                      source:
+                        live.vlResult != null
+                          ? ("live" as const)
+                          : ("n/r" as const),
+                    },
+                    {
+                      label: "Suppression % (computed)",
+                      value: vlSuppPct != null ? `${vlSuppPct}%` : null,
+                      source:
+                        vlSuppPct != null
+                          ? ("live" as const)
+                          : ("n/r" as const),
+                    },
+                  ],
+                  notes: [
+                    "Both VL values must be live for the % to be computed — otherwise the donut shows “Not Reported” once KHIS has answered, never a fabricated ratio.",
+                    `Scope: ${data?.scope ?? "—"} · ${data?.peLabel ?? peLabel}.`,
+                  ],
+                }}
               />
               <ViewDataButton
                 title="VL Uptake & Suppression Trend (Jan–Jun)"
@@ -1697,6 +1847,38 @@ const Subtab2B = ({
                   title="HIV Treatment Conversion Funnel"
                   data={conversionFunnelData}
                   note={`${isLive ? `Live · KHIS · ${data?.scope}` : noPeriodData ? "no KHIS data — zeros" : "demo"} · est = fallback`}
+                  detail={{
+                    formula:
+                      "funnel % = stage ÷ new HIV+ PBFW × 100 · eligible = HIV+ identified (NP+KP) · initiated = started ART",
+                    inputs: [
+                      {
+                        label: "New HIV+ PBFW (NP + KP)",
+                        value: live.need ?? null,
+                        source:
+                          live.need != null
+                            ? ("live" as const)
+                            : ("n/r" as const),
+                      },
+                      {
+                        label: "Initiated on ART",
+                        value: live.art ?? null,
+                        source:
+                          live.art != null
+                            ? ("live" as const)
+                            : ("n/r" as const),
+                      },
+                      {
+                        label: "ART initiation % (computed)",
+                        value: artPct != null ? `${artPct.toFixed(1)}%` : null,
+                        source:
+                          artPct != null ? ("live" as const) : ("n/r" as const),
+                      },
+                    ],
+                    notes: [
+                      "The funnel compares initiation against the HIV+ pool identified — missed opportunities = new positive − initiated on ART.",
+                      "Stages not reported on KHIS this period render as n/r with no fabricated conversion.",
+                    ],
+                  }}
                 />
               </div>
               <div className="space-y-3">
@@ -2057,7 +2239,13 @@ const Subtab2B = ({
                       : p.cohortNegative
                     : p.cohortNegative
               }
-              pct={liveHeiPair ? heiNegativePct : khisAnswered ? undefined : heiNegativePct}
+              pct={
+                liveHeiPair
+                  ? heiNegativePct
+                  : khisAnswered
+                    ? undefined
+                    : heiNegativePct
+              }
             />
             <IndicatorRow
               code="% Pairs"

@@ -41,7 +41,7 @@ import { averageReadiness, type FacilityAssessment } from "@/lib/assessment";
 import { AssessmentTab } from "@/components/tabs/assessment-tab";
 import { MortalityTab } from "@/components/tabs/mortality-tab";
 import { ClinicalTab } from "@/components/tabs/clinical-tab";
-import { ViewDataButton } from "@/components/view-data";
+import { ViewDataButton, type ViewInput } from "@/components/view-data";
 
 // ---------------------------------------------------------------------------
 // Yellow-marked (home page) indicators per the EWENE Dashboard Indicators doc
@@ -943,6 +943,21 @@ function PartnerIndicatorChart({
             title={title}
             data={data}
             note="% per county — rows match the bars above"
+            detail={{
+              formula:
+                "each indicator shown as % per county — target line from the VTP / readiness target set",
+              inputs: rows.flatMap((r) =>
+                r.values.map((v) => ({
+                  label: `${r.full} · ${v.county}`,
+                  value: v.value,
+                  source: "demo" as const,
+                })),
+              ),
+              notes: [
+                "These are baseline constants / entered assessments — not live KHIS numerators, which are not disaggregated monthly for these indicators.",
+                "A blank bar means no value was entered for that county.",
+              ],
+            }}
           />
         </div>
       </div>
@@ -1559,9 +1574,81 @@ export function HomeTab({
               move (§5.1).
             </p>
           </div>
-          <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-rose-50 text-rose-700 border border-rose-200">
-            Presidential Launch · 28 May 2026
-          </span>
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-rose-50 text-rose-700 border border-rose-200">
+              Presidential Launch · 28 May 2026
+            </span>
+            <ViewDataButton
+              title="Core Impact Indicators — MMR / NMR / Stillbirth Rate"
+              data={[
+                {
+                  indicator: "MMR",
+                  target: "≤140",
+                  current: livePillars.mmr ?? null,
+                  unit: "per 100,000 live births",
+                },
+                {
+                  indicator: "NMR",
+                  target: "≤12",
+                  current: livePillars.nmr ?? null,
+                  unit: "per 1,000 live births",
+                },
+                {
+                  indicator: "Stillbirth Rate",
+                  target: "≤12",
+                  current: livePillars.sbr ?? null,
+                  unit: "per 1,000 births",
+                },
+              ]}
+              note={`live from KHIS ${peLabel} where reported · targets EWENE 2026–2028`}
+              detail={{
+                formula:
+                  "MMR = maternal deaths ÷ live births × 100,000 (KHIS indicator) · NMR = neonatal deaths ÷ live births × 1,000 · SBR = stillbirths ÷ (live births + stillbirths) × 1,000",
+                inputs: pillarCounties.flatMap<ViewInput>((c) => {
+                  const r = pillarByCounty?.[c];
+                  if (!r)
+                    return [
+                      {
+                        label: `${c} — no KHIS values this period`,
+                        value: "—",
+                        source: "n/r" as const,
+                      },
+                    ];
+                  return [
+                    {
+                      label: `${c} · live births (MOH 711)`,
+                      value: r.lb ?? null,
+                      source:
+                        r.lb != null ? ("live" as const) : ("n/r" as const),
+                    },
+                    {
+                      label: `${c} · neonatal deaths`,
+                      value: r.nd ?? null,
+                      source:
+                        r.nd != null ? ("live" as const) : ("n/r" as const),
+                    },
+                    {
+                      label: `${c} · stillbirths`,
+                      value: r.sb ?? null,
+                      source:
+                        r.sb != null ? ("live" as const) : ("n/r" as const),
+                    },
+                    {
+                      label: `${c} · MMR (KHIS indicator)`,
+                      value: r.mmr ?? null,
+                      source:
+                        r.mmr != null ? ("live" as const) : ("n/r" as const),
+                    },
+                  ];
+                }),
+                notes: [
+                  `Scope: ${getPartner(filter.partner)?.shortName ?? filter.partner}${filter.county ? ` · ${filter.county}` : ""} · ${peLabel}.`,
+                  "NMR & SBR are computed from summed counts across the reported counties — not an average of county ratios.",
+                  "Where KHIS reports no value the card shows nothing rather than a false zero.",
+                ],
+              }}
+            />
+          </div>
         </div>
         <div className="px-6 pb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
           {CORE_IMPACT.map((c) => {
@@ -1575,8 +1662,7 @@ export function HomeTab({
                     : undefined;
             const targetVal = parseFloat(c.target.replace(/[^0-9.]/g, ""));
             const met = liveNow != null && liveNow <= targetVal;
-            const near =
-              liveNow != null && !met && liveNow <= targetVal * 1.25;
+            const near = liveNow != null && !met && liveNow <= targetVal * 1.25;
             return (
               <div
                 key={c.key}
@@ -1623,7 +1709,11 @@ export function HomeTab({
                               : "bg-rose-100 text-rose-700"
                         }`}
                       >
-                        {met ? "On track" : near ? "Near target" : "Above target"}
+                        {met
+                          ? "On track"
+                          : near
+                            ? "Near target"
+                            : "Above target"}
                       </span>
                     </div>
                     <div className="flex items-end gap-1.5 mt-1.5">
@@ -1661,17 +1751,107 @@ export function HomeTab({
               Four coverage pillars — current reported vs 2028 target (§5.2).
             </p>
           </div>
-          <span
-            className={`text-xs font-medium px-2.5 py-1 rounded-full border ${
-              livePillars.anyLive
-                ? "bg-teal-50 text-teal-700 border-teal-200"
-                : "bg-slate-100 text-slate-600 border-slate-200"
-            }`}
-          >
-            {livePillars.anyLive
-              ? `Live · KHIS ${peLabel} · ${getPartner(filter.partner)?.shortName ?? filter.partner}${filter.county ? ` · ${filter.county}` : ""}`
-              : "Baseline (national)"}
-          </span>
+          <div className="flex items-center gap-2 flex-wrap">
+            <span
+              className={`text-xs font-medium px-2.5 py-1 rounded-full border ${
+                livePillars.anyLive
+                  ? "bg-teal-50 text-teal-700 border-teal-200"
+                  : "bg-slate-100 text-slate-600 border-slate-200"
+              }`}
+            >
+              {livePillars.anyLive
+                ? `Live · KHIS ${peLabel} · ${getPartner(filter.partner)?.shortName ?? filter.partner}${filter.county ? ` · ${filter.county}` : ""}`
+                : "Baseline (national)"}
+            </span>
+            <ViewDataButton
+              title="EWENE 90:90:80:80 Pillar Status"
+              data={[
+                {
+                  pillar: "1 — ANC Coverage",
+                  current: livePillars.anc ?? null,
+                  target: "≥90%",
+                  displayed:
+                    livePillars.anc != null
+                      ? `${Math.min(100, livePillars.anc)}%`
+                      : "—",
+                },
+                {
+                  pillar: "2 — Skilled Delivery",
+                  current: livePillars.sba ?? null,
+                  target: "≥90%",
+                  displayed:
+                    livePillars.sba != null
+                      ? `${Math.min(100, livePillars.sba)}%`
+                      : "—",
+                },
+                {
+                  pillar: "3 — Early PNC",
+                  current: livePillars.pncM ?? null,
+                  target: "≥80%",
+                  displayed:
+                    livePillars.pncM != null
+                      ? `${Math.min(100, livePillars.pncM)}%`
+                      : "—",
+                },
+                {
+                  pillar: "4 — PNC Continuity",
+                  current: livePillars.pncI ?? null,
+                  target: "≥80%",
+                  displayed:
+                    livePillars.pncI != null
+                      ? `${Math.min(100, livePillars.pncI)}%`
+                      : "—",
+                },
+              ]}
+              note="live KHIS % per pillar where reported · displayed value clamped at 100"
+              detail={{
+                formula:
+                  "ANC coverage = 100 − ANC1→4 dropout rate (or ANC4 ÷ ANC1 × 100 when dropout is unreported) · SBA / PNC = KHIS % per county, averaged across the reported counties",
+                inputs: pillarCounties.flatMap<ViewInput>((c) => {
+                  const r = pillarByCounty?.[c];
+                  if (!r)
+                    return [
+                      {
+                        label: `${c} — no KHIS values this period`,
+                        value: "—",
+                        source: "n/r" as const,
+                      },
+                    ];
+                  return [
+                    {
+                      label: `${c} · ANC coverage %`,
+                      value: r.anc ?? null,
+                      source:
+                        r.anc != null ? ("live" as const) : ("n/r" as const),
+                    },
+                    {
+                      label: `${c} · Skilled delivery %`,
+                      value: r.sba ?? null,
+                      source:
+                        r.sba != null ? ("live" as const) : ("n/r" as const),
+                    },
+                    {
+                      label: `${c} · Early PNC (mother) %`,
+                      value: r.pncM ?? null,
+                      source:
+                        r.pncM != null ? ("live" as const) : ("n/r" as const),
+                    },
+                    {
+                      label: `${c} · PNC continuity (infant) %`,
+                      value: r.pncI ?? null,
+                      source:
+                        r.pncI != null ? ("live" as const) : ("n/r" as const),
+                    },
+                  ];
+                }),
+                notes: [
+                  "Percentages are averaged across counties — summing facility-level % across a roster would exceed 100 and be meaningless.",
+                  "KHIS occasionally reports >100% (e.g. Turkana PNC 103.76) — the bar is clamped to 100 and flagged with *.",
+                  `Scope: ${getPartner(filter.partner)?.shortName ?? filter.partner}${filter.county ? ` · ${filter.county}` : ""} · ${peLabel}.`,
+                ],
+              }}
+            />
+          </div>
         </div>
         <div className="px-6 pb-6 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
           {PILLARS.map((p) => {
@@ -2134,6 +2314,14 @@ export function HomeTab({
             title="Overall 5-Domain Score by Partner"
             data={overallChartData}
             note="overall % = average of available domain scores"
+            detail={{
+              formula:
+                "overall % = mean of the five domain scores (domains with no data are excluded from the average)",
+              notes: [
+                "Domains 1, 2, 4 & 5 fall back to KHIS/EMR baseline constants when KHIS has no value this period.",
+                "Domain 3 (Readiness) is always computed live from entered facility assessments (N/A excluded) — never from KHIS.",
+              ],
+            }}
           />
         </div>
         <ResponsiveContainer width="100%" height={300}>
@@ -2677,6 +2865,42 @@ function CoverageSection() {
               title={`Coverage by County — ${partnerLabel}`}
               data={countyCoverageData}
               note={`${liveSub} · % of eligible women (county-level average)`}
+              detail={{
+                formula:
+                  "ANC4 % = women with 4+ ANC visits ÷ expected pregnancies × 100 · SBA % = skilled deliveries ÷ deliveries × 100 · PNC % = mothers with PNC ≤48h ÷ deliveries × 100",
+                inputs: counties.flatMap((name) => {
+                  const c = coverage?.[name];
+                  const fb =
+                    COUNTY_COVERAGE_FALLBACK[name] ??
+                    ({ anc4: 52, sba: 70, pnc: 66.6 } as const);
+                  return [
+                    {
+                      label: `${name} · ANC 4+ %`,
+                      value: c?.anc4Pct ?? fb.anc4,
+                      source:
+                        c?.anc4Pct != null
+                          ? ("live" as const)
+                          : ("est" as const),
+                    },
+                    {
+                      label: `${name} · Skilled delivery %`,
+                      value: c?.sba ?? fb.sba,
+                      source:
+                        c?.sba != null ? ("live" as const) : ("est" as const),
+                    },
+                    {
+                      label: `${name} · Maternal PNC ≤48h %`,
+                      value: c?.pnc ?? fb.pnc,
+                      source:
+                        c?.pnc != null ? ("live" as const) : ("est" as const),
+                    },
+                  ];
+                }),
+                notes: [
+                  `${liveSub} — live values come from KHIS per county; where KHIS reports none, the county baseline constant is shown and tagged "estimate".`,
+                  "Percentages are county-level KHIS values, not summed across facilities.",
+                ],
+              }}
             />
           </div>
         </div>

@@ -443,6 +443,57 @@ export function MortalityTab({
                   title="Deaths Reported by Supported Facilities"
                   data={maternalNeonatalData}
                   note={`${isLive ? `Live · KHIS · ${data?.scope} · ${data?.peLabel}` : noPeriodData ? "no KHIS data — zeros" : "demo"} · reported this period`}
+                  detail={{
+                    formula:
+                      "audited % = deaths audited ÷ deaths reported × 100 (clamped at 100) · shown on the KPI cards",
+                    inputs: [
+                      {
+                        label: "Maternal deaths reported",
+                        value: liveVals?.maternal ?? null,
+                        source:
+                          liveVals?.maternal != null
+                            ? ("live" as const)
+                            : ("n/r" as const),
+                      },
+                      {
+                        label: "Maternal deaths audited",
+                        value: liveVals?.maternalAudited ?? null,
+                        source:
+                          liveVals?.maternalAudited != null
+                            ? ("live" as const)
+                            : ("n/r" as const),
+                      },
+                      {
+                        label: "Neonatal deaths reported",
+                        value: liveVals?.neonatal ?? null,
+                        source:
+                          liveVals?.neonatal != null
+                            ? ("live" as const)
+                            : ("n/r" as const),
+                      },
+                      {
+                        label: "Neonatal deaths audited",
+                        value: liveVals?.neonatalAudited ?? null,
+                        source:
+                          liveVals?.neonatalAudited != null
+                            ? ("live" as const)
+                            : ("n/r" as const),
+                      },
+                      {
+                        label: "Stillbirths",
+                        value: liveVals?.stillbirths ?? null,
+                        source:
+                          liveVals?.stillbirths != null
+                            ? ("live" as const)
+                            : ("n/r" as const),
+                      },
+                    ],
+                    notes: [
+                      `Scope: ${data?.scope ?? "—"} · ${data?.peLabel ?? peLabel}.`,
+                      "Audit % clamps at 100 — KHIS audit tallies occasionally exceed deaths reported in the same period (e.g. Nakuru 67 audited vs 65 deaths).",
+                      "Where KHIS reports no value the KPI shows the demo/zero fallback rather than an invented count.",
+                    ],
+                  }}
                 />
               </div>
             </div>

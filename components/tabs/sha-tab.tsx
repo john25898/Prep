@@ -400,6 +400,19 @@ export function ShaTab({
               title="Overall SHA Enrollment Coverage"
               data={coverageDonut}
               note="Illustrative — SHA data not on KHIS"
+              detail={{
+                formula:
+                  "coverage % = SHA-enrolled HIV+ patients ÷ total HIV+ patients × 100 (per facility, then overall)",
+                inputs: positiveVsShaData.map((f) => ({
+                  label: `${f.name} · enrolled ÷ HIV+`,
+                  value: `${f["SHA Enrolled"]} / ${f["HIV+ Patients"]}`,
+                  source: "demo" as const,
+                })),
+                notes: [
+                  "Illustrative — SHA enrollment is not reported on KHIS; figures are demo constants for the 6 supported facilities.",
+                  "Facility coverage = SHA Enrolled ÷ HIV+ Patients × 100 (86% · 65% · 78% · 42% · 63% · 74%).",
+                ],
+              }}
             />
           </div>
           <p className="text-sm text-gray-500 mb-4">
