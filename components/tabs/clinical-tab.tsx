@@ -22,7 +22,6 @@ import { useKhis } from "@/lib/use-khis";
 import { PARTNER_FACILITIES } from "@/lib/partners";
 import { AIAssistant, type ChartInsight } from "@/components/ai-assistant";
 import { ViewDataButton } from "@/components/view-data";
-import { NoDataState } from "@/components/no-data";
 
 // ---------------------------------------------------------------------------
 // PMTCT & HIV Care — two clearly separated tracks:
@@ -265,6 +264,10 @@ const Subtab2A = ({
   const ancVsTestedData = useMemo(() => {
     const a = ancByCounty.data?.counties ?? [];
     const t = testedByCounty.data?.counties ?? [];
+    if (noPeriodData)
+      return [
+        { name: filter.county || "No data", "ANC Visits": 0, "HIV Tested": 0 },
+      ];
     if (a.length === 0 && t.length === 0) return DEMO_ANC_TESTED;
     const names = new Set<string>([
       ...a.map((c) => c.name),
@@ -275,24 +278,37 @@ const Subtab2A = ({
       "ANC Visits": a.find((c) => c.name === name)?.value ?? 0,
       "HIV Tested": t.find((c) => c.name === name)?.value ?? 0,
     }));
-  }, [ancByCounty.data, testedByCounty.data]);
+  }, [ancByCounty.data, testedByCounty.data, noPeriodData, filter.county]);
 
   // Donut: HIV testing coverage (live pct when both values are live).
   const hivTestingData = useMemo(
     () =>
-      testedPct != null
+      noPeriodData
         ? [
-            { name: "HIV Tested", value: testedPct, fill: "#10b981" },
-            { name: "Not Tested", value: 100 - testedPct, fill: "#e5e7eb" },
+            { name: "HIV Tested", value: 0, fill: "#10b981" },
+            { name: "Not Reported", value: 100, fill: "#e5e7eb" },
           ]
-        : DEMO_HIV_TESTING,
-    [testedPct],
+        : testedPct != null
+          ? [
+              { name: "HIV Tested", value: testedPct, fill: "#10b981" },
+              { name: "Not Tested", value: 100 - testedPct, fill: "#e5e7eb" },
+            ]
+          : DEMO_HIV_TESTING,
+    [testedPct, noPeriodData],
   );
 
   // NP = need − KP (KHIS reports the combined "need" and the KP split).
   const npKpData = useMemo(() => {
     const need = needByCounty.data?.counties ?? [];
     const kp = kpByCounty.data?.counties ?? [];
+    if (noPeriodData)
+      return [
+        {
+          name: filter.county || "No data",
+          "Newly HIV+ (NP)": 0,
+          "Known HIV+ (KP)": 0,
+        },
+      ];
     if (need.length === 0 && kp.length === 0) return DEMO_NP_KP;
     const names = new Set<string>([
       ...need.map((c) => c.name),
@@ -307,16 +323,18 @@ const Subtab2A = ({
         "Known HIV+ (KP)": k,
       };
     });
-  }, [needByCounty.data, kpByCounty.data]);
+  }, [needByCounty.data, kpByCounty.data, noPeriodData, filter.county]);
+
+  const noDataSub = `no KHIS data for ${peLabel} in this scope`;
 
   const p = useMemo(
     () => ({
-      anc1: live.anc1 ?? 1025,
-      tested: live.tested ?? 984,
-      need: live.need ?? 770,
-      kp: live.kp ?? 320,
+      anc1: live.anc1 ?? (noPeriodData ? 0 : 1025),
+      tested: live.tested ?? (noPeriodData ? 0 : 984),
+      need: live.need ?? (noPeriodData ? 0 : 770),
+      kp: live.kp ?? (noPeriodData ? 0 : 320),
     }),
-    [live],
+    [live, noPeriodData],
   );
   const np = Math.max(p.need - p.kp, 0);
 
@@ -334,11 +352,11 @@ const Subtab2A = ({
     </span>
   ) : noPeriodData && periodFuture ? (
     <span className="px-2 py-1 rounded-md bg-amber-50 text-amber-700 text-xs font-bold">
-      No KHIS data yet for {peLabel} — period is in the future
+      No KHIS data yet for {peLabel} — period is in the future (showing zeros)
     </span>
   ) : noPeriodData ? (
     <span className="px-2 py-1 rounded-md bg-amber-50 text-amber-700 text-xs font-bold">
-      No KHIS data for {peLabel} in this scope
+      No KHIS data for {peLabel} in this scope — showing zeros
     </span>
   ) : (
     <span className="px-2 py-1 rounded-md bg-slate-100 text-slate-600 text-xs font-bold">
@@ -357,34 +375,43 @@ const Subtab2A = ({
         {sourceBadge}
       </div>
 
-      {noPeriodData ? (
-        <NoDataState
-          peLabel={peLabel}
-          future={periodFuture}
-          scope={data?.scope}
-        />
-      ) : (
-        <>
-          {/* Intake KPI strip — aligned to Domain 1 entry indicators */}
+      <>
+        {/* Intake KPI strip — aligned to Domain 1 entry indicators */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             <DomainKpi
               title="1st ANC Attendance"
-              value={live.anc1 != null ? p.anc1.toLocaleString() : "94%"}
+              value={
+                live.anc1 != null
+                  ? p.anc1.toLocaleString()
+                  : noPeriodData
+                    ? "0"
+                    : "94%"
+              }
               sub={
                 live.anc1 != null
                   ? "1st ANC visits (MOH 731 HV02-01)"
-                  : "PMTCT_STAT_D · target >95% (demo)"
+                  : noPeriodData
+                    ? noDataSub
+                    : "PMTCT_STAT_D · target >95% (demo)"
               }
               tone="on"
               accent={live.anc1 != null ? "text-emerald-600" : "text-amber-600"}
             />
             <DomainKpi
               title="HIV Tested at 1st ANC"
-              value={testedPct != null ? `${testedPct}%` : "96%"}
+              value={
+                testedPct != null
+                  ? `${testedPct}%`
+                  : noPeriodData
+                    ? "0%"
+                    : "96%"
+              }
               sub={
                 testedPct != null
                   ? `${p.tested.toLocaleString()} of ${p.anc1.toLocaleString()} tested · target >95%`
-                  : "PMTCT_STAT_N · target >95% (demo)"
+                  : noPeriodData
+                    ? noDataSub
+                    : "PMTCT_STAT_N · target >95% (demo)"
               }
               tone={
                 testedPct != null ? (testedPct >= 95 ? "on" : "warn") : "on"
@@ -397,21 +424,25 @@ const Subtab2A = ({
             />
             <DomainKpi
               title="PBFW with known status"
-              value={p.tested.toLocaleString()}
+              value={noPeriodData ? "0" : p.tested.toLocaleString()}
               sub={
                 knownStatusPct != null
                   ? `${knownStatusPct}% of ${p.anc1.toLocaleString()} 1st ANC attendees`
-                  : "96% of 1,025 1st ANC attendees (demo)"
+                  : noPeriodData
+                    ? noDataSub
+                    : "96% of 1,025 1st ANC attendees (demo)"
               }
               tone="on"
             />
             <DomainKpi
               title="HIV+ identified at intake"
-              value={p.need.toLocaleString()}
+              value={noPeriodData ? "0" : p.need.toLocaleString()}
               sub={
                 isLive
                   ? `${np.toLocaleString()} NP + ${p.kp.toLocaleString()} KP · of those tested`
-                  : "450 NP + 320 KP · 78% of those tested (demo)"
+                  : noPeriodData
+                    ? noDataSub
+                    : "450 NP + 320 KP · 78% of those tested (demo)"
               }
               tone="on"
             />
@@ -490,7 +521,7 @@ const Subtab2A = ({
                 <ViewDataButton
                   title="HIV Testing Coverage (1st ANC Visits)"
                   data={hivTestingData}
-                  note={`${testedPct != null ? `live ratio ${testedPct}%` : "demo fallback"} · tested of ANC 1st visits`}
+                  note={`${testedPct != null ? `live ratio ${testedPct}%` : noPeriodData ? "no KHIS data — zeros" : "demo fallback"} · tested of ANC 1st visits`}
                 />
               </div>
               <p className="text-sm text-gray-500 mb-4">
@@ -520,7 +551,11 @@ const Subtab2A = ({
                   </ResponsiveContainer>
                   <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
                     <p className="text-3xl font-bold text-emerald-600">
-                      {testedPct != null ? `${testedPct}%` : "96%"}
+                      {testedPct != null
+                        ? `${testedPct}%`
+                        : noPeriodData
+                          ? "0%"
+                          : "96%"}
                     </p>
                     <p className="text-xs text-gray-500">Tested</p>
                   </div>
@@ -583,18 +618,19 @@ const Subtab2A = ({
                   HIV+ PBFW identified at 1st ANC (YTD)
                 </p>
                 <p className="text-5xl font-bold text-blue-700 mt-2">
-                  {p.need.toLocaleString()}
+                  {noPeriodData ? "0" : p.need.toLocaleString()}
                 </p>
                 <p className="text-xs text-blue-700/80 mt-2">
                   {isLive
                     ? `${((np / p.need) * 100).toFixed(0)}% newly identified (NP) · ${((p.kp / p.need) * 100).toFixed(0)}% known positive (KP)`
-                    : "58% newly identified (NP) · 42% known positive (KP) (demo)"}
+                    : noPeriodData
+                      ? noDataSub
+                      : "58% newly identified (NP) · 42% known positive (KP) (demo)"}
                 </p>
               </div>
             </div>
           </div>
-        </>
-      )}
+      </>
     </div>
   );
 };
@@ -843,7 +879,7 @@ function CascadeBar({
   note?: string;
   unit?: string;
 }) {
-  const pct = Math.min(100, (count / max) * 100);
+  const pct = max > 0 ? Math.min(100, (count / max) * 100) : 0;
   const roundedPct = Math.round(pct);
   return (
     <div>
@@ -959,31 +995,43 @@ const Subtab2B = ({
     live.neg18m <= live.cohort24m;
 
   // Live cascade stages with (est.) fallback when KHIS lacks a value.
+  const noDataSub = `no KHIS data for ${peLabel} in this scope`;
+
   const p = useMemo(
     () => ({
-      anc1: live.anc1 ?? DEMO_CASCADE[0].count,
-      tested: live.tested ?? DEMO_CASCADE[1].count,
-      need: live.need ?? DEMO_CASCADE[2].count,
-      kp: live.kp ?? DEMO_PBFW_KNOWN_POSITIVE,
-      art: live.art ?? DEMO_PBFW_NEW_ART + DEMO_PBFW_KNOWN_ART,
-      deliveries: live.deliveries ?? DEMO_HIV_DELIVERIES,
-      eid: live.eid ?? DEMO_HEI_EID_2_8_WEEKS,
-      pcrPos: live.pcrPos6_8 ?? live.pcrPos ?? DEMO_PCR_POSITIVE_HEI, // HV02 first-PCR +ve (live) over Infected_24mths
-      heiEid3_12: DEMO_HEI_EID_3_12_MONTHS, // no KHIS org-unit source (est.)
-      heiEidPct: DEMO_HEI_EID_PCT, // denominator not on KHIS monthly (est.)
-      heiArt: live.heiLinkage ?? DEMO_HEI_POSITIVE_ART, // HEI linked to CCC (KHIS) over EMR cohort (est.)
-      sbaPct: DEMO_SBA_HIV_PCT, // denominator not on KHIS monthly (est.)
+      anc1: live.anc1 ?? (noPeriodData ? 0 : DEMO_CASCADE[0].count),
+      tested: live.tested ?? (noPeriodData ? 0 : DEMO_CASCADE[1].count),
+      need: live.need ?? (noPeriodData ? 0 : DEMO_CASCADE[2].count),
+      kp: live.kp ?? (noPeriodData ? 0 : DEMO_PBFW_KNOWN_POSITIVE),
+      art:
+        live.art ??
+        (noPeriodData ? 0 : DEMO_PBFW_NEW_ART + DEMO_PBFW_KNOWN_ART),
+      deliveries: live.deliveries ?? (noPeriodData ? 0 : DEMO_HIV_DELIVERIES),
+      eid: live.eid ?? (noPeriodData ? 0 : DEMO_HEI_EID_2_8_WEEKS),
+      pcrPos:
+        live.pcrPos6_8 ??
+        live.pcrPos ??
+        (noPeriodData ? 0 : DEMO_PCR_POSITIVE_HEI), // HV02 first-PCR +ve (live) over Infected_24mths
+      heiEid3_12: noPeriodData ? 0 : DEMO_HEI_EID_3_12_MONTHS, // no KHIS org-unit source (est.)
+      heiEidPct: noPeriodData ? 0 : DEMO_HEI_EID_PCT, // denominator not on KHIS monthly (est.)
+      heiArt:
+        live.heiLinkage ?? (noPeriodData ? 0 : DEMO_HEI_POSITIVE_ART), // HEI linked to CCC (KHIS) over EMR cohort (est.)
+      sbaPct: noPeriodData ? 0 : DEMO_SBA_HIV_PCT, // denominator not on KHIS monthly (est.)
       cohortEnrolled: liveHeiPair
         ? (live.cohort24m as number)
-        : DEMO_HEI_COHORT_ENROLLED, // KHIS HV02-50 net cohort (live) over EMR (est.)
+        : noPeriodData
+          ? 0
+          : DEMO_HEI_COHORT_ENROLLED, // KHIS HV02-50 net cohort (live) over EMR (est.)
       cohortNegative: liveHeiPair
         ? (live.neg18m as number)
-        : DEMO_HEI_COHORT_NEGATIVE, // KHIS HEI AB− 18m (live) over EMR (est.)
-      pairsPct: DEMO_PAIRS_CONTINUUM_PCT, // 18-24m EMR cohort (est.)
+        : noPeriodData
+          ? 0
+          : DEMO_HEI_COHORT_NEGATIVE, // KHIS HEI AB− 18m (live) over EMR (est.)
+      pairsPct: noPeriodData ? 0 : DEMO_PAIRS_CONTINUUM_PCT, // 18-24m EMR cohort (est.)
       haartTotal: live.haartTotal, // MOH 731 HV02-20
       haartStartAnc: live.haartStartAnc, // MOH 731 HV02-17
     }),
-    [live, liveHeiPair],
+    [live, liveHeiPair, noPeriodData],
   );
 
   // Viral-load suppression % — KHIS HV03-042 / HV03-043 when reported at scope.
@@ -998,23 +1046,29 @@ const Subtab2B = ({
   }, [live.vlLt1000, live.vlResult]);
 
   // VL donut data — live ratio when available, demo otherwise.
-  const vlChartData =
-    vlSuppPct != null
+  const vlChartData = noPeriodData
+    ? [
+        { name: "Suppressed", value: 0, fill: "#10b981" },
+        { name: "Not Reported", value: 100, fill: "#e5e7eb" },
+      ]
+    : vlSuppPct != null
       ? [
           { name: "Suppressed", value: vlSuppPct, fill: "#10b981" },
           { name: "Unsuppressed", value: 100 - vlSuppPct, fill: "#e5e7eb" },
         ]
       : vlData;
-  const vlCenterPct = vlSuppPct ?? 94;
+  const vlCenterPct = vlSuppPct ?? (noPeriodData ? 0 : 94);
 
   const np = Math.max(p.need - p.kp, 0);
   const testedPct = livePct(live.tested, live.anc1);
   const artPct = livePct(live.art, live.need);
   const pbfwInitiatedPct = artPct != null ? artPct.toFixed(1) : null;
-  const heiArtPct = ((p.heiArt / p.pcrPos) * 100).toFixed(1);
-  const heiNegativePct = ((p.cohortNegative / p.cohortEnrolled) * 100).toFixed(
-    1,
-  );
+  const heiArtPct =
+    p.pcrPos > 0 ? ((p.heiArt / p.pcrPos) * 100).toFixed(1) : "0.0";
+  const heiNegativePct =
+    p.cohortEnrolled > 0
+      ? ((p.cohortNegative / p.cohortEnrolled) * 100).toFixed(1)
+      : "0.0";
 
   const cascadeData = useMemo(
     () => [
@@ -1088,11 +1142,11 @@ const Subtab2B = ({
     </span>
   ) : noPeriodData && periodFuture ? (
     <span className="px-2 py-1 rounded-md bg-amber-50 text-amber-700 text-xs font-bold">
-      No KHIS data yet for {peLabel} — period is in the future
+      No KHIS data yet for {peLabel} — period is in the future (showing zeros)
     </span>
   ) : noPeriodData ? (
     <span className="px-2 py-1 rounded-md bg-amber-50 text-amber-700 text-xs font-bold">
-      No KHIS data for {peLabel} in this scope
+      No KHIS data for {peLabel} in this scope — showing zeros
     </span>
   ) : (
     <span className="px-2 py-1 rounded-md bg-slate-100 text-slate-600 text-xs font-bold">
@@ -1111,23 +1165,24 @@ const Subtab2B = ({
         {sourceBadge}
       </div>
 
-      {noPeriodData ? (
-        <NoDataState
-          peLabel={peLabel}
-          future={periodFuture}
-          scope={data?.scope}
-        />
-      ) : (
-        <>
-          {/* KPI strip — at-a-glance performance vs targets */}
+      <>
+        {/* KPI strip — at-a-glance performance vs targets */}
           <div className="grid grid-cols-2 lg:grid-cols-6 gap-4">
             <DomainKpi
               title="HIV Tested at 1st ANC"
-              value={testedPct != null ? `${testedPct}%` : "96%"}
+              value={
+                testedPct != null
+                  ? `${testedPct}%`
+                  : noPeriodData
+                    ? "0%"
+                    : "96%"
+              }
               sub={
                 testedPct != null
                   ? `${p.tested.toLocaleString()} of ${p.anc1.toLocaleString()} · target >95%`
-                  : "PMTCT_STAT_N · target >95% (demo)"
+                  : noPeriodData
+                    ? noDataSub
+                    : "PMTCT_STAT_N · target >95% (demo)"
               }
               tone={
                 testedPct != null ? (testedPct >= 95 ? "on" : "warn") : "on"
@@ -1140,22 +1195,38 @@ const Subtab2B = ({
             />
             <DomainKpi
               title="HIV+ PBFW on ART"
-              value={pbfwInitiatedPct != null ? `${pbfwInitiatedPct}%` : "est."}
+              value={
+                pbfwInitiatedPct != null
+                  ? `${pbfwInitiatedPct}%`
+                  : noPeriodData
+                    ? "0%"
+                    : "est."
+              }
               sub={
                 pbfwInitiatedPct != null
                   ? `${p.art.toLocaleString()} of ${p.need.toLocaleString()} · target >95%`
-                  : `${p.art.toLocaleString()} of ${p.need.toLocaleString()} (demo)`
+                  : noPeriodData
+                    ? noDataSub
+                    : `${p.art.toLocaleString()} of ${p.need.toLocaleString()} (demo)`
               }
               tone={artPct != null ? (artPct >= 95 ? "on" : "warn") : "warn"}
               accent="text-amber-600"
             />
             <DomainKpi
               title="VL Suppression"
-              value={vlSuppPct != null ? `${vlSuppPct}%` : "94%"}
+              value={
+                vlSuppPct != null
+                  ? `${vlSuppPct}%`
+                  : noPeriodData
+                    ? "0%"
+                    : "94%"
+              }
               sub={
                 vlSuppPct != null
                   ? `${live.vlLt1000?.toLocaleString()} of ${live.vlResult?.toLocaleString()} VL results <1000 (HV03) · target >95%`
-                  : "PMTCT_PVLS · target >95% (est.)"
+                  : noPeriodData
+                    ? noDataSub
+                    : "PMTCT_PVLS · target >95% (est.)"
               }
               tone={
                 vlSuppPct != null ? (vlSuppPct >= 95 ? "on" : "warn") : "warn"
@@ -1169,12 +1240,18 @@ const Subtab2B = ({
             <DomainKpi
               title="EID ≤ 8 weeks"
               value={
-                live.eid != null ? p.eid.toLocaleString() : `${p.heiEidPct}%`
+                live.eid != null
+                  ? p.eid.toLocaleString()
+                  : noPeriodData
+                    ? "0"
+                    : `${p.heiEidPct}%`
               }
               sub={
                 live.eid != null
                   ? "EID samples ≤ 8wk (MOH 731 HV02-44)"
-                  : "PMTCT_EID · target >98% (demo)"
+                  : noPeriodData
+                    ? noDataSub
+                    : "PMTCT_EID · target >98% (demo)"
               }
               tone="off"
               accent="text-red-600"
@@ -1184,19 +1261,23 @@ const Subtab2B = ({
               value={
                 live.deliveries != null
                   ? p.deliveries.toLocaleString()
-                  : `${p.sbaPct}%`
+                  : noPeriodData
+                    ? "0"
+                    : `${p.sbaPct}%`
               }
               sub={
                 live.deliveries != null
                   ? "deliveries from HIV+ mothers (HV02-02)"
-                  : "SBA among HIV+ · target >90% (demo)"
+                  : noPeriodData
+                    ? noDataSub
+                    : "SBA among HIV+ · target >90% (demo)"
               }
               tone="on"
             />
             <DomainKpi
               title="HEI HIV-free 18–24m"
-              value={`${heiNegativePct}%`}
-              sub="PMTCT_FO · target >95% (est.)"
+              value={noPeriodData ? "0%" : `${heiNegativePct}%`}
+              sub={noPeriodData ? noDataSub : "PMTCT_FO · target >95% (est.)"}
               tone="on"
             />
           </div>
@@ -1211,13 +1292,16 @@ const Subtab2B = ({
                 <span className="px-2 py-1 rounded-md bg-emerald-50 text-emerald-800 text-xs font-bold">
                   Mother–baby pair continuum
                 </span>
-                <span className="px-2 py-1 rounded-md bg-teal-50 text-teal-800 text-xs font-bold">
-                  {VIP_YTD.toLocaleString()} VIP follow-ups enrolled YTD (est.)
-                </span>
+                {!noPeriodData && (
+                  <span className="px-2 py-1 rounded-md bg-teal-50 text-teal-800 text-xs font-bold">
+                    {VIP_YTD.toLocaleString()} VIP follow-ups enrolled YTD
+                    (est.)
+                  </span>
+                )}
                 <ViewDataButton
                   title="The PMTCT Cascade"
                   data={cascadeData}
-                  note={`${isLive ? `Live · KHIS · ${data?.scope} · ${data?.peLabel}` : "demo"} · est = not reported in KHIS this period`}
+                  note={`${isLive ? `Live · KHIS · ${data?.scope} · ${data?.peLabel}` : noPeriodData ? "no KHIS data — zeros" : "demo"} · est = not reported in KHIS this period`}
                 />
               </div>
             </div>
@@ -1229,13 +1313,14 @@ const Subtab2B = ({
             <div className="space-y-3">
               {cascadeData.map((item, idx) => {
                 const prev = cascadeData[idx - 1];
+                const estTag = item.est && !noPeriodData ? " (est.)" : "";
                 let note: string | undefined;
                 if (idx > 0 && prev) {
                   note =
                     prev.count > item.count
-                      ? `−${(prev.count - item.count).toLocaleString()} vs prev stage${item.est ? " (est.)" : ""}`
-                      : `▲${(item.count - prev.count).toLocaleString()} vs prev stage${item.est ? " (est.)" : ""}`;
-                } else if (item.est) {
+                      ? `−${(prev.count - item.count).toLocaleString()} vs prev stage${estTag}`
+                      : `▲${(item.count - prev.count).toLocaleString()} vs prev stage${estTag}`;
+                } else if (estTag) {
                   note = "(est.)";
                 }
                 return (
@@ -1278,15 +1363,14 @@ const Subtab2B = ({
                   HIV-free survival among exposed infants
                 </p>
                 <p className="text-5xl font-bold text-emerald-700 mt-2">
-                  {heiNegativePct}%
+                  {noPeriodData ? "0%" : `${heiNegativePct}%`}
                 </p>
                 <p className="text-xs text-emerald-700/80 mt-2">
-                  {p.cohortNegative.toLocaleString()} of{" "}
-                  {p.cohortEnrolled.toLocaleString()} HEI discharged
-                  HIV-negative · target &gt;95% ·{" "}
-                  {liveHeiPair
-                    ? "KHIS cohort (HV02-50/18m)"
-                    : "EMR cohort (est.)"}
+                  {noPeriodData
+                    ? noDataSub
+                    : `${p.cohortNegative.toLocaleString()} of ${p.cohortEnrolled.toLocaleString()} HEI discharged HIV-negative · target >95% · ${
+                        liveHeiPair ? "KHIS cohort (HV02-50/18m)" : "EMR cohort (est.)"
+                      }`}
                 </p>
               </div>
             </div>
@@ -1418,7 +1502,7 @@ const Subtab2B = ({
                   Uptake &amp; suppression trend (Jan–Jun)
                 </h4>
                 <ResponsiveContainer width="100%" height={240}>
-                  <LineChart data={vlTrendData}>
+                  <LineChart data={noPeriodData ? [] : vlTrendData}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="month" />
                     <YAxis domain={[70, 100]} />
@@ -1512,17 +1596,17 @@ const Subtab2B = ({
                   <ViewDataButton
                     title="HIV Treatment Conversion Funnel"
                     data={conversionFunnelData}
-                    note={`${isLive ? `Live · KHIS · ${data?.scope}` : "demo"} · est = fallback`}
+                    note={`${isLive ? `Live · KHIS · ${data?.scope}` : noPeriodData ? "no KHIS data — zeros" : "demo"} · est = fallback`}
                   />
                 </div>
                 <div className="space-y-3">
                   {conversionFunnelData.map((item, idx) => {
-                    const percentage = (
-                      (item.value / conversionFunnelData[0].value) *
-                      100
-                    ).toFixed(0);
-                    const width =
-                      (item.value / conversionFunnelData[0].value) * 100;
+                    const base = conversionFunnelData[0].value;
+                    const percentage =
+                      base > 0
+                        ? ((item.value / base) * 100).toFixed(0)
+                        : "0";
+                    const width = base > 0 ? (item.value / base) * 100 : 0;
                     return (
                       <div key={idx}>
                         <div className="flex justify-between mb-1">
@@ -1565,7 +1649,7 @@ const Subtab2B = ({
                   />
                 </div>
                 <ResponsiveContainer width="100%" height={200}>
-                  <LineChart data={missedOpportunitiesData}>
+                  <LineChart data={noPeriodData ? [] : missedOpportunitiesData}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="month" />
                     <YAxis />
@@ -1625,7 +1709,7 @@ const Subtab2B = ({
               />
             </div>
             <ResponsiveContainer width="100%" height={280}>
-              <LineChart data={heiSamplesData}>
+              <LineChart data={noPeriodData ? [] : heiSamplesData}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="month" />
                 <YAxis />
@@ -1701,7 +1785,7 @@ const Subtab2B = ({
               />
             </div>
             <ResponsiveContainer width="100%" height={280}>
-              <BarChart data={DEMO_SBA_HIV}>
+              <BarChart data={noPeriodData ? [] : DEMO_SBA_HIV}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="name" />
                 <YAxis domain={[0, 100]} />
@@ -1760,7 +1844,7 @@ const Subtab2B = ({
               />
             </div>
             <ResponsiveContainer width="100%" height={280}>
-              <LineChart data={vipFollowUpData}>
+              <LineChart data={noPeriodData ? [] : vipFollowUpData}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="month" />
                 <YAxis />
@@ -1775,8 +1859,7 @@ const Subtab2B = ({
               </LineChart>
             </ResponsiveContainer>
           </div>
-        </>
-      )}
+      </>
     </div>
   );
 };
