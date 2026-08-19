@@ -377,259 +377,253 @@ const Subtab2A = ({
 
       <>
         {/* Intake KPI strip — aligned to Domain 1 entry indicators */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <DomainKpi
-              title="1st ANC Attendance"
-              value={
-                live.anc1 != null
-                  ? p.anc1.toLocaleString()
-                  : noPeriodData
-                    ? "0"
-                    : "94%"
-              }
-              sub={
-                live.anc1 != null
-                  ? "1st ANC visits (MOH 731 HV02-01)"
-                  : noPeriodData
-                    ? noDataSub
-                    : "PMTCT_STAT_D · target >95% (demo)"
-              }
-              tone="on"
-              accent={live.anc1 != null ? "text-emerald-600" : "text-amber-600"}
-            />
-            <DomainKpi
-              title="HIV Tested at 1st ANC"
-              value={
-                testedPct != null
-                  ? `${testedPct}%`
-                  : noPeriodData
-                    ? "0%"
-                    : "96%"
-              }
-              sub={
-                testedPct != null
-                  ? `${p.tested.toLocaleString()} of ${p.anc1.toLocaleString()} tested · target >95%`
-                  : noPeriodData
-                    ? noDataSub
-                    : "PMTCT_STAT_N · target >95% (demo)"
-              }
-              tone={
-                testedPct != null ? (testedPct >= 95 ? "on" : "warn") : "on"
-              }
-              accent={
-                testedPct != null && testedPct < 95
-                  ? "text-amber-600"
-                  : "text-emerald-600"
-              }
-            />
-            <DomainKpi
-              title="PBFW with known status"
-              value={noPeriodData ? "0" : p.tested.toLocaleString()}
-              sub={
-                knownStatusPct != null
-                  ? `${knownStatusPct}% of ${p.anc1.toLocaleString()} 1st ANC attendees`
-                  : noPeriodData
-                    ? noDataSub
-                    : "96% of 1,025 1st ANC attendees (demo)"
-              }
-              tone="on"
-            />
-            <DomainKpi
-              title="HIV+ identified at intake"
-              value={noPeriodData ? "0" : p.need.toLocaleString()}
-              sub={
-                isLive
-                  ? `${np.toLocaleString()} NP + ${p.kp.toLocaleString()} KP · of those tested`
-                  : noPeriodData
-                    ? noDataSub
-                    : "450 NP + 320 KP · 78% of those tested (demo)"
-              }
-              tone="on"
-            />
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <DomainKpi
+            title="1st ANC Attendance"
+            value={
+              live.anc1 != null
+                ? p.anc1.toLocaleString()
+                : noPeriodData
+                  ? "0"
+                  : "94%"
+            }
+            sub={
+              live.anc1 != null
+                ? "1st ANC visits (MOH 731 HV02-01)"
+                : noPeriodData
+                  ? noDataSub
+                  : "PMTCT_STAT_D · target >95% (demo)"
+            }
+            tone="on"
+            accent={live.anc1 != null ? "text-emerald-600" : "text-amber-600"}
+          />
+          <DomainKpi
+            title="HIV Tested at 1st ANC"
+            value={
+              testedPct != null ? `${testedPct}%` : noPeriodData ? "0%" : "96%"
+            }
+            sub={
+              testedPct != null
+                ? `${p.tested.toLocaleString()} of ${p.anc1.toLocaleString()} tested · target >95%`
+                : noPeriodData
+                  ? noDataSub
+                  : "PMTCT_STAT_N · target >95% (demo)"
+            }
+            tone={testedPct != null ? (testedPct >= 95 ? "on" : "warn") : "on"}
+            accent={
+              testedPct != null && testedPct < 95
+                ? "text-amber-600"
+                : "text-emerald-600"
+            }
+          />
+          <DomainKpi
+            title="PBFW with known status"
+            value={noPeriodData ? "0" : p.tested.toLocaleString()}
+            sub={
+              knownStatusPct != null
+                ? `${knownStatusPct}% of ${p.anc1.toLocaleString()} 1st ANC attendees`
+                : noPeriodData
+                  ? noDataSub
+                  : "96% of 1,025 1st ANC attendees (demo)"
+            }
+            tone="on"
+          />
+          <DomainKpi
+            title="HIV+ identified at intake"
+            value={noPeriodData ? "0" : p.need.toLocaleString()}
+            sub={
+              isLive
+                ? `${np.toLocaleString()} NP + ${p.kp.toLocaleString()} KP · of those tested`
+                : noPeriodData
+                  ? noDataSub
+                  : "450 NP + 320 KP · 78% of those tested (demo)"
+            }
+            tone="on"
+          />
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Bar Chart: 1st ANC vs HIV Tested */}
+          <div className="bg-white rounded-lg p-6 border border-slate-200">
+            <div className="flex items-center justify-between gap-3 mb-1">
+              <h3 className="text-lg font-semibold text-gray-900">
+                1st ANC Attendance vs HIV Testing
+              </h3>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() =>
+                    onSetActiveChart({
+                      id: "clinical-anc-testing",
+                      title: "1st ANC Attendance vs HIV Testing",
+                      summary:
+                        "This chart compares women reached at first ANC against those who received an HIV test result.",
+                      prompt:
+                        "Explain the testing gap and tell me where the biggest coverage problem is emerging.",
+                    })
+                  }
+                  className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-600 hover:border-sky-200 hover:text-sky-700"
+                >
+                  <Sparkles className="h-3.5 w-3.5" /> AI Assist
+                </button>
+                <button
+                  type="button"
+                  onClick={() =>
+                    onSaveToPlayground({
+                      id: "clinical-anc-testing",
+                      title: "1st ANC Attendance vs HIV Testing",
+                      summary:
+                        "This chart compares women reached at first ANC against those who received an HIV test result.",
+                      prompt:
+                        "Explain the testing gap and tell me where the biggest coverage problem is emerging.",
+                    })
+                  }
+                  className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-600 hover:border-sky-200 hover:text-sky-700"
+                >
+                  <Save className="h-3.5 w-3.5" /> Save
+                </button>
+                <ViewDataButton
+                  title="1st ANC Attendance vs HIV Testing"
+                  data={ancVsTestedData}
+                  note="per county — live KHIS when available, else demo"
+                />
+              </div>
+            </div>
+            <p className="text-sm text-gray-500 mb-4">
+              Women reached at 1st ANC and those with an HIV test result at
+              intake, per county.
+            </p>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={ancVsTestedData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                <Bar dataKey="ANC Visits" fill="#10b981" />
+                <Bar dataKey="HIV Tested" fill="#3b82f6" />
+              </BarChart>
+            </ResponsiveContainer>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Bar Chart: 1st ANC vs HIV Tested */}
-            <div className="bg-white rounded-lg p-6 border border-slate-200">
-              <div className="flex items-center justify-between gap-3 mb-1">
-                <h3 className="text-lg font-semibold text-gray-900">
-                  1st ANC Attendance vs HIV Testing
-                </h3>
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() =>
-                      onSetActiveChart({
-                        id: "clinical-anc-testing",
-                        title: "1st ANC Attendance vs HIV Testing",
-                        summary:
-                          "This chart compares women reached at first ANC against those who received an HIV test result.",
-                        prompt:
-                          "Explain the testing gap and tell me where the biggest coverage problem is emerging.",
-                      })
-                    }
-                    className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-600 hover:border-sky-200 hover:text-sky-700"
-                  >
-                    <Sparkles className="h-3.5 w-3.5" /> AI Assist
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      onSaveToPlayground({
-                        id: "clinical-anc-testing",
-                        title: "1st ANC Attendance vs HIV Testing",
-                        summary:
-                          "This chart compares women reached at first ANC against those who received an HIV test result.",
-                        prompt:
-                          "Explain the testing gap and tell me where the biggest coverage problem is emerging.",
-                      })
-                    }
-                    className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-600 hover:border-sky-200 hover:text-sky-700"
-                  >
-                    <Save className="h-3.5 w-3.5" /> Save
-                  </button>
-                  <ViewDataButton
-                    title="1st ANC Attendance vs HIV Testing"
-                    data={ancVsTestedData}
-                    note="per county — live KHIS when available, else demo"
-                  />
+          {/* Donut Chart: HIV Testing */}
+          <div className="bg-white rounded-lg p-6 border border-slate-200">
+            <div className="flex flex-wrap items-center justify-between gap-2 mb-1">
+              <h3 className="text-lg font-semibold text-gray-900">
+                HIV Testing Coverage (1st ANC Visits)
+              </h3>
+              <ViewDataButton
+                title="HIV Testing Coverage (1st ANC Visits)"
+                data={hivTestingData}
+                note={`${testedPct != null ? `live ratio ${testedPct}%` : noPeriodData ? "no KHIS data — zeros" : "demo fallback"} · tested of ANC 1st visits`}
+              />
+            </div>
+            <p className="text-sm text-gray-500 mb-4">
+              PMTCT_STAT_N — proportion of PBFW tested for HIV at 1st ANC ·
+              target &gt;95%.
+            </p>
+            <div className="flex flex-col items-center justify-center gap-8 h-[300px]">
+              <div className="relative">
+                <ResponsiveContainer width={260} height={260}>
+                  <PieChart>
+                    <Pie
+                      data={hivTestingData}
+                      dataKey="value"
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={70}
+                      outerRadius={100}
+                      paddingAngle={2}
+                      startAngle={90}
+                      endAngle={-270}
+                    >
+                      {hivTestingData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.fill} />
+                      ))}
+                    </Pie>
+                  </PieChart>
+                </ResponsiveContainer>
+                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                  <p className="text-3xl font-bold text-emerald-600">
+                    {testedPct != null
+                      ? `${testedPct}%`
+                      : noPeriodData
+                        ? "0%"
+                        : "96%"}
+                  </p>
+                  <p className="text-xs text-gray-500">Tested</p>
                 </div>
               </div>
-              <p className="text-sm text-gray-500 mb-4">
-                Women reached at 1st ANC and those with an HIV test result at
-                intake, per county.
-              </p>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={ancVsTestedData}>
+              <div className="flex gap-6">
+                {hivTestingData.map((item, idx) => (
+                  <div key={idx} className="flex items-center gap-2">
+                    <div
+                      className="w-3 h-3 rounded"
+                      style={{ backgroundColor: item.fill }}
+                    />
+                    <span className="text-sm text-gray-700">
+                      {item.name}: {item.value}%
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* HIV+ detection at intake: NP vs KP */}
+        <div className="bg-white rounded-lg p-6 border border-slate-200">
+          <div className="flex flex-wrap items-center justify-between gap-2 mb-1">
+            <h3 className="text-lg font-semibold text-gray-900">
+              HIV+ PBFW identified at Intake — New (NP) vs Known (KP)
+            </h3>
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="px-2 py-1 rounded-md bg-blue-50 text-blue-800 text-xs font-bold">
+                Denominator for ART initiation (PMTCT_ART)
+              </span>
+              <ViewDataButton
+                title="HIV+ PBFW identified at Intake — NP vs KP"
+                data={npKpData}
+                note="per county — live KHIS when available, else demo"
+              />
+            </div>
+          </div>
+          <p className="text-sm text-gray-500 mb-5">
+            Women found HIV+ during the period are either newly identified at
+            1st ANC (NP) or already known positive (KP). Together they form the
+            pool who must start ART — see 1.B.
+          </p>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2">
+              <ResponsiveContainer width="100%" height={260}>
+                <BarChart data={npKpData}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="name" />
                   <YAxis />
                   <Tooltip />
                   <Legend />
-                  <Bar dataKey="ANC Visits" fill="#10b981" />
-                  <Bar dataKey="HIV Tested" fill="#3b82f6" />
+                  <Bar dataKey="Newly HIV+ (NP)" stackId="a" fill="#0d9488" />
+                  <Bar dataKey="Known HIV+ (KP)" stackId="a" fill="#f59e0b" />
                 </BarChart>
               </ResponsiveContainer>
             </div>
-
-            {/* Donut Chart: HIV Testing */}
-            <div className="bg-white rounded-lg p-6 border border-slate-200">
-              <div className="flex flex-wrap items-center justify-between gap-2 mb-1">
-                <h3 className="text-lg font-semibold text-gray-900">
-                  HIV Testing Coverage (1st ANC Visits)
-                </h3>
-                <ViewDataButton
-                  title="HIV Testing Coverage (1st ANC Visits)"
-                  data={hivTestingData}
-                  note={`${testedPct != null ? `live ratio ${testedPct}%` : noPeriodData ? "no KHIS data — zeros" : "demo fallback"} · tested of ANC 1st visits`}
-                />
-              </div>
-              <p className="text-sm text-gray-500 mb-4">
-                PMTCT_STAT_N — proportion of PBFW tested for HIV at 1st ANC ·
-                target &gt;95%.
+            <div className="flex flex-col justify-center bg-blue-50 rounded-lg p-6 border border-blue-200">
+              <p className="text-sm font-medium text-blue-800">
+                HIV+ PBFW identified at 1st ANC (YTD)
               </p>
-              <div className="flex flex-col items-center justify-center gap-8 h-[300px]">
-                <div className="relative">
-                  <ResponsiveContainer width={260} height={260}>
-                    <PieChart>
-                      <Pie
-                        data={hivTestingData}
-                        dataKey="value"
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={70}
-                        outerRadius={100}
-                        paddingAngle={2}
-                        startAngle={90}
-                        endAngle={-270}
-                      >
-                        {hivTestingData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.fill} />
-                        ))}
-                      </Pie>
-                    </PieChart>
-                  </ResponsiveContainer>
-                  <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                    <p className="text-3xl font-bold text-emerald-600">
-                      {testedPct != null
-                        ? `${testedPct}%`
-                        : noPeriodData
-                          ? "0%"
-                          : "96%"}
-                    </p>
-                    <p className="text-xs text-gray-500">Tested</p>
-                  </div>
-                </div>
-                <div className="flex gap-6">
-                  {hivTestingData.map((item, idx) => (
-                    <div key={idx} className="flex items-center gap-2">
-                      <div
-                        className="w-3 h-3 rounded"
-                        style={{ backgroundColor: item.fill }}
-                      />
-                      <span className="text-sm text-gray-700">
-                        {item.name}: {item.value}%
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
+              <p className="text-5xl font-bold text-blue-700 mt-2">
+                {noPeriodData ? "0" : p.need.toLocaleString()}
+              </p>
+              <p className="text-xs text-blue-700/80 mt-2">
+                {isLive
+                  ? `${((np / p.need) * 100).toFixed(0)}% newly identified (NP) · ${((p.kp / p.need) * 100).toFixed(0)}% known positive (KP)`
+                  : noPeriodData
+                    ? noDataSub
+                    : "58% newly identified (NP) · 42% known positive (KP) (demo)"}
+              </p>
             </div>
           </div>
-
-          {/* HIV+ detection at intake: NP vs KP */}
-          <div className="bg-white rounded-lg p-6 border border-slate-200">
-            <div className="flex flex-wrap items-center justify-between gap-2 mb-1">
-              <h3 className="text-lg font-semibold text-gray-900">
-                HIV+ PBFW identified at Intake — New (NP) vs Known (KP)
-              </h3>
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="px-2 py-1 rounded-md bg-blue-50 text-blue-800 text-xs font-bold">
-                  Denominator for ART initiation (PMTCT_ART)
-                </span>
-                <ViewDataButton
-                  title="HIV+ PBFW identified at Intake — NP vs KP"
-                  data={npKpData}
-                  note="per county — live KHIS when available, else demo"
-                />
-              </div>
-            </div>
-            <p className="text-sm text-gray-500 mb-5">
-              Women found HIV+ during the period are either newly identified at
-              1st ANC (NP) or already known positive (KP). Together they form
-              the pool who must start ART — see 1.B.
-            </p>
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <div className="lg:col-span-2">
-                <ResponsiveContainer width="100%" height={260}>
-                  <BarChart data={npKpData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="name" />
-                    <YAxis />
-                    <Tooltip />
-                    <Legend />
-                    <Bar dataKey="Newly HIV+ (NP)" stackId="a" fill="#0d9488" />
-                    <Bar dataKey="Known HIV+ (KP)" stackId="a" fill="#f59e0b" />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-              <div className="flex flex-col justify-center bg-blue-50 rounded-lg p-6 border border-blue-200">
-                <p className="text-sm font-medium text-blue-800">
-                  HIV+ PBFW identified at 1st ANC (YTD)
-                </p>
-                <p className="text-5xl font-bold text-blue-700 mt-2">
-                  {noPeriodData ? "0" : p.need.toLocaleString()}
-                </p>
-                <p className="text-xs text-blue-700/80 mt-2">
-                  {isLive
-                    ? `${((np / p.need) * 100).toFixed(0)}% newly identified (NP) · ${((p.kp / p.need) * 100).toFixed(0)}% known positive (KP)`
-                    : noPeriodData
-                      ? noDataSub
-                      : "58% newly identified (NP) · 42% known positive (KP) (demo)"}
-                </p>
-              </div>
-            </div>
-          </div>
+        </div>
       </>
     </div>
   );
@@ -1014,8 +1008,7 @@ const Subtab2B = ({
         (noPeriodData ? 0 : DEMO_PCR_POSITIVE_HEI), // HV02 first-PCR +ve (live) over Infected_24mths
       heiEid3_12: noPeriodData ? 0 : DEMO_HEI_EID_3_12_MONTHS, // no KHIS org-unit source (est.)
       heiEidPct: noPeriodData ? 0 : DEMO_HEI_EID_PCT, // denominator not on KHIS monthly (est.)
-      heiArt:
-        live.heiLinkage ?? (noPeriodData ? 0 : DEMO_HEI_POSITIVE_ART), // HEI linked to CCC (KHIS) over EMR cohort (est.)
+      heiArt: live.heiLinkage ?? (noPeriodData ? 0 : DEMO_HEI_POSITIVE_ART), // HEI linked to CCC (KHIS) over EMR cohort (est.)
       sbaPct: noPeriodData ? 0 : DEMO_SBA_HIV_PCT, // denominator not on KHIS monthly (est.)
       cohortEnrolled: liveHeiPair
         ? (live.cohort24m as number)
@@ -1167,698 +1160,686 @@ const Subtab2B = ({
 
       <>
         {/* KPI strip — at-a-glance performance vs targets */}
-          <div className="grid grid-cols-2 lg:grid-cols-6 gap-4">
-            <DomainKpi
-              title="HIV Tested at 1st ANC"
-              value={
-                testedPct != null
-                  ? `${testedPct}%`
-                  : noPeriodData
-                    ? "0%"
-                    : "96%"
+        <div className="grid grid-cols-2 lg:grid-cols-6 gap-4">
+          <DomainKpi
+            title="HIV Tested at 1st ANC"
+            value={
+              testedPct != null ? `${testedPct}%` : noPeriodData ? "0%" : "96%"
+            }
+            sub={
+              testedPct != null
+                ? `${p.tested.toLocaleString()} of ${p.anc1.toLocaleString()} · target >95%`
+                : noPeriodData
+                  ? noDataSub
+                  : "PMTCT_STAT_N · target >95% (demo)"
+            }
+            tone={testedPct != null ? (testedPct >= 95 ? "on" : "warn") : "on"}
+            accent={
+              testedPct != null && testedPct < 95
+                ? "text-amber-600"
+                : "text-emerald-600"
+            }
+          />
+          <DomainKpi
+            title="HIV+ PBFW on ART"
+            value={
+              pbfwInitiatedPct != null
+                ? `${pbfwInitiatedPct}%`
+                : noPeriodData
+                  ? "0%"
+                  : "est."
+            }
+            sub={
+              pbfwInitiatedPct != null
+                ? `${p.art.toLocaleString()} of ${p.need.toLocaleString()} · target >95%`
+                : noPeriodData
+                  ? noDataSub
+                  : `${p.art.toLocaleString()} of ${p.need.toLocaleString()} (demo)`
+            }
+            tone={artPct != null ? (artPct >= 95 ? "on" : "warn") : "warn"}
+            accent="text-amber-600"
+          />
+          <DomainKpi
+            title="VL Suppression"
+            value={
+              vlSuppPct != null ? `${vlSuppPct}%` : noPeriodData ? "0%" : "94%"
+            }
+            sub={
+              vlSuppPct != null
+                ? `${live.vlLt1000?.toLocaleString()} of ${live.vlResult?.toLocaleString()} VL results <1000 (HV03) · target >95%`
+                : noPeriodData
+                  ? noDataSub
+                  : "PMTCT_PVLS · target >95% (est.)"
+            }
+            tone={
+              vlSuppPct != null ? (vlSuppPct >= 95 ? "on" : "warn") : "warn"
+            }
+            accent={
+              vlSuppPct != null && vlSuppPct < 95
+                ? "text-amber-600"
+                : "text-emerald-600"
+            }
+          />
+          <DomainKpi
+            title="EID ≤ 8 weeks"
+            value={
+              live.eid != null
+                ? p.eid.toLocaleString()
+                : noPeriodData
+                  ? "0"
+                  : `${p.heiEidPct}%`
+            }
+            sub={
+              live.eid != null
+                ? "EID samples ≤ 8wk (MOH 731 HV02-44)"
+                : noPeriodData
+                  ? noDataSub
+                  : "PMTCT_EID · target >98% (demo)"
+            }
+            tone="off"
+            accent="text-red-600"
+          />
+          <DomainKpi
+            title="Deliveries among HIV+"
+            value={
+              live.deliveries != null
+                ? p.deliveries.toLocaleString()
+                : noPeriodData
+                  ? "0"
+                  : `${p.sbaPct}%`
+            }
+            sub={
+              live.deliveries != null
+                ? "deliveries from HIV+ mothers (HV02-02)"
+                : noPeriodData
+                  ? noDataSub
+                  : "SBA among HIV+ · target >90% (demo)"
+            }
+            tone="on"
+          />
+          <DomainKpi
+            title="HEI HIV-free 18–24m"
+            value={noPeriodData ? "0%" : `${heiNegativePct}%`}
+            sub={noPeriodData ? noDataSub : "PMTCT_FO · target >95% (est.)"}
+            tone="on"
+          />
+        </div>
+
+        {/* PMTCT Cascade — the Domain 1 story */}
+        <div className="bg-white rounded-lg p-6 border border-slate-200">
+          <div className="flex flex-wrap items-center justify-between gap-2 mb-1">
+            <h3 className="text-lg font-semibold text-gray-900">
+              The PMTCT Cascade — from 1st ANC to ART
+            </h3>
+            <div className="flex items-center gap-2">
+              <span className="px-2 py-1 rounded-md bg-emerald-50 text-emerald-800 text-xs font-bold">
+                Mother–baby pair continuum
+              </span>
+              {!noPeriodData && (
+                <span className="px-2 py-1 rounded-md bg-teal-50 text-teal-800 text-xs font-bold">
+                  {VIP_YTD.toLocaleString()} VIP follow-ups enrolled YTD (est.)
+                </span>
+              )}
+              <ViewDataButton
+                title="The PMTCT Cascade"
+                data={cascadeData}
+                note={`${isLive ? `Live · KHIS · ${data?.scope} · ${data?.peLabel}` : noPeriodData ? "no KHIS data — zeros" : "demo"} · est = not reported in KHIS this period`}
+              />
+            </div>
+          </div>
+          <p className="text-sm text-gray-500 mb-5">
+            Every woman matters: of those who reach 1st ANC, how many are
+            tested, linked to ART, deliver safely, and keep their baby HIV-free.
+          </p>
+          <div className="space-y-3">
+            {cascadeData.map((item, idx) => {
+              const prev = cascadeData[idx - 1];
+              const estTag = item.est && !noPeriodData ? " (est.)" : "";
+              let note: string | undefined;
+              if (idx > 0 && prev) {
+                note =
+                  prev.count > item.count
+                    ? `−${(prev.count - item.count).toLocaleString()} vs prev stage${estTag}`
+                    : `▲${(item.count - prev.count).toLocaleString()} vs prev stage${estTag}`;
+              } else if (estTag) {
+                note = "(est.)";
               }
-              sub={
-                testedPct != null
-                  ? `${p.tested.toLocaleString()} of ${p.anc1.toLocaleString()} · target >95%`
-                  : noPeriodData
-                    ? noDataSub
-                    : "PMTCT_STAT_N · target >95% (demo)"
-              }
-              tone={
-                testedPct != null ? (testedPct >= 95 ? "on" : "warn") : "on"
-              }
-              accent={
-                testedPct != null && testedPct < 95
-                  ? "text-amber-600"
-                  : "text-emerald-600"
-              }
-            />
-            <DomainKpi
-              title="HIV+ PBFW on ART"
-              value={
-                pbfwInitiatedPct != null
-                  ? `${pbfwInitiatedPct}%`
-                  : noPeriodData
-                    ? "0%"
-                    : "est."
-              }
-              sub={
-                pbfwInitiatedPct != null
-                  ? `${p.art.toLocaleString()} of ${p.need.toLocaleString()} · target >95%`
-                  : noPeriodData
-                    ? noDataSub
-                    : `${p.art.toLocaleString()} of ${p.need.toLocaleString()} (demo)`
-              }
-              tone={artPct != null ? (artPct >= 95 ? "on" : "warn") : "warn"}
-              accent="text-amber-600"
-            />
-            <DomainKpi
-              title="VL Suppression"
-              value={
-                vlSuppPct != null
-                  ? `${vlSuppPct}%`
-                  : noPeriodData
-                    ? "0%"
-                    : "94%"
-              }
-              sub={
-                vlSuppPct != null
-                  ? `${live.vlLt1000?.toLocaleString()} of ${live.vlResult?.toLocaleString()} VL results <1000 (HV03) · target >95%`
-                  : noPeriodData
-                    ? noDataSub
-                    : "PMTCT_PVLS · target >95% (est.)"
-              }
-              tone={
-                vlSuppPct != null ? (vlSuppPct >= 95 ? "on" : "warn") : "warn"
-              }
-              accent={
-                vlSuppPct != null && vlSuppPct < 95
-                  ? "text-amber-600"
-                  : "text-emerald-600"
-              }
-            />
-            <DomainKpi
-              title="EID ≤ 8 weeks"
-              value={
-                live.eid != null
-                  ? p.eid.toLocaleString()
-                  : noPeriodData
-                    ? "0"
-                    : `${p.heiEidPct}%`
-              }
-              sub={
-                live.eid != null
-                  ? "EID samples ≤ 8wk (MOH 731 HV02-44)"
-                  : noPeriodData
-                    ? noDataSub
-                    : "PMTCT_EID · target >98% (demo)"
-              }
-              tone="off"
-              accent="text-red-600"
-            />
-            <DomainKpi
-              title="Deliveries among HIV+"
-              value={
-                live.deliveries != null
-                  ? p.deliveries.toLocaleString()
-                  : noPeriodData
-                    ? "0"
-                    : `${p.sbaPct}%`
-              }
-              sub={
-                live.deliveries != null
-                  ? "deliveries from HIV+ mothers (HV02-02)"
-                  : noPeriodData
-                    ? noDataSub
-                    : "SBA among HIV+ · target >90% (demo)"
-              }
-              tone="on"
-            />
-            <DomainKpi
-              title="HEI HIV-free 18–24m"
-              value={noPeriodData ? "0%" : `${heiNegativePct}%`}
-              sub={noPeriodData ? noDataSub : "PMTCT_FO · target >95% (est.)"}
-              tone="on"
-            />
+              return (
+                <CascadeBar
+                  key={idx}
+                  stage={item.stage}
+                  count={item.count}
+                  max={cascadeData[0].count}
+                  note={note}
+                />
+              );
+            })}
           </div>
 
-          {/* PMTCT Cascade — the Domain 1 story */}
-          <div className="bg-white rounded-lg p-6 border border-slate-200">
-            <div className="flex flex-wrap items-center justify-between gap-2 mb-1">
-              <h3 className="text-lg font-semibold text-gray-900">
-                The PMTCT Cascade — from 1st ANC to ART
-              </h3>
-              <div className="flex items-center gap-2">
-                <span className="px-2 py-1 rounded-md bg-emerald-50 text-emerald-800 text-xs font-bold">
-                  Mother–baby pair continuum
-                </span>
-                {!noPeriodData && (
-                  <span className="px-2 py-1 rounded-md bg-teal-50 text-teal-800 text-xs font-bold">
-                    {VIP_YTD.toLocaleString()} VIP follow-ups enrolled YTD
-                    (est.)
-                  </span>
-                )}
-                <ViewDataButton
-                  title="The PMTCT Cascade"
-                  data={cascadeData}
-                  note={`${isLive ? `Live · KHIS · ${data?.scope} · ${data?.peLabel}` : noPeriodData ? "no KHIS data — zeros" : "demo"} · est = not reported in KHIS this period`}
-                />
-              </div>
-            </div>
-            <p className="text-sm text-gray-500 mb-5">
-              Every woman matters: of those who reach 1st ANC, how many are
-              tested, linked to ART, deliver safely, and keep their baby
-              HIV-free.
-            </p>
-            <div className="space-y-3">
-              {cascadeData.map((item, idx) => {
-                const prev = cascadeData[idx - 1];
-                const estTag = item.est && !noPeriodData ? " (est.)" : "";
-                let note: string | undefined;
-                if (idx > 0 && prev) {
-                  note =
-                    prev.count > item.count
-                      ? `−${(prev.count - item.count).toLocaleString()} vs prev stage${estTag}`
-                      : `▲${(item.count - prev.count).toLocaleString()} vs prev stage${estTag}`;
-                } else if (estTag) {
-                  note = "(est.)";
-                }
-                return (
+          {/* HEI outcomes at 18-24 months */}
+          <div className="mt-6 pt-5 border-t border-slate-100 grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div>
+              <h4 className="text-sm font-semibold text-gray-700 mb-3">
+                HEI outcomes at 18–24 months (PMTCT_FO) — EMR cohort (est.)
+              </h4>
+              <div className="space-y-3">
+                {heiOutcomeData.map((item, idx) => (
                   <CascadeBar
                     key={idx}
                     stage={item.stage}
                     count={item.count}
-                    max={cascadeData[0].count}
-                    note={note}
+                    max={heiOutcomeData[0].count}
+                    unit="of HEI"
+                    note={
+                      idx > 0
+                        ? `−${(heiOutcomeData[idx - 1].count - item.count).toLocaleString()} vs enrolled`
+                        : undefined
+                    }
                   />
-                );
-              })}
-            </div>
-
-            {/* HEI outcomes at 18-24 months */}
-            <div className="mt-6 pt-5 border-t border-slate-100 grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div>
-                <h4 className="text-sm font-semibold text-gray-700 mb-3">
-                  HEI outcomes at 18–24 months (PMTCT_FO) — EMR cohort (est.)
-                </h4>
-                <div className="space-y-3">
-                  {heiOutcomeData.map((item, idx) => (
-                    <CascadeBar
-                      key={idx}
-                      stage={item.stage}
-                      count={item.count}
-                      max={heiOutcomeData[0].count}
-                      unit="of HEI"
-                      note={
-                        idx > 0
-                          ? `−${(heiOutcomeData[idx - 1].count - item.count).toLocaleString()} vs enrolled`
-                          : undefined
-                      }
-                    />
-                  ))}
-                </div>
-              </div>
-              <div className="flex flex-col justify-center bg-emerald-50 rounded-lg p-6 border border-emerald-200">
-                <p className="text-sm font-medium text-emerald-800">
-                  HIV-free survival among exposed infants
-                </p>
-                <p className="text-5xl font-bold text-emerald-700 mt-2">
-                  {noPeriodData ? "0%" : `${heiNegativePct}%`}
-                </p>
-                <p className="text-xs text-emerald-700/80 mt-2">
-                  {noPeriodData
-                    ? noDataSub
-                    : `${p.cohortNegative.toLocaleString()} of ${p.cohortEnrolled.toLocaleString()} HEI discharged HIV-negative · target >95% · ${
-                        liveHeiPair ? "KHIS cohort (HV02-50/18m)" : "EMR cohort (est.)"
-                      }`}
-                </p>
+                ))}
               </div>
             </div>
-          </div>
-
-          {/* Mother–baby pair pathway — the tracking approach (§4) */}
-          <div className="bg-white rounded-lg p-6 border border-slate-200">
-            <div className="flex flex-wrap items-center justify-between gap-2 mb-1">
-              <h3 className="text-lg font-semibold text-gray-900">
-                The Mother–Baby Pair Pathway — longitudinal tracking
-              </h3>
-              <span className="px-2 py-1 rounded-md bg-violet-50 text-violet-700 text-xs font-bold">
-                §4 Tracking Approach
-              </span>
-            </div>
-            <p className="text-sm text-gray-500 mb-5">
-              The framework follows each mother–baby pair from ANC through
-              delivery, PNC, ART/MCH and community follow-up — with safe blood,
-              oxygen/CPAP and equipment functionality woven into the delivery
-              stage.
-            </p>
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-4">
-              {MBP_PATHWAY.map((p, idx) => (
-                <div key={p.stage} className="relative">
-                  <div className={`h-full rounded-lg border p-4 ${p.color}`}>
-                    <div className="flex items-center justify-between gap-2">
-                      <span
-                        className={`px-2 py-0.5 rounded-md text-xs font-bold ${p.chip}`}
-                      >
-                        {p.stage}
-                      </span>
-                      {idx < MBP_PATHWAY.length - 1 && (
-                        <span className="hidden xl:block text-slate-300 font-bold">
-                          →
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-xs mt-2 text-gray-700">{p.services}</p>
-                    <p className="text-[11px] mt-2 opacity-80">
-                      <b>Focus:</b> {p.focus}
-                    </p>
-                    <p className="text-[11px] mt-1.5 pt-1.5 border-t border-white/50 opacity-80">
-                      <b>Expanded:</b> {p.expanded}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Viral load uptake & suppression */}
-          <div className="bg-white rounded-lg p-6 border border-slate-200">
-            <div className="flex flex-wrap items-center justify-between gap-2 mb-1">
-              <h3 className="text-lg font-semibold text-gray-900">
-                Viral Load Uptake &amp; Suppression (PMTCT_PVLS)
-              </h3>
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="px-2 py-1 rounded-md bg-blue-50 text-blue-800 text-xs font-bold">
-                  NDW/EMR · Monthly
-                </span>
-                <ViewDataButton
-                  title="Viral Load Suppression (donut)"
-                  data={vlChartData}
-                  note={`${vlSuppPct != null ? `live ratio ${vlSuppPct}% (KHIS HV03)` : "demo"} · % of VL results <1000`}
-                />
-                <ViewDataButton
-                  title="VL Uptake & Suppression Trend (Jan–Jun)"
-                  data={vlTrendData}
-                  note="Illustrative trend — not on KHIS monthly"
-                />
-              </div>
-            </div>
-            <p className="text-sm text-gray-500 mb-4">
-              VL coverage among HIV+ pregnant &amp; breastfeeding women and
-              suppression among those tested — the gold standard for ART
-              effectiveness.
-            </p>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div className="flex flex-col items-center justify-center gap-4">
-                <div className="relative">
-                  <ResponsiveContainer width={220} height={220}>
-                    <PieChart>
-                      <Pie
-                        data={vlChartData}
-                        dataKey="value"
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={70}
-                        outerRadius={100}
-                        paddingAngle={2}
-                        startAngle={90}
-                        endAngle={-270}
-                      >
-                        {vlChartData.map((entry, index) => (
-                          <Cell key={`vl-${index}`} fill={entry.fill} />
-                        ))}
-                      </Pie>
-                    </PieChart>
-                  </ResponsiveContainer>
-                  <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                    <p className="text-3xl font-bold text-emerald-700">
-                      {vlCenterPct}%
-                    </p>
-                    <p className="text-xs text-gray-500">Suppressed</p>
-                  </div>
-                </div>
-                <div className="flex gap-6">
-                  {vlChartData.map((item, idx) => (
-                    <div key={idx} className="flex items-center gap-2">
-                      <div
-                        className="w-3 h-3 rounded"
-                        style={{ backgroundColor: item.fill }}
-                      />
-                      <span className="text-sm text-gray-700">
-                        {item.name}: {item.value}%
-                      </span>
-                    </div>
-                  ))}
-                </div>
-                {vlSuppPct != null && (
-                  <p className="text-xs text-gray-500 -mt-1">
-                    Live ratio — MOH 731 HV03-042 / HV03-043 at {data?.scope} ·{" "}
-                    {data?.peLabel}
-                  </p>
-                )}
-              </div>
-              <div>
-                <h4 className="text-sm font-semibold text-gray-700 mb-3">
-                  Uptake &amp; suppression trend (Jan–Jun)
-                </h4>
-                <ResponsiveContainer width="100%" height={240}>
-                  <LineChart data={noPeriodData ? [] : vlTrendData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="month" />
-                    <YAxis domain={[70, 100]} />
-                    <Tooltip formatter={(v, name) => [`${v}%`, String(name)]} />
-                    <Legend />
-                    <Line
-                      type="monotone"
-                      dataKey="uptake"
-                      stroke="#0d9488"
-                      strokeWidth={2}
-                      name="VL Uptake"
-                    />
-                    <Line
-                      type="monotone"
-                      dataKey="suppressed"
-                      stroke="#10b981"
-                      strokeWidth={2}
-                      name="Suppression"
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
-          </div>
-
-          {/* 1 — Detection & ART Initiation */}
-          <div className="bg-white rounded-lg p-6 border border-slate-200">
-            <h3 className="text-lg font-semibold text-gray-900 mb-1">
-              HIV+ PBFW — Detection &amp; ART Initiation
-            </h3>
-            <p className="text-sm text-gray-500 mb-4">
-              1st ANC attendance (PMTCT_STAT_D) and HIV testing at 1st ANC
-              (PMTCT_STAT_N) are shown under 1.A Intake &amp; Screening.
-            </p>
-            <IndicatorRow
-              code="NP"
-              label="Number of PBFW newly identified HIV Positive"
-              value={np}
-              pct={isLive ? ((np / p.need) * 100).toFixed(1) : undefined}
-            />
-            <IndicatorRow
-              code="KP"
-              label="Number of PBFW Known HIV Positive at 1st ANC"
-              value={p.kp}
-              pct={isLive ? ((p.kp / p.need) * 100).toFixed(1) : undefined}
-            />
-            <IndicatorRow
-              code="PMTCT_ART"
-              label="Number of PBFW initiated on ART (New + Known — KHIS total)"
-              value={p.art}
-              pct={pbfwInitiatedPct != null ? pbfwInitiatedPct : undefined}
-            />
-            <IndicatorRow
-              code="% ART"
-              label="% of HIV positive PBFW initiated on ART"
-              value={p.art}
-              pct={pbfwInitiatedPct ?? undefined}
-            />
-            {p.haartTotal != null && (
-              <IndicatorRow
-                code="HV02-20"
-                label="On maternal HAART — Total (KHIS MOH 731)"
-                value={p.haartTotal}
-                pct={
-                  p.need != null && p.need > 0
-                    ? ((p.haartTotal / p.need) * 100).toFixed(1)
-                    : undefined
-                }
-              />
-            )}
-            {p.haartStartAnc != null && (
-              <IndicatorRow
-                code="HV02-17"
-                label="Started HAART at ANC (KHIS MOH 731)"
-                value={p.haartStartAnc}
-              />
-            )}
-            {p.haartTotal == null && p.haartStartAnc == null && (
-              <p className="text-xs text-gray-400 pt-1">
-                Maternal HAART totals (MOH 731 HV02-17/20) not reported by
-                supported facilities this period — available nationally in KHIS.
+            <div className="flex flex-col justify-center bg-emerald-50 rounded-lg p-6 border border-emerald-200">
+              <p className="text-sm font-medium text-emerald-800">
+                HIV-free survival among exposed infants
               </p>
-            )}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-              {/* HIV Treatment Conversion Funnel */}
-              <div>
-                <div className="flex items-center justify-between gap-2 mb-3">
-                  <h4 className="text-sm font-semibold text-gray-700">
-                    HIV Treatment Conversion Funnel
-                  </h4>
-                  <ViewDataButton
-                    title="HIV Treatment Conversion Funnel"
-                    data={conversionFunnelData}
-                    note={`${isLive ? `Live · KHIS · ${data?.scope}` : noPeriodData ? "no KHIS data — zeros" : "demo"} · est = fallback`}
-                  />
+              <p className="text-5xl font-bold text-emerald-700 mt-2">
+                {noPeriodData ? "0%" : `${heiNegativePct}%`}
+              </p>
+              <p className="text-xs text-emerald-700/80 mt-2">
+                {noPeriodData
+                  ? noDataSub
+                  : `${p.cohortNegative.toLocaleString()} of ${p.cohortEnrolled.toLocaleString()} HEI discharged HIV-negative · target >95% · ${
+                      liveHeiPair
+                        ? "KHIS cohort (HV02-50/18m)"
+                        : "EMR cohort (est.)"
+                    }`}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Mother–baby pair pathway — the tracking approach (§4) */}
+        <div className="bg-white rounded-lg p-6 border border-slate-200">
+          <div className="flex flex-wrap items-center justify-between gap-2 mb-1">
+            <h3 className="text-lg font-semibold text-gray-900">
+              The Mother–Baby Pair Pathway — longitudinal tracking
+            </h3>
+            <span className="px-2 py-1 rounded-md bg-violet-50 text-violet-700 text-xs font-bold">
+              §4 Tracking Approach
+            </span>
+          </div>
+          <p className="text-sm text-gray-500 mb-5">
+            The framework follows each mother–baby pair from ANC through
+            delivery, PNC, ART/MCH and community follow-up — with safe blood,
+            oxygen/CPAP and equipment functionality woven into the delivery
+            stage.
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-4">
+            {MBP_PATHWAY.map((p, idx) => (
+              <div key={p.stage} className="relative">
+                <div className={`h-full rounded-lg border p-4 ${p.color}`}>
+                  <div className="flex items-center justify-between gap-2">
+                    <span
+                      className={`px-2 py-0.5 rounded-md text-xs font-bold ${p.chip}`}
+                    >
+                      {p.stage}
+                    </span>
+                    {idx < MBP_PATHWAY.length - 1 && (
+                      <span className="hidden xl:block text-slate-300 font-bold">
+                        →
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-xs mt-2 text-gray-700">{p.services}</p>
+                  <p className="text-[11px] mt-2 opacity-80">
+                    <b>Focus:</b> {p.focus}
+                  </p>
+                  <p className="text-[11px] mt-1.5 pt-1.5 border-t border-white/50 opacity-80">
+                    <b>Expanded:</b> {p.expanded}
+                  </p>
                 </div>
-                <div className="space-y-3">
-                  {conversionFunnelData.map((item, idx) => {
-                    const base = conversionFunnelData[0].value;
-                    const percentage =
-                      base > 0
-                        ? ((item.value / base) * 100).toFixed(0)
-                        : "0";
-                    const width = base > 0 ? (item.value / base) * 100 : 0;
-                    return (
-                      <div key={idx}>
-                        <div className="flex justify-between mb-1">
-                          <span className="text-sm font-medium text-gray-700">
-                            {item.stage}
-                          </span>
-                          <span className="text-sm font-bold text-gray-900">
-                            {item.value.toLocaleString()} ({percentage}%)
-                            {item.est && (
-                              <span className="text-xs font-medium text-gray-400 ml-1">
-                                (est.)
-                              </span>
-                            )}
-                          </span>
-                        </div>
-                        <div className="w-full bg-gray-200 rounded-full h-8 overflow-hidden">
-                          <div
-                            className="bg-emerald-500 h-full flex items-center justify-center text-white text-xs font-bold transition-all"
-                            style={{ width: `${width}%` }}
-                          >
-                            {percentage}%
-                          </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Viral load uptake & suppression */}
+        <div className="bg-white rounded-lg p-6 border border-slate-200">
+          <div className="flex flex-wrap items-center justify-between gap-2 mb-1">
+            <h3 className="text-lg font-semibold text-gray-900">
+              Viral Load Uptake &amp; Suppression (PMTCT_PVLS)
+            </h3>
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="px-2 py-1 rounded-md bg-blue-50 text-blue-800 text-xs font-bold">
+                NDW/EMR · Monthly
+              </span>
+              <ViewDataButton
+                title="Viral Load Suppression (donut)"
+                data={vlChartData}
+                note={`${vlSuppPct != null ? `live ratio ${vlSuppPct}% (KHIS HV03)` : "demo"} · % of VL results <1000`}
+              />
+              <ViewDataButton
+                title="VL Uptake & Suppression Trend (Jan–Jun)"
+                data={vlTrendData}
+                note="Illustrative trend — not on KHIS monthly"
+              />
+            </div>
+          </div>
+          <p className="text-sm text-gray-500 mb-4">
+            VL coverage among HIV+ pregnant &amp; breastfeeding women and
+            suppression among those tested — the gold standard for ART
+            effectiveness.
+          </p>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="flex flex-col items-center justify-center gap-4">
+              <div className="relative">
+                <ResponsiveContainer width={220} height={220}>
+                  <PieChart>
+                    <Pie
+                      data={vlChartData}
+                      dataKey="value"
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={70}
+                      outerRadius={100}
+                      paddingAngle={2}
+                      startAngle={90}
+                      endAngle={-270}
+                    >
+                      {vlChartData.map((entry, index) => (
+                        <Cell key={`vl-${index}`} fill={entry.fill} />
+                      ))}
+                    </Pie>
+                  </PieChart>
+                </ResponsiveContainer>
+                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                  <p className="text-3xl font-bold text-emerald-700">
+                    {vlCenterPct}%
+                  </p>
+                  <p className="text-xs text-gray-500">Suppressed</p>
+                </div>
+              </div>
+              <div className="flex gap-6">
+                {vlChartData.map((item, idx) => (
+                  <div key={idx} className="flex items-center gap-2">
+                    <div
+                      className="w-3 h-3 rounded"
+                      style={{ backgroundColor: item.fill }}
+                    />
+                    <span className="text-sm text-gray-700">
+                      {item.name}: {item.value}%
+                    </span>
+                  </div>
+                ))}
+              </div>
+              {vlSuppPct != null && (
+                <p className="text-xs text-gray-500 -mt-1">
+                  Live ratio — MOH 731 HV03-042 / HV03-043 at {data?.scope} ·{" "}
+                  {data?.peLabel}
+                </p>
+              )}
+            </div>
+            <div>
+              <h4 className="text-sm font-semibold text-gray-700 mb-3">
+                Uptake &amp; suppression trend (Jan–Jun)
+              </h4>
+              <ResponsiveContainer width="100%" height={240}>
+                <LineChart data={noPeriodData ? [] : vlTrendData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="month" />
+                  <YAxis domain={[70, 100]} />
+                  <Tooltip formatter={(v, name) => [`${v}%`, String(name)]} />
+                  <Legend />
+                  <Line
+                    type="monotone"
+                    dataKey="uptake"
+                    stroke="#0d9488"
+                    strokeWidth={2}
+                    name="VL Uptake"
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="suppressed"
+                    stroke="#10b981"
+                    strokeWidth={2}
+                    name="Suppression"
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        </div>
+
+        {/* 1 — Detection & ART Initiation */}
+        <div className="bg-white rounded-lg p-6 border border-slate-200">
+          <h3 className="text-lg font-semibold text-gray-900 mb-1">
+            HIV+ PBFW — Detection &amp; ART Initiation
+          </h3>
+          <p className="text-sm text-gray-500 mb-4">
+            1st ANC attendance (PMTCT_STAT_D) and HIV testing at 1st ANC
+            (PMTCT_STAT_N) are shown under 1.A Intake &amp; Screening.
+          </p>
+          <IndicatorRow
+            code="NP"
+            label="Number of PBFW newly identified HIV Positive"
+            value={np}
+            pct={isLive ? ((np / p.need) * 100).toFixed(1) : undefined}
+          />
+          <IndicatorRow
+            code="KP"
+            label="Number of PBFW Known HIV Positive at 1st ANC"
+            value={p.kp}
+            pct={isLive ? ((p.kp / p.need) * 100).toFixed(1) : undefined}
+          />
+          <IndicatorRow
+            code="PMTCT_ART"
+            label="Number of PBFW initiated on ART (New + Known — KHIS total)"
+            value={p.art}
+            pct={pbfwInitiatedPct != null ? pbfwInitiatedPct : undefined}
+          />
+          <IndicatorRow
+            code="% ART"
+            label="% of HIV positive PBFW initiated on ART"
+            value={p.art}
+            pct={pbfwInitiatedPct ?? undefined}
+          />
+          {p.haartTotal != null && (
+            <IndicatorRow
+              code="HV02-20"
+              label="On maternal HAART — Total (KHIS MOH 731)"
+              value={p.haartTotal}
+              pct={
+                p.need != null && p.need > 0
+                  ? ((p.haartTotal / p.need) * 100).toFixed(1)
+                  : undefined
+              }
+            />
+          )}
+          {p.haartStartAnc != null && (
+            <IndicatorRow
+              code="HV02-17"
+              label="Started HAART at ANC (KHIS MOH 731)"
+              value={p.haartStartAnc}
+            />
+          )}
+          {p.haartTotal == null && p.haartStartAnc == null && (
+            <p className="text-xs text-gray-400 pt-1">
+              Maternal HAART totals (MOH 731 HV02-17/20) not reported by
+              supported facilities this period — available nationally in KHIS.
+            </p>
+          )}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+            {/* HIV Treatment Conversion Funnel */}
+            <div>
+              <div className="flex items-center justify-between gap-2 mb-3">
+                <h4 className="text-sm font-semibold text-gray-700">
+                  HIV Treatment Conversion Funnel
+                </h4>
+                <ViewDataButton
+                  title="HIV Treatment Conversion Funnel"
+                  data={conversionFunnelData}
+                  note={`${isLive ? `Live · KHIS · ${data?.scope}` : noPeriodData ? "no KHIS data — zeros" : "demo"} · est = fallback`}
+                />
+              </div>
+              <div className="space-y-3">
+                {conversionFunnelData.map((item, idx) => {
+                  const base = conversionFunnelData[0].value;
+                  const percentage =
+                    base > 0 ? ((item.value / base) * 100).toFixed(0) : "0";
+                  const width = base > 0 ? (item.value / base) * 100 : 0;
+                  return (
+                    <div key={idx}>
+                      <div className="flex justify-between mb-1">
+                        <span className="text-sm font-medium text-gray-700">
+                          {item.stage}
+                        </span>
+                        <span className="text-sm font-bold text-gray-900">
+                          {item.value.toLocaleString()} ({percentage}%)
+                          {item.est && (
+                            <span className="text-xs font-medium text-gray-400 ml-1">
+                              (est.)
+                            </span>
+                          )}
+                        </span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-8 overflow-hidden">
+                        <div
+                          className="bg-emerald-500 h-full flex items-center justify-center text-white text-xs font-bold transition-all"
+                          style={{ width: `${width}%` }}
+                        >
+                          {percentage}%
                         </div>
                       </div>
-                    );
-                  })}
-                </div>
+                    </div>
+                  );
+                })}
               </div>
+            </div>
 
-              {/* Missed Opportunities */}
-              <div>
-                <div className="flex items-center justify-between gap-2 mb-3">
-                  <h4 className="text-sm font-semibold text-gray-700">
-                    Missed Opportunities (New Positive - Initiated on ART)
-                  </h4>
-                  <ViewDataButton
-                    title="Missed Opportunities Trend"
-                    data={missedOpportunitiesData}
-                    note="Illustrative — computed from demo figures, not KHIS"
+            {/* Missed Opportunities */}
+            <div>
+              <div className="flex items-center justify-between gap-2 mb-3">
+                <h4 className="text-sm font-semibold text-gray-700">
+                  Missed Opportunities (New Positive - Initiated on ART)
+                </h4>
+                <ViewDataButton
+                  title="Missed Opportunities Trend"
+                  data={missedOpportunitiesData}
+                  note="Illustrative — computed from demo figures, not KHIS"
+                />
+              </div>
+              <ResponsiveContainer width="100%" height={200}>
+                <LineChart data={noPeriodData ? [] : missedOpportunitiesData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="month" />
+                  <YAxis />
+                  <Tooltip />
+                  <Line
+                    type="monotone"
+                    dataKey="missed"
+                    stroke="#ef4444"
+                    strokeWidth={2}
+                    name="Missed Cases"
                   />
-                </div>
-                <ResponsiveContainer width="100%" height={200}>
-                  <LineChart data={noPeriodData ? [] : missedOpportunitiesData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="month" />
-                    <YAxis />
-                    <Tooltip />
-                    <Line
-                      type="monotone"
-                      dataKey="missed"
-                      stroke="#ef4444"
-                      strokeWidth={2}
-                      name="Missed Cases"
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
+                </LineChart>
+              </ResponsiveContainer>
             </div>
           </div>
+        </div>
 
-          {/* 2 — HEI Early Infant Diagnosis */}
-          <div className="bg-white rounded-lg p-6 border border-slate-200">
-            <h3 className="text-lg font-semibold text-gray-900 mb-1">
-              Exposed Infant (HEI) — Early Infant Diagnosis (EID)
+        {/* 2 — HEI Early Infant Diagnosis */}
+        <div className="bg-white rounded-lg p-6 border border-slate-200">
+          <h3 className="text-lg font-semibold text-gray-900 mb-1">
+            Exposed Infant (HEI) — Early Infant Diagnosis (EID)
+          </h3>
+          <p className="text-sm text-gray-500 mb-4">
+            EID sample collection among HIV-exposed infants (PMTCT_EID).
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mb-4">
+            <IndicatorRow
+              code="PMTCT_EID"
+              label="HEI with EID sample collected within 2-8 weeks (incl. birth testing)"
+              value={p.eid}
+            />
+            <IndicatorRow
+              code="EID 3-12m"
+              label="HEI with EID samples collected within 3-12 months"
+              value={p.heiEid3_12}
+            />
+            <IndicatorRow
+              code="% EID ≤ 8wk"
+              label="% of HEI with EID samples collected within 2-8 weeks"
+              value={p.heiEidPct}
+              isPct
+            />
+          </div>
+          <p className="text-xs text-gray-400 mb-3">
+            EID ≤ 8 weeks is live from KHIS (MOH 731 HV02-44); the 3-12 month
+            bucket and the % require cohort denominators not reported on KHIS
+            monthly — shown as (est.).
+          </p>
+          <div className="flex items-center justify-between gap-2 mb-3">
+            <h4 className="text-sm font-semibold text-gray-700">
+              EID sample collection trend (Jan–Jun)
+            </h4>
+            <ViewDataButton
+              title="EID Sample Collection Trend"
+              data={heiSamplesData}
+              note="Illustrative — monthly trend not on KHIS"
+            />
+          </div>
+          <ResponsiveContainer width="100%" height={280}>
+            <LineChart data={noPeriodData ? [] : heiSamplesData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="month" />
+              <YAxis />
+              <Tooltip />
+              <Line
+                type="monotone"
+                dataKey="samples"
+                stroke="#10b981"
+                strokeWidth={2}
+                name="EID Samples"
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+
+        {/* 3 — PCR Results & HEI ART */}
+        <div className="bg-white rounded-lg p-6 border border-slate-200">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">
+            PCR Results &amp; HEI ART Initiation
+          </h3>
+          <IndicatorRow
+            code="PCR+"
+            label={
+              live.pcrPos6_8 != null
+                ? "HEI tested positive by first PCR at 6-8 weeks (KHIS)"
+                : "Number of PCR Positive HEI results received (est.)"
+            }
+            value={p.pcrPos}
+          />
+          <IndicatorRow
+            code="PMTCT_HEI_ART"
+            label={
+              live.heiLinkage != null
+                ? "HEI HIV+ infants 0-9m linked to CCC (KHIS)"
+                : "Number of positive HEI initiated ART (EMR — est.)"
+            }
+            value={p.heiArt}
+          />
+          <IndicatorRow
+            code="% HEI ART"
+            label="% of PCR positive initiated on ART"
+            value={p.heiArt}
+            pct={heiArtPct}
+          />
+        </div>
+
+        {/* 4 — Delivery Care among HIV+ Mothers */}
+        <div className="bg-white rounded-lg p-6 border border-slate-200">
+          <div className="flex flex-wrap items-center justify-between gap-2 mb-1">
+            <h3 className="text-lg font-semibold text-gray-900">
+              Delivery Care among HIV+ Mothers
             </h3>
-            <p className="text-sm text-gray-500 mb-4">
-              EID sample collection among HIV-exposed infants (PMTCT_EID).
-            </p>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mb-4">
-              <IndicatorRow
-                code="PMTCT_EID"
-                label="HEI with EID sample collected within 2-8 weeks (incl. birth testing)"
-                value={p.eid}
-              />
-              <IndicatorRow
-                code="EID 3-12m"
-                label="HEI with EID samples collected within 3-12 months"
-                value={p.heiEid3_12}
-              />
-              <IndicatorRow
-                code="% EID ≤ 8wk"
-                label="% of HEI with EID samples collected within 2-8 weeks"
-                value={p.heiEidPct}
-                isPct
-              />
-            </div>
-            <p className="text-xs text-gray-400 mb-3">
-              EID ≤ 8 weeks is live from KHIS (MOH 731 HV02-44); the 3-12 month
-              bucket and the % require cohort denominators not reported on KHIS
-              monthly — shown as (est.).
-            </p>
-            <div className="flex items-center justify-between gap-2 mb-3">
-              <h4 className="text-sm font-semibold text-gray-700">
-                EID sample collection trend (Jan–Jun)
-              </h4>
-              <ViewDataButton
-                title="EID Sample Collection Trend"
-                data={heiSamplesData}
-                note="Illustrative — monthly trend not on KHIS"
-              />
-            </div>
-            <ResponsiveContainer width="100%" height={280}>
-              <LineChart data={noPeriodData ? [] : heiSamplesData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="month" />
-                <YAxis />
-                <Tooltip />
-                <Line
-                  type="monotone"
-                  dataKey="samples"
-                  stroke="#10b981"
-                  strokeWidth={2}
-                  name="EID Samples"
-                />
-              </LineChart>
-            </ResponsiveContainer>
+            <ViewDataButton
+              title="Delivery Care among HIV+ Mothers"
+              data={DEMO_SBA_HIV}
+              note="Illustrative — SBA % among HIV+ not disaggregated on KHIS monthly"
+            />
           </div>
+          <p className="text-sm text-gray-500 mb-4">
+            Deliveries among HIV-positive mothers in the supported facilities.
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mb-4">
+            <IndicatorRow
+              code="Deliveries"
+              label="Number of Deliveries among HIV-positive mothers in supported facilities"
+              value={p.deliveries}
+            />
+            <IndicatorRow
+              code="% SBA"
+              label="% skilled Birth attendance among HIV Positive mothers (est.)"
+              value={p.sbaPct}
+              isPct
+            />
+          </div>
+          <ResponsiveContainer width="100%" height={280}>
+            <BarChart data={noPeriodData ? [] : DEMO_SBA_HIV}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="name" />
+              <YAxis domain={[0, 100]} />
+              <Tooltip formatter={(v) => [`${v}%`, "SBA"]} />
+              <Bar dataKey="sba" fill="#0d9488" radius={[6, 6, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
 
-          {/* 3 — PCR Results & HEI ART */}
-          <div className="bg-white rounded-lg p-6 border border-slate-200">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              PCR Results &amp; HEI ART Initiation
+        {/* 5 — HEI Cohort 18-24 Months & Continuum of Care */}
+        <div className="bg-white rounded-lg p-6 border border-slate-200">
+          <div className="flex flex-wrap items-center justify-between gap-2 mb-1">
+            <h3 className="text-lg font-semibold text-gray-900">
+              HEI Cohort Follow-up — 18-24 Months (PMTCT_FO)
             </h3>
+            <ViewDataButton
+              title="HEI Cohort Follow-up Trend"
+              data={vipFollowUpData}
+              note="Illustrative — cohort follow-up not on KHIS monthly"
+            />
+          </div>
+          <p className="text-sm text-gray-500 mb-4">
+            Retention of exposed infants and mother–baby pairs across the
+            continuum of care.
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mb-4">
             <IndicatorRow
-              code="PCR+"
+              code="PMTCT_FO"
               label={
-                live.pcrPos6_8 != null
-                  ? "HEI tested positive by first PCR at 6-8 weeks (KHIS)"
-                  : "Number of PCR Positive HEI results received (est.)"
+                liveHeiPair
+                  ? "Number of HEI in the 18–24 month net cohort (KHIS HV02-50)"
+                  : "Number of HEI enrolled in the Cohort 18-24 months (EMR — est.)"
               }
-              value={p.pcrPos}
+              value={p.cohortEnrolled}
             />
             <IndicatorRow
-              code="PMTCT_HEI_ART"
+              code="PMTCT_FO (−)"
               label={
-                live.heiLinkage != null
-                  ? "HEI HIV+ infants 0-9m linked to CCC (KHIS)"
-                  : "Number of positive HEI initiated ART (EMR — est.)"
+                liveHeiPair
+                  ? "Number of HEI antibody-negative at 18 months (KHIS)"
+                  : "Number of HEI discharged HIV negative 18–24 months (EMR — est.)"
               }
-              value={p.heiArt}
+              value={p.cohortNegative}
             />
             <IndicatorRow
-              code="% HEI ART"
-              label="% of PCR positive initiated on ART"
-              value={p.heiArt}
-              pct={heiArtPct}
+              code="% Negative"
+              label="% of HEI discharged HIV Negative at 18-24 months"
+              value={p.cohortNegative}
+              pct={heiNegativePct}
+            />
+            <IndicatorRow
+              code="% Pairs"
+              label="% of mother–baby pair across the continuum of care reported at 18-24 months (est.)"
+              value={p.pairsPct}
+              isPct
             />
           </div>
-
-          {/* 4 — Delivery Care among HIV+ Mothers */}
-          <div className="bg-white rounded-lg p-6 border border-slate-200">
-            <div className="flex flex-wrap items-center justify-between gap-2 mb-1">
-              <h3 className="text-lg font-semibold text-gray-900">
-                Delivery Care among HIV+ Mothers
-              </h3>
-              <ViewDataButton
-                title="Delivery Care among HIV+ Mothers"
-                data={DEMO_SBA_HIV}
-                note="Illustrative — SBA % among HIV+ not disaggregated on KHIS monthly"
+          <ResponsiveContainer width="100%" height={280}>
+            <LineChart data={noPeriodData ? [] : vipFollowUpData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="month" />
+              <YAxis />
+              <Tooltip />
+              <Line
+                type="monotone"
+                dataKey="enrolled"
+                stroke="#0ea5e9"
+                strokeWidth={2}
+                name="Enrolled"
               />
-            </div>
-            <p className="text-sm text-gray-500 mb-4">
-              Deliveries among HIV-positive mothers in the supported facilities.
-            </p>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mb-4">
-              <IndicatorRow
-                code="Deliveries"
-                label="Number of Deliveries among HIV-positive mothers in supported facilities"
-                value={p.deliveries}
-              />
-              <IndicatorRow
-                code="% SBA"
-                label="% skilled Birth attendance among HIV Positive mothers (est.)"
-                value={p.sbaPct}
-                isPct
-              />
-            </div>
-            <ResponsiveContainer width="100%" height={280}>
-              <BarChart data={noPeriodData ? [] : DEMO_SBA_HIV}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
-                <YAxis domain={[0, 100]} />
-                <Tooltip formatter={(v) => [`${v}%`, "SBA"]} />
-                <Bar dataKey="sba" fill="#0d9488" radius={[6, 6, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-
-          {/* 5 — HEI Cohort 18-24 Months & Continuum of Care */}
-          <div className="bg-white rounded-lg p-6 border border-slate-200">
-            <div className="flex flex-wrap items-center justify-between gap-2 mb-1">
-              <h3 className="text-lg font-semibold text-gray-900">
-                HEI Cohort Follow-up — 18-24 Months (PMTCT_FO)
-              </h3>
-              <ViewDataButton
-                title="HEI Cohort Follow-up Trend"
-                data={vipFollowUpData}
-                note="Illustrative — cohort follow-up not on KHIS monthly"
-              />
-            </div>
-            <p className="text-sm text-gray-500 mb-4">
-              Retention of exposed infants and mother–baby pairs across the
-              continuum of care.
-            </p>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mb-4">
-              <IndicatorRow
-                code="PMTCT_FO"
-                label={
-                  liveHeiPair
-                    ? "Number of HEI in the 18–24 month net cohort (KHIS HV02-50)"
-                    : "Number of HEI enrolled in the Cohort 18-24 months (EMR — est.)"
-                }
-                value={p.cohortEnrolled}
-              />
-              <IndicatorRow
-                code="PMTCT_FO (−)"
-                label={
-                  liveHeiPair
-                    ? "Number of HEI antibody-negative at 18 months (KHIS)"
-                    : "Number of HEI discharged HIV negative 18–24 months (EMR — est.)"
-                }
-                value={p.cohortNegative}
-              />
-              <IndicatorRow
-                code="% Negative"
-                label="% of HEI discharged HIV Negative at 18-24 months"
-                value={p.cohortNegative}
-                pct={heiNegativePct}
-              />
-              <IndicatorRow
-                code="% Pairs"
-                label="% of mother–baby pair across the continuum of care reported at 18-24 months (est.)"
-                value={p.pairsPct}
-                isPct
-              />
-            </div>
-            <ResponsiveContainer width="100%" height={280}>
-              <LineChart data={noPeriodData ? [] : vipFollowUpData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="month" />
-                <YAxis />
-                <Tooltip />
-                <Line
-                  type="monotone"
-                  dataKey="enrolled"
-                  stroke="#0ea5e9"
-                  strokeWidth={2}
-                  name="Enrolled"
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
       </>
     </div>
   );
