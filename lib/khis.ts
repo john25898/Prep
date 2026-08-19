@@ -61,15 +61,42 @@ export async function khisAnalytics(
   url.searchParams.append("displayProperty", "NAME");
   url.searchParams.append("skipData", "false");
 
-  const res = await fetch(url.toString(), {
-    headers: { Authorization: authHeader(), Accept: "application/json" },
-    cache: "no-store",
-  });
-
-  if (!res.ok) {
-    throw new Error(
-      `KHIS analytics failed: HTTP ${res.status} ${res.statusText}`,
-    );
+  // KHIS sits behind a Cloudflare proxy that frequently drops the FIRST
+  // connection (connect timeouts / 520s). Retry with backoff so live dashboards
+  // don't show spurious errors during demos.
+  let res: Response | undefined;
+  let lastErr: unknown;
+  for (let attempt = 1; attempt <= 4; attempt++) {
+    try {
+      res = await fetch(url.toString(), {
+        headers: { Authorization: authHeader(), Accept: "application/json" },
+        cache: "no-store",
+        signal: AbortSignal.timeout(120_000),
+      });
+      if (res.ok) break;
+      // Retry transient gateway errors (502/503/504/520), fail fast on 4xx.
+      if (res.status < 500 && res.status !== 408) {
+        lastErr = new Error(
+          `KHIS analytics failed: HTTP ${res.status} ${res.statusText}`,
+        );
+        break;
+      }
+      lastErr = new Error(
+        `KHIS analytics failed: HTTP ${res.status} ${res.statusText}`,
+      );
+      res = undefined;
+    } catch (e) {
+      lastErr = e;
+      res = undefined;
+    }
+    if (attempt < 4) {
+      await new Promise((r) => setTimeout(r, 1500 * attempt));
+    }
+  }
+  if (!res) {
+    throw lastErr instanceof Error
+      ? lastErr
+      : new Error(`KHIS analytics failed: ${String(lastErr)}`);
   }
 
   const data = (await res.json()) as {
