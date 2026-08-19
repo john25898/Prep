@@ -3,11 +3,20 @@
 //
 // Query params:
 //   partner     partner id (default "jamii-tekelezi")
-//   pe          DHIS2 period, e.g. 202505 | 202506 | LAST_12_MONTHS (default 202506)
+//   pe          DHIS2 period, e.g. 202505 | 202506 | LAST_12_MONTHS, or a
+//               multi-period range "202508;202509" (default 202506).
+//               Totals are summed across all periods; byPeriod=1 returns the
+//               per-month series.
 //   indicators  comma-separated indicator ids from lib/indicators.ts
 //               (default: ALL_DX — the full registry in one call)
 //   county      optional — restrict to one county (name as in geo.ts)
 //   facility    optional — restrict to one facility UID
+//   byFacility=1   return the top-N facilities per (single) dx
+//   byCounty=1     return per-county sums for the (single) dx
+//   byPeriod=1     ALSO return per-period values (for trend charts; use with
+//                  pe=LAST_12_MONTHS so the client gets the monthly series)
+//   reporting=1    ALSO return the number of org units with non-null values
+//                  per indicator ("reportingFacilities")
 //
 // Security: KHIS credentials are only read server-side (env). The client
 // receives values only.
@@ -18,10 +27,14 @@ import { KHIS_INDICATORS, getKhisIndicator, ALL_DX } from "@/lib/indicators";
 import {
   partnerCountyOUs,
   partnerFacilityOUs,
+  partnerFacilityOUsFor,
   hasFacilityRoster,
   COUNTY_OUS,
+  PARTNER_FACILITIES,
 } from "@/lib/partners";
-import { khisAnalytics, sumFor } from "@/lib/khis";
+import ouCountyMap from "@/data/ou-county-map.json";
+import { khisAnalyticsChunked, sumFor } from "@/lib/khis";
+import { peToLabel } from "@/lib/period";
 
 export const dynamic = "force-dynamic";
 
@@ -31,7 +44,15 @@ export async function GET(req: NextRequest) {
   const pe = params.get("pe") ?? "202506";
   const indicatorParam = params.get("indicators");
   const county = params.get("county");
+  const subcounty = params.get("subcounty");
   const facility = params.get("facility");
+  // byFacility=1 — return the top-N facilities per indicator (per-facility
+  // breakdown for the scoped org units). Requires a single dx in `indicators`.
+  const byFacility = params.get("byFacility") === "1";
+  const byCounty = params.get("byCounty") === "1";
+  const byPeriod = params.get("byPeriod") === "1";
+  const withReporting = params.get("reporting") === "1";
+  const topN = Math.min(parseInt(params.get("top") ?? "8", 10) || 8, 20);
 
   // Resolve the dx list.
   const dxIds = indicatorParam
@@ -55,6 +76,22 @@ export async function GET(req: NextRequest) {
   if (facility) {
     ouIds = [facility];
     scopeLabel = `Facility ${facility}`;
+  } else if (subcounty) {
+    // Sub-county scope: restrict to the roster facilities in that sub-county
+    // (optionally also within a selected county).
+    const scUids = partnerFacilityOUsFor(
+      partner,
+      county || undefined,
+      subcounty,
+    );
+    if (scUids.length === 0) {
+      return NextResponse.json(
+        { error: `No facilities resolved for sub-county: ${subcounty}` },
+        { status: 400 },
+      );
+    }
+    ouIds = scUids;
+    scopeLabel = `${partner} · ${subcounty} (${ouIds.length} facilities)`;
   } else if (county) {
     const ou = COUNTY_OUS[county];
     if (!ou) {
@@ -83,7 +120,7 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const analytics = await khisAnalytics(dxIds, pe, ouIds);
+    const analytics = await khisAnalyticsChunked(dxIds, pe, ouIds);
 
     // One analytics call may be too heavy for 200+ facilities in a browser
     // round-trip; return per-period sums per indicator (not raw rows).
@@ -97,14 +134,108 @@ export async function GET(req: NextRequest) {
       }),
     );
 
+    // Optional per-period series: [{pe, peName, value}] per indicator, for
+    // monthly trend charts. Requires pe=LAST_12_MONTHS (or a multi-period pe).
+    let periods:
+      | {
+          dx: string;
+          id: string;
+          series: { pe: string; peName: string; value: number | null }[];
+        }[]
+      | undefined;
+    if (byPeriod) {
+      periods = KHIS_INDICATORS.filter((i) => dxIds.includes(i.dx)).map((i) => {
+        const byPe = new Map<string, number>();
+        const peNames = new Map<string, string>();
+        for (const row of analytics.rows) {
+          if (row.dx !== i.dx || row.value == null) continue;
+          byPe.set(row.period, (byPe.get(row.period) ?? 0) + row.value);
+          peNames.set(row.period, row.periodName);
+        }
+        return {
+          dx: i.dx,
+          id: i.id,
+          series: [...byPe.entries()]
+            .sort((a, b) => a[0].localeCompare(b[0]))
+            .map(([p, v]) => ({
+              pe: p,
+              peName: peNames.get(p) ?? p,
+              value: v,
+            })),
+        };
+      });
+    }
+
+    // Optional per-facility breakdown: top-N facilities by the (single)
+    // requested indicator, used by charts like "Eligible vs Initiated".
+    let facilities: { name: string; value: number | null }[] | undefined;
+    if (byFacility && dxIds.length === 1) {
+      const dx = dxIds[0];
+      const sums = new Map<string, number>();
+      for (const row of analytics.rows) {
+        if (row.dx !== dx || row.value == null) continue;
+        sums.set(
+          row.ouName || row.ou,
+          (sums.get(row.ouName || row.ou) ?? 0) + row.value,
+        );
+      }
+      facilities = [...sums.entries()]
+        .map(([name, value]) => ({ name, value }))
+        .sort((a, b) => (b.value ?? 0) - (a.value ?? 0))
+        .slice(0, topN);
+    }
+
+    // Optional per-county breakdown: sums grouped by county name. Requires a
+    // single dx. Resolves county from the roster when present (roster county
+    // is a KHIS OU UID → name via ou-county-map.json), otherwise from the
+    // org-unit names (county-level OUs are named after the county).
+    let counties: { name: string; value: number | null }[] | undefined;
+    if (byCounty && dxIds.length === 1) {
+      const dx = dxIds[0];
+      const ouCounty = ouCountyMap as unknown as Record<string, string>;
+      const sums = new Map<string, number>();
+      for (const row of analytics.rows) {
+        if (row.dx !== dx || row.value == null) continue;
+        const fac = PARTNER_FACILITIES[partner]?.find((f) => f.uid === row.ou);
+        const countyName = fac
+          ? (ouCounty[fac.county] ?? fac.county ?? row.ouName)
+          : row.ouName;
+        if (!countyName) continue;
+        sums.set(countyName, (sums.get(countyName) ?? 0) + row.value);
+      }
+      counties = [...sums.entries()]
+        .map(([name, value]) => ({ name, value }))
+        .sort((a, b) => (b.value ?? 0) - (a.value ?? 0));
+    }
+
+    // Optional reportingFacilities: number of org units with a non-null value
+    // per indicator (how many of the partner's facilities actually reported).
+    let reporting: { id: string; dx: string; facilities: number }[] | undefined;
+    if (withReporting) {
+      reporting = KHIS_INDICATORS.filter((i) => dxIds.includes(i.dx)).map(
+        (i) => {
+          const ous = new Set<string>();
+          for (const row of analytics.rows) {
+            if (row.dx === i.dx && row.value != null) ous.add(row.ou);
+          }
+          return { id: i.id, dx: i.dx, facilities: ous.size };
+        },
+      );
+    }
+
     return NextResponse.json({
       partner,
       pe,
+      peLabel: peToLabel(pe),
       scope: scopeLabel,
       ouCount: ouIds.length,
       source: "national KHIS (hiskenya.dha.go.ke)",
       asOf: new Date().toISOString(),
       indicators,
+      facilities,
+      counties,
+      periods,
+      reporting,
     });
   } catch (err) {
     console.error("KHIS proxy error:", err);

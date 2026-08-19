@@ -10,14 +10,25 @@ export interface KhisIndicatorValue {
   value: number | null;
 }
 
+export interface KhisPeriodSeries {
+  dx: string;
+  id: string;
+  series: { pe: string; peName: string; value: number | null }[];
+}
+
 export interface KhisResponse {
   partner: string;
   pe: string;
+  peLabel: string;
   scope: string;
   ouCount: number;
   source: string;
   asOf: string;
   indicators: KhisIndicatorValue[];
+  facilities?: { name: string; value: number | null }[];
+  counties?: { name: string; value: number | null }[];
+  periods?: KhisPeriodSeries[];
+  reporting?: { id: string; dx: string; facilities: number }[];
 }
 
 export interface UseKhisOptions {
@@ -25,7 +36,13 @@ export interface UseKhisOptions {
   pe?: string;
   indicators?: string[];
   county?: string;
+  subCounty?: string;
   facility?: string;
+  byFacility?: boolean;
+  byCounty?: boolean;
+  byPeriod?: boolean;
+  reporting?: boolean;
+  top?: number;
 }
 
 /**
@@ -49,7 +66,13 @@ export function useKhis(opts: UseKhisOptions = {}) {
     if (opts.pe) q.set("pe", opts.pe);
     if (indicatorsKey) q.set("indicators", indicatorsKey);
     if (opts.county) q.set("county", opts.county);
+    if (opts.subCounty) q.set("subcounty", opts.subCounty);
     if (opts.facility) q.set("facility", opts.facility);
+    if (opts.byFacility) q.set("byFacility", "1");
+    if (opts.byCounty) q.set("byCounty", "1");
+    if (opts.byPeriod) q.set("byPeriod", "1");
+    if (opts.reporting) q.set("reporting", "1");
+    if (opts.top) q.set("top", String(opts.top));
 
     fetch(`/api/khis?${q.toString()}`, { signal: controller.signal })
       .then(async (res) => {
@@ -65,7 +88,19 @@ export function useKhis(opts: UseKhisOptions = {}) {
 
     return () => controller.abort();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [opts.partner, opts.pe, opts.county, opts.facility, indicatorsKey]);
+  }, [
+    opts.partner,
+    opts.pe,
+    opts.county,
+    opts.subCounty,
+    opts.facility,
+    indicatorsKey,
+    opts.byFacility,
+    opts.byCounty,
+    opts.byPeriod,
+    opts.reporting,
+    opts.top,
+  ]);
 
   const value = useMemo(
     () => (id: string) =>

@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import {
   BarChart,
   Bar,
@@ -21,7 +22,11 @@ import {
   ShieldCheck,
   UserCheck,
   Users,
+  Sparkles,
+  Save,
 } from "lucide-react";
+import { AIAssistant, type ChartInsight } from "@/components/ai-assistant";
+import { ViewDataButton } from "@/components/view-data";
 
 // ---------------------------------------------------------------------------
 // SHA — Social Health Authority (Universal Health Coverage) enrollment
@@ -142,9 +147,24 @@ function SectionBanner({
   );
 }
 
-export function ShaTab() {
+export function ShaTab({
+  onSaveToPlayground,
+}: {
+  onSaveToPlayground?: (chart: ChartInsight) => void;
+}) {
+  const [activeChart, setActiveChart] = useState<ChartInsight | null>(null);
+
+  const addChartToPlayground = (chart: ChartInsight) => {
+    onSaveToPlayground?.(chart);
+  };
+
   return (
     <div className="space-y-6">
+      <AIAssistant
+        chartContext={activeChart}
+        onSaveToPlayground={addChartToPlayground}
+      />
+
       <SectionBanner
         icon={<HeartHandshake className="w-5 h-5 text-blue-600" />}
         title="SHA Enrollment — Universal Health Coverage"
@@ -182,9 +202,50 @@ export function ShaTab() {
       {/* HIV+ vs SHA + Enrollment trend */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-white rounded-lg p-6 border border-slate-200 min-w-0">
-          <h3 className="text-lg font-semibold text-gray-900 mb-1">
-            HIV+ Patients vs SHA-Enrolled (by Facility)
-          </h3>
+          <div className="flex items-center justify-between gap-3 mb-1">
+            <h3 className="text-lg font-semibold text-gray-900">
+              HIV+ Patients vs SHA-Enrolled (by Facility)
+            </h3>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() =>
+                  setActiveChart({
+                    id: "sha-facility-comparison",
+                    title: "HIV+ Patients vs SHA-Enrolled (by Facility)",
+                    summary:
+                      "This chart compares HIV-positive patients and those successfully enrolled in SHA across facilities.",
+                    prompt:
+                      "Explain the facility-level gap between HIV-positive women and SHA enrollment and identify where the biggest follow-up burden sits.",
+                  })
+                }
+                className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-600 hover:border-sky-200 hover:text-sky-700"
+              >
+                <Sparkles className="h-3.5 w-3.5" /> AI Assist
+              </button>
+              <button
+                type="button"
+                onClick={() =>
+                  addChartToPlayground({
+                    id: "sha-facility-comparison",
+                    title: "HIV+ Patients vs SHA-Enrolled (by Facility)",
+                    summary:
+                      "This chart compares HIV-positive patients and those successfully enrolled in SHA across facilities.",
+                    prompt:
+                      "Explain the facility-level gap between HIV-positive women and SHA enrollment and identify where the biggest follow-up burden sits.",
+                  })
+                }
+                className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-600 hover:border-sky-200 hover:text-sky-700"
+              >
+                <Save className="h-3.5 w-3.5" /> Save
+              </button>
+              <ViewDataButton
+                title="HIV+ Patients vs SHA-Enrolled (by Facility)"
+                data={positiveVsShaData}
+                note="Illustrative — SHA data not on KHIS"
+              />
+            </div>
+          </div>
           <p className="text-sm text-gray-500 mb-4">
             HIV+ pregnant women per facility vs those enrolled in SHA in the
             period.
@@ -218,9 +279,50 @@ export function ShaTab() {
         </div>
 
         <div className="bg-white rounded-lg p-6 border border-slate-200 min-w-0">
-          <h3 className="text-lg font-semibold text-gray-900 mb-1">
-            SHA Enrollment Trend (Jan – Jun)
-          </h3>
+          <div className="flex items-center justify-between gap-3 mb-1">
+            <h3 className="text-lg font-semibold text-gray-900">
+              SHA Enrollment Trend (Jan – Jun)
+            </h3>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() =>
+                  setActiveChart({
+                    id: "sha-enrollment-trend",
+                    title: "SHA Enrollment Trend (Jan – Jun)",
+                    summary:
+                      "This chart shows the monthly pace of SHA registration growth across the supported facilities.",
+                    prompt:
+                      "Interpret the monthly SHA enrollment trend and say whether enrollment is accelerating or plateauing.",
+                  })
+                }
+                className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-600 hover:border-sky-200 hover:text-sky-700"
+              >
+                <Sparkles className="h-3.5 w-3.5" /> AI Assist
+              </button>
+              <button
+                type="button"
+                onClick={() =>
+                  addChartToPlayground({
+                    id: "sha-enrollment-trend",
+                    title: "SHA Enrollment Trend (Jan – Jun)",
+                    summary:
+                      "This chart shows the monthly pace of SHA registration growth across the supported facilities.",
+                    prompt:
+                      "Interpret the monthly SHA enrollment trend and say whether enrollment is accelerating or plateauing.",
+                  })
+                }
+                className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-600 hover:border-sky-200 hover:text-sky-700"
+              >
+                <Save className="h-3.5 w-3.5" /> Save
+              </button>
+              <ViewDataButton
+                title="SHA Enrollment Trend (Jan – Jun)"
+                data={shaTrendData}
+                note="Illustrative — SHA data not on KHIS"
+              />
+            </div>
+          </div>
           <p className="text-sm text-gray-500 mb-4">
             Monthly SHA registrations across supported facilities.
           </p>
@@ -245,9 +347,16 @@ export function ShaTab() {
       {/* Coverage by facility + donut */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-white rounded-lg p-6 border border-slate-200 min-w-0">
-          <h3 className="text-lg font-semibold text-gray-900 mb-1">
-            SHA Coverage by Facility
-          </h3>
+          <div className="flex flex-wrap items-center justify-between gap-2 mb-1">
+            <h3 className="text-lg font-semibold text-gray-900">
+              SHA Coverage by Facility
+            </h3>
+            <ViewDataButton
+              title="SHA Coverage by Facility"
+              data={coverageByFacility}
+              note="Illustrative — SHA data not on KHIS"
+            />
+          </div>
           <p className="text-sm text-gray-500 mb-4">
             % of HIV+ patients enrolled per facility —{" "}
             <span className="text-green-700 font-medium">
@@ -283,9 +392,16 @@ export function ShaTab() {
         </div>
 
         <div className="bg-white rounded-lg p-6 border border-slate-200 min-w-0">
-          <h3 className="text-lg font-semibold text-gray-900 mb-1">
-            Overall Enrollment Coverage
-          </h3>
+          <div className="flex flex-wrap items-center justify-between gap-2 mb-1">
+            <h3 className="text-lg font-semibold text-gray-900">
+              Overall Enrollment Coverage
+            </h3>
+            <ViewDataButton
+              title="Overall SHA Enrollment Coverage"
+              data={coverageDonut}
+              note="Illustrative — SHA data not on KHIS"
+            />
+          </div>
           <p className="text-sm text-gray-500 mb-4">
             Share of HIV+ patients registered with SHA in the period.
           </p>

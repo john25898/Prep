@@ -37,6 +37,7 @@ import { StatusBadge } from "@/components/status-badge";
 import { useAssessments } from "@/lib/use-assessments";
 import { useGeoFilter } from "@/lib/geo-filter-context";
 import { applyGeoFilter, geoScopeLabel } from "@/lib/geo";
+import { ViewDataButton } from "@/components/view-data";
 import {
   assessmentScore,
   averageReadiness,
@@ -457,11 +458,27 @@ function ItemAvailabilityChart({
     label: i.shortLabel,
     rows: itemComplianceRows(assessments, i.id),
   }));
+  const itemRows = groups.flatMap((g) =>
+    g.rows.map((r) => ({
+      group: `${g.id} · ${g.label}`,
+      item: r.label,
+      ticked: r.ticked,
+      total: r.total,
+      pct: r.pct,
+    })),
+  );
   return (
     <div className="bg-white rounded-lg p-6 border border-slate-200">
-      <h3 className="text-lg font-semibold text-gray-900 mb-1">
-        Item Availability Across Facilities
-      </h3>
+      <div className="flex flex-wrap items-center justify-between gap-2 mb-1">
+        <h3 className="text-lg font-semibold text-gray-900">
+          Item Availability Across Facilities
+        </h3>
+        <ViewDataButton
+          title="Item Availability Across Facilities"
+          data={itemRows}
+          note="ticked/total per item across in-scope facilities — from assessments"
+        />
+      </div>
       <p className="text-sm text-gray-500 mb-4">
         For each specific commodity/equipment/signal function: in how many
         in-scope facilities it was ticked as present. Use this to spot
@@ -534,11 +551,26 @@ function FacilityRadarGrid({
 }: {
   assessments: FacilityAssessment[];
 }) {
+  const rows = assessments.map((a) => {
+    const scores = facilityCategoryScores(a);
+    const row: Record<string, unknown> = { facility: a.facilityName };
+    scores.forEach((s) => {
+      row[s.name] = s.value;
+    });
+    return row;
+  });
   return (
     <div className="bg-white rounded-lg p-6 border border-slate-200">
-      <h3 className="text-lg font-semibold text-gray-900 mb-1">
-        Per-Facility Readiness Shape
-      </h3>
+      <div className="flex flex-wrap items-center justify-between gap-2 mb-1">
+        <h3 className="text-lg font-semibold text-gray-900">
+          Per-Facility Readiness Shape
+        </h3>
+        <ViewDataButton
+          title="Per-Facility Readiness Shape"
+          data={rows}
+          note="% of items ticked per category per facility (0 = none ticked or N/A)"
+        />
+      </div>
       <p className="text-sm text-gray-500 mb-4">
         One radar per facility: % of items ticked in each of the 8 categories (0
         = none ticked, or category marked N/A).
@@ -971,9 +1003,16 @@ export function AssessmentTab() {
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-white rounded-lg p-6 border border-slate-200 min-w-0">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">
-            Facility Readiness Scores
-          </h3>
+          <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
+            <h3 className="text-lg font-semibold text-gray-900">
+              Facility Readiness Scores
+            </h3>
+            <ViewDataButton
+              title="Facility Readiness Scores"
+              data={chartData}
+              note="% readiness per facility — computed live from assessment entries"
+            />
+          </div>
           <ResponsiveContainer width="100%" height={280}>
             <BarChart data={chartData} margin={{ left: 0, right: 12 }}>
               <CartesianGrid strokeDasharray="3 3" />
@@ -1006,9 +1045,16 @@ export function AssessmentTab() {
         </div>
 
         <div className="bg-white rounded-lg p-6 border border-slate-200 min-w-0">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">
-            Readiness Status Distribution
-          </h3>
+          <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
+            <h3 className="text-lg font-semibold text-gray-900">
+              Readiness Status Distribution
+            </h3>
+            <ViewDataButton
+              title="Readiness Status Distribution"
+              data={statusData}
+              note="number of facilities per readiness tier — from assessments"
+            />
+          </div>
           <div className="flex flex-col sm:flex-row items-center gap-6">
             <ResponsiveContainer width="100%" height={240}>
               <PieChart>
@@ -1049,9 +1095,16 @@ export function AssessmentTab() {
 
       {/* Radar: average item performance */}
       <div className="bg-white rounded-lg p-6 border border-slate-200 min-w-0">
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">
-          Average Domain 3 Performance by Item
-        </h3>
+        <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
+          <h3 className="text-lg font-semibold text-gray-900">
+            Average Domain 3 Performance by Item
+          </h3>
+          <ViewDataButton
+            title="Average Domain 3 Performance by Item"
+            data={radarData}
+            note="avg % of facilities fully compliant per questionnaire item (N/A excluded)"
+          />
+        </div>
         <p className="text-sm text-gray-500 mb-4">
           Average % of facilities fully compliant (answered Yes) per
           questionnaire item, N/A excluded
@@ -1110,9 +1163,16 @@ export function AssessmentTab() {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
           <div className="bg-white rounded-lg p-6 border border-slate-200 min-w-0">
-            <h3 className="text-lg font-semibold text-gray-900 mb-1">
-              BEmONC Signal Functions
-            </h3>
+            <div className="flex flex-wrap items-center justify-between gap-2 mb-1">
+              <h3 className="text-lg font-semibold text-gray-900">
+                BEmONC Signal Functions
+              </h3>
+              <ViewDataButton
+                title="BEmONC Signal Functions"
+                data={bemoncRadar}
+                note="% of facilities ticking each of the 7 signal functions — from assessments"
+              />
+            </div>
             <p className="text-sm text-gray-500 mb-4">
               % of facilities that ticked each of the 7 signal functions
             </p>
@@ -1133,9 +1193,16 @@ export function AssessmentTab() {
           </div>
 
           <div className="bg-white rounded-lg p-6 border border-slate-200">
-            <h3 className="text-lg font-semibold text-gray-900 mb-1">
-              CEmONC Signal Functions
-            </h3>
+            <div className="flex flex-wrap items-center justify-between gap-2 mb-1">
+              <h3 className="text-lg font-semibold text-gray-900">
+                CEmONC Signal Functions
+              </h3>
+              <ViewDataButton
+                title="CEmONC Signal Functions"
+                data={emonc.cemonc}
+                note="% of facilities ticking each of the 9 signal functions — from assessments"
+              />
+            </div>
             <p className="text-sm text-gray-500 mb-4">
               % of facilities that ticked each of the 9 signal functions
             </p>

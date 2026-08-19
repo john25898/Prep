@@ -107,6 +107,47 @@ export async function khisAnalytics(
 }
 
 /**
+ * Runs analytics for large org-unit sets by chunking the `ou:` dimension.
+ *
+ * KHIS (behind a proxy) rejects URLs that get too long — a single request
+ * with 300+ facility UIDs fails with HTTP 520. Splitting the org units into
+ * chunks (default 120) keeps each URL well under the limit while preserving
+ * the exact same row-level results.
+ */
+export async function khisAnalyticsChunked(
+  dxIds: string[],
+  pe: string,
+  ouIds: string[],
+  chunkSize = 120,
+): Promise<KhisAnalytics> {
+  if (ouIds.length <= chunkSize) {
+    return khisAnalytics(dxIds, pe, ouIds);
+  }
+
+  const chunks: string[][] = [];
+  for (let i = 0; i < ouIds.length; i += chunkSize) {
+    chunks.push(ouIds.slice(i, i + chunkSize));
+  }
+
+  // Fire chunks sequentially to be gentle on KHIS (parallel bursts of large
+  // queries tend to trigger rate limits / proxy errors).
+  const results: KhisAnalytics[] = [];
+  for (const chunk of chunks) {
+    results.push(await khisAnalytics(dxIds, pe, chunk));
+  }
+
+  const rows = results.flatMap((r) => r.rows);
+  const meta: Record<string, { name: string }> = {};
+  for (const r of results) Object.assign(meta, r.meta);
+
+  return {
+    rows,
+    meta,
+    requested: { dx: dxIds, pe, ou: ouIds },
+  };
+}
+
+/**
  * Sums a row set for a dx id — optionally filtered to a single period.
  * Returns null when there is no data at all.
  */

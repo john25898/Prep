@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   BarChart,
   Bar,
@@ -24,6 +24,7 @@ import {
   Landmark,
   LayoutDashboard,
   RefreshCw,
+  Save,
   ShieldCheck,
   Sparkles,
   Stethoscope,
@@ -31,11 +32,16 @@ import {
   TrendingUp,
 } from "lucide-react";
 import { useAssessments } from "@/lib/use-assessments";
-import { PARTNERS, type Partner } from "@/lib/geo";
+import { useKhis } from "@/lib/use-khis";
+import { useGeoFilter } from "@/lib/geo-filter-context";
+import { AIAssistant, type ChartInsight } from "@/components/ai-assistant";
+import { PARTNERS, getPartner, type Partner } from "@/lib/geo";
+import { PARTNER_COUNTIES } from "@/lib/partners";
 import { averageReadiness, type FacilityAssessment } from "@/lib/assessment";
 import { AssessmentTab } from "@/components/tabs/assessment-tab";
 import { MortalityTab } from "@/components/tabs/mortality-tab";
 import { ClinicalTab } from "@/components/tabs/clinical-tab";
+import { ViewDataButton } from "@/components/view-data";
 
 // ---------------------------------------------------------------------------
 // Yellow-marked (home page) indicators per the EWENE Dashboard Indicators doc
@@ -87,40 +93,42 @@ const COVERAGE_INDICATORS: IndicatorDef[] = [
   },
   {
     code: "2.5",
-    label: "% of preterm/LBW babies initiated on Kangaroo Mother Care",
-    baseline: "54% (national)",
+    label: "Neonates initiated on Kangaroo Mother Care",
+    baseline: "KHIS MOH 711 Rev 2020 · count (supported counties)",
     y1: 60,
     y2: 70,
-    note: "Source: KHIS (monthly)",
+    unit: "count",
+    note: "Source: KHIS (monthly) — count; % needs LBW denominator not on KHIS",
   },
   {
     code: "2.6",
-    label: "% of newborns receiving chlorhexidine cord care at birth",
-    baseline: "65% (national)",
+    label: "Newborns receiving chlorhexidine cord care at birth",
+    baseline: "KHIS MOH 711 Rev 2020 · count (supported counties)",
     y1: 70,
     y2: 80,
-    note: "Source: KHIS (monthly)",
+    unit: "count",
+    note: "Source: KHIS (monthly) — count; % needs birth denominator not on KHIS",
   },
   {
     code: "2.7",
-    label: "Facility fresh stillbirth rate at supported facilities",
-    baseline: "7.64 per 1,000 births (KHIS)",
+    label: "Facility stillbirths reported at supported facilities",
+    baseline: "KHIS EAC BTH003 · count — rate element not populated on KHIS",
     y1: 5,
     y2: 4,
     lowerIsBetter: true,
-    unit: "per-1000",
-    note: "Source: KHIS (monthly)",
+    unit: "count",
+    note: "Source: KHIS (monthly) — stillbirth rate element (RRI 2026) returns no data",
   },
   {
     code: "2.8",
     label:
       "Facility maternal mortality ratio at supported facilities (per 100,000 live births)",
-    baseline: "91 per 100,000 live births (KHIS)",
+    baseline: "KHIS facility MMR · reported counties",
     y1: 70,
     y2: 50,
     lowerIsBetter: true,
     unit: "per-100000",
-    note: "Source: KHIS (quarterly)",
+    note: "Source: KHIS (monthly)",
   },
 ];
 
@@ -914,21 +922,28 @@ function PartnerIndicatorChart({
             <p className="text-xs text-gray-500">{subtitle}</p>
           </div>
         </div>
-        <div className="flex flex-wrap gap-x-3 gap-y-1">
-          {counties.map((c, i) => (
-            <span
-              key={c}
-              className="inline-flex items-center gap-1.5 text-[11px] font-medium text-gray-600"
-            >
+        <div className="flex items-center gap-3 flex-wrap">
+          <div className="flex flex-wrap gap-x-3 gap-y-1">
+            {counties.map((c, i) => (
               <span
-                className="w-2.5 h-2.5 rounded-sm"
-                style={{
-                  backgroundColor: COUNTY_COLORS[i % COUNTY_COLORS.length],
-                }}
-              />
-              {c}
-            </span>
-          ))}
+                key={c}
+                className="inline-flex items-center gap-1.5 text-[11px] font-medium text-gray-600"
+              >
+                <span
+                  className="w-2.5 h-2.5 rounded-sm"
+                  style={{
+                    backgroundColor: COUNTY_COLORS[i % COUNTY_COLORS.length],
+                  }}
+                />
+                {c}
+              </span>
+            ))}
+          </div>
+          <ViewDataButton
+            title={title}
+            data={data}
+            note="% per county — rows match the bars above"
+          />
         </div>
       </div>
       <div className="p-4">
@@ -980,13 +995,315 @@ function PartnerIndicatorChart({
   );
 }
 
-export function HomeTab() {
+export function HomeTab({
+  onSaveToPlayground,
+}: {
+  onSaveToPlayground?: (chart: ChartInsight) => void;
+}) {
   const allAssessments = useAssessments();
+  const { filter, pe, peLabel } = useGeoFilter();
+  const [activeChart, setActiveChart] = useState<ChartInsight | null>(null);
+
+  const addChartToPlayground = (chart: ChartInsight) => {
+    onSaveToPlayground?.(chart);
+  };
 
   const partners = useMemo(
     () => PARTNERS.filter((p) => p.id !== "national"),
     [],
   );
+
+  // -----------------------------------------------------------------------
+  // Live 90:90:80:80 pillars at the CURRENT filter scope. Computed from
+  // per-county KHIS fetches (averaged across the partner's counties) because
+  // % indicators (SBA, PNC, dropout) are only meaningful at county level —
+  // summing them across a facility roster yields values > 100%.
+  // -----------------------------------------------------------------------
+  const pillarCounties = useMemo(() => {
+    const base =
+      PARTNER_COUNTIES[filter.partner]?.length > 0
+        ? PARTNER_COUNTIES[filter.partner]
+        : JT_COVERAGE_COUNTIES;
+    return filter.county ? [filter.county] : base;
+  }, [filter.partner, filter.county]);
+
+  const [pillarByCounty, setPillarByCounty] = useState<Record<
+    string,
+    {
+      anc?: number;
+      sba?: number;
+      pncM?: number;
+      pncI?: number;
+      mmr?: number;
+      nmr?: number;
+      sbr?: number;
+      lb?: number;
+      nd?: number;
+      sb?: number;
+    }
+  > | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    setPillarByCounty(null);
+    Promise.all(
+      pillarCounties.map((c) =>
+        fetch(
+          `/api/khis?county=${encodeURIComponent(
+            c,
+          )}&pe=${pe}&indicators=pmtct_anc1_visits,anc4_visits,anc1_4_dropout,sba_pct_live,pnc_48h_mother,pnc_48h_infant,mmr,moh711_live_births,neonatal_deaths,stillbirths`,
+        )
+          .then((r) => (r.ok ? r.json() : null))
+          .catch(() => null),
+      ),
+    ).then((results) => {
+      if (cancelled) return;
+      const map: Record<
+        string,
+        {
+          anc?: number;
+          sba?: number;
+          pncM?: number;
+          pncI?: number;
+          mmr?: number;
+          nmr?: number;
+          sbr?: number;
+          lb?: number;
+          nd?: number;
+          sb?: number;
+        }
+      > = {};
+      results.forEach((res, i) => {
+        const name = pillarCounties[i];
+        if (!name || !res?.indicators) return;
+        // Percentage indicators must be 0–100 at county level; MMR is a ratio
+        // per 100,000 and the mortality/stillbirth inputs are raw COUNTS that
+        // can exceed 100 — only guard actual percentages.
+        const PCT_KEYS = new Set([
+          "anc1_4_dropout",
+          "sba_pct_live",
+          "pnc_48h_mother",
+          "pnc_48h_infant",
+        ]);
+        const ind = (key: string): number | null => {
+          const found = res.indicators.find(
+            (x: { id: string; value: number | null }) => x.id === key,
+          );
+          const v = found?.value ?? null;
+          return v != null && (!PCT_KEYS.has(key) || (v >= 0 && v <= 100))
+            ? v
+            : null;
+        };
+        const r1 = (v: number | null) =>
+          v != null ? Math.round(v * 10) / 10 : undefined;
+        const dropout = ind("anc1_4_dropout");
+        const anc1 = ind("pmtct_anc1_visits");
+        const anc4 = ind("anc4_visits");
+        let anc: number | null = dropout != null ? 100 - dropout : null;
+        if (anc == null && anc1 != null && anc1 > 0 && anc4 != null) {
+          const ratio =
+            Math.round(((anc4 as number) / (anc1 as number)) * 1000) / 10;
+          if (ratio <= 100) anc = ratio;
+        }
+        // NMR = neonatal deaths ÷ live births × 1,000.
+        // SBR = stillbirths ÷ (live births + stillbirths) × 1,000.
+        const lb = ind("moh711_live_births");
+        const nd = ind("neonatal_deaths");
+        const sb = ind("stillbirths");
+        const nmr =
+          lb != null && lb > 0 && nd != null
+            ? Math.round((nd / lb) * 1000 * 10) / 10
+            : undefined;
+        const sbr =
+          lb != null && lb > 0 && sb != null
+            ? Math.round((sb / (lb + sb)) * 1000 * 10) / 10
+            : undefined;
+        map[name] = {
+          anc: anc != null ? Math.round(anc * 10) / 10 : undefined,
+          sba: r1(ind("sba_pct_live")),
+          pncM: r1(ind("pnc_48h_mother")),
+          pncI: r1(ind("pnc_48h_infant")),
+          mmr: r1(ind("mmr")),
+          nmr,
+          sbr,
+          lb: lb ?? undefined,
+          nd: nd ?? undefined,
+          sb: sb ?? undefined,
+        };
+      });
+      if (!cancelled) setPillarByCounty(map);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [pillarCounties, pe]);
+
+  const livePillars = useMemo(() => {
+    if (!pillarByCounty)
+      return {
+        anc: undefined,
+        sba: undefined,
+        pncM: undefined,
+        pncI: undefined,
+        mmr: undefined,
+        nmr: undefined,
+        sbr: undefined,
+        anyLive: false,
+      };
+    const rows = pillarCounties
+      .map((c) => pillarByCounty[c])
+      .filter((r): r is NonNullable<typeof r> => Boolean(r));
+    const avg = (key: "anc" | "sba" | "pncM" | "pncI" | "mmr") => {
+      const vals = rows
+        .map((r) => r[key])
+        .filter((v): v is number => v != null);
+      return vals.length
+        ? Math.round((vals.reduce((a, b) => a + b, 0) / vals.length) * 10) / 10
+        : undefined;
+    };
+    // Rates from summed counts across the reported counties — statistically
+    // more honest than averaging the per-county ratios.
+    const sum = (key: "lb" | "nd" | "sb") =>
+      rows
+        .map((r) => r[key])
+        .filter((v): v is number => v != null)
+        .reduce((a, b) => a + b, 0);
+    const lb = sum("lb");
+    const nd = sum("nd");
+    const sb = sum("sb");
+    const nmr =
+      lb > 0 && nd > 0 ? Math.round((nd / lb) * 1000 * 10) / 10 : undefined;
+    const sbr =
+      lb > 0 && sb > 0
+        ? Math.round((sb / (lb + sb)) * 1000 * 10) / 10
+        : undefined;
+    const res = {
+      anc: avg("anc"),
+      sba: avg("sba"),
+      pncM: avg("pncM"),
+      pncI: avg("pncI"),
+      mmr: avg("mmr"),
+      nmr,
+      sbr,
+    };
+    return {
+      ...res,
+      anyLive: Object.values(res).some((v) => v != null),
+    };
+  }, [pillarByCounty, pillarCounties]);
+
+  // -----------------------------------------------------------------------
+  // Live KHIS domain scores per partner (pe = 202505, roster/county scope).
+  // Domains 1, 2, 4 & 5 are derived from KHIS where the data is reported and
+  // fall back to the baseline constants below when a value is null.
+  // Domain 3 (Readiness) is always computed from entered assessments.
+  // -----------------------------------------------------------------------
+  const KHIS_DOMAIN_DX =
+    "pmtct_anc1_visits,pmtct_initial_test,pmtct_need,pmtct_art,pnc_48h_coverage,maternal_deaths_reported,maternal_deaths_audited,neonatal_deaths,neonatal_deaths_audited";
+
+  interface LiveDomainScores {
+    d1?: number; // PMTCT/VTP QoC — blend of testing coverage & ART initiation
+    d2?: number; // Coverage — PNC within 48h (KHIS %)
+    d4?: number; // MPDSR — % of reported deaths audited
+    d5?: number; // Data systems — % of scoped facilities reporting
+    testedPct?: number; // HIV testing coverage for PBFW
+    artPct?: number; // ART initiation for HIV+ PBFW
+  }
+
+  const [liveByPartner, setLiveByPartner] = useState<
+    Record<string, LiveDomainScores>
+  >({});
+  const [liveLoaded, setLiveLoaded] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    setLiveLoaded(false);
+    Promise.all(
+      partners.map((p) =>
+        fetch(
+          `/api/khis?partner=${encodeURIComponent(
+            p.id,
+          )}&pe=${pe}&indicators=${KHIS_DOMAIN_DX}&reporting=1`,
+        )
+          .then((r) => (r.ok ? r.json() : null))
+          .catch(() => null),
+      ),
+    ).then((results) => {
+      if (cancelled) return;
+      const map: Record<string, LiveDomainScores> = {};
+      results.forEach((res, i) => {
+        const id = partners[i]?.id;
+        if (!id || !res?.indicators) return;
+        const ind = (key: string): number | null => {
+          const found = res.indicators.find(
+            (x: { id: string; value: number | null }) => x.id === key,
+          );
+          return found?.value ?? null;
+        };
+        const anc1 = ind("pmtct_anc1_visits");
+        const tested = ind("pmtct_initial_test");
+        const need = ind("pmtct_need");
+        const art = ind("pmtct_art");
+        const pnc = ind("pnc_48h_coverage");
+        const matRep = ind("maternal_deaths_reported");
+        const matAud = ind("maternal_deaths_audited");
+        const neoRep = ind("neonatal_deaths");
+        const neoAud = ind("neonatal_deaths_audited");
+
+        const s: LiveDomainScores = {};
+        const clampPct = (v: number) => Math.max(0, Math.min(100, v));
+        const testedPct =
+          anc1 != null && anc1 > 0 && tested != null
+            ? clampPct((tested / anc1) * 100)
+            : null;
+        const artPct =
+          need != null && need > 0 && art != null
+            ? clampPct((art / need) * 100)
+            : null;
+        if (testedPct != null) s.testedPct = Math.round(testedPct);
+        if (artPct != null) s.artPct = Math.round(artPct);
+        const d1Parts = [testedPct, artPct].filter(
+          (v): v is number => v != null,
+        );
+        if (d1Parts.length > 0) {
+          s.d1 = Math.round(
+            d1Parts.reduce((a, b) => a + b, 0) / d1Parts.length,
+          );
+        }
+        // pnc_48h_coverage is a % per facility; summed across a roster it
+        // exceeds 100 and is meaningless — only trust it as a live score when
+        // the scoped rollup is a genuine 0–100 value (county-level scope).
+        if (pnc != null && pnc >= 0 && pnc <= 100) s.d2 = Math.round(pnc);
+        const audited: number[] = [];
+        if (matRep != null && matRep > 0 && matAud != null)
+          audited.push(clampPct((matAud / matRep) * 100));
+        if (neoRep != null && neoRep > 0 && neoAud != null)
+          audited.push(clampPct((neoAud / neoRep) * 100));
+        if (audited.length > 0) {
+          s.d4 = Math.round(
+            audited.reduce((a, b) => a + b, 0) / audited.length,
+          );
+        }
+        const reportingRow = res.reporting?.find(
+          (x: { id: string; facilities: number }) =>
+            x.id === "pmtct_anc1_visits",
+        );
+        if (reportingRow?.facilities != null && res.ouCount > 0) {
+          s.d5 = Math.round(
+            clampPct((reportingRow.facilities / res.ouCount) * 100),
+          );
+        }
+        map[id] = s;
+      });
+      if (!cancelled) {
+        setLiveByPartner(map);
+        setLiveLoaded(true);
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [partners, pe]);
 
   // Domain 3 readiness per partner — computed live from entered assessments
   // scoped to the partner's counties.
@@ -1002,24 +1319,43 @@ export function HomeTab() {
     () =>
       partners.map((p) => {
         const s = PARTNER_DOMAIN_SCORES[p.id];
+        const l = liveByPartner[p.id] ?? {};
         const d3 = readinessByPartner[p.id];
-        const domains: (number | null)[] = [s.d1, s.d2, d3.avg, s.d4, s.d5];
-        const available = domains.filter(
-          (v): v is number => v !== null && !Number.isNaN(v),
-        );
+        // Nuru Ya Mtoto has no facility roster yet — a KHIS county-level scope
+        // would overstate support because they do not serve every facility in
+        // the county. Mark the row PENDING and default all domains to 0 until
+        // the facility list is loaded.
+        const pending = p.id === "nuru-ya-mtoto";
+        const domains: (number | null)[] = pending
+          ? [0, 0, 0, 0, 0]
+          : [l.d1 ?? s.d1, l.d2 ?? s.d2, d3.avg, l.d4 ?? s.d4, l.d5 ?? s.d5];
+        const live: boolean[] = pending
+          ? [false, false, false, false, false]
+          : [l.d1 != null, l.d2 != null, false, l.d4 != null, l.d5 != null];
+        const available = pending
+          ? []
+          : domains.filter((v): v is number => v !== null && !Number.isNaN(v));
         const overall =
           available.length > 0
             ? available.reduce((a, b) => a + b, 0) / available.length
-            : null;
-        return { partner: p, domains, overall, d3Count: d3.count };
+            : 0;
+        return {
+          partner: p,
+          domains,
+          live,
+          overall,
+          d3Count: d3.count,
+          pending,
+        };
       }),
-    [partners, readinessByPartner],
+    [partners, readinessByPartner, liveByPartner],
   );
 
   const columnAverages = useMemo(
     () =>
       DOMAIN_COLUMNS.map((_col, idx) => {
         const values = rows
+          .filter((r) => !r.pending)
           .map((r) => r.domains[idx])
           .filter((v): v is number => v !== null && !Number.isNaN(v));
         return values.length > 0
@@ -1042,46 +1378,71 @@ export function HomeTab() {
   // 5-domain scores (d3 computed live from county-scoped assessments).
   const countyRows = useMemo(
     () =>
-      partners.map((p) => ({
-        partner: p,
-        counties: p.counties.map((county) => {
-          const c = COUNTY_DOMAIN_SCORES[county] ?? {
-            d1: null,
-            d2: null,
-            d4: null,
-            d5: null,
-          };
-          const d3 = readinessForCounties(allAssessments, [county]);
-          const domains: (number | null)[] = [c.d1, c.d2, d3.avg, c.d4, c.d5];
-          const available = domains.filter(
-            (v): v is number => v !== null && !Number.isNaN(v),
-          );
-          const overall =
-            available.length > 0
-              ? available.reduce((a, b) => a + b, 0) / available.length
-              : null;
-          return { name: county, domains, overall, d3Count: d3.count };
-        }),
-      })),
+      partners.map((p) => {
+        const pending = p.id === "nuru-ya-mtoto";
+        return {
+          partner: p,
+          pending,
+          counties: p.counties.map((county) => {
+            const c = COUNTY_DOMAIN_SCORES[county] ?? {
+              d1: null,
+              d2: null,
+              d4: null,
+              d5: null,
+            };
+            const d3 = readinessForCounties(allAssessments, [county]);
+            const domains: (number | null)[] = pending
+              ? [0, 0, 0, 0, 0]
+              : [c.d1, c.d2, d3.avg, c.d4, c.d5];
+            const available = pending
+              ? []
+              : domains.filter(
+                  (v): v is number => v !== null && !Number.isNaN(v),
+                );
+            const overall =
+              available.length > 0
+                ? available.reduce((a, b) => a + b, 0) / available.length
+                : 0;
+            return { name: county, domains, overall, d3Count: d3.count };
+          }),
+        };
+      }),
     [partners, allAssessments],
   );
 
   // §5.3 — VTP QoC per partner, each indicator compared across its counties.
+  // Rows 2 (HIV testing) & 3 (ART initiation) use live KHIS partner values
+  // as the base when reported; all other rows use the KHIS/EMR baseline.
   const vtpByPartner = useMemo(
     () =>
-      partners.map((p) => ({
-        partner: p,
-        rows: VTP_QOC.map((ind, idx) => ({
-          label: ind.short,
-          full: ind.label,
-          target: ind.target,
-          values: p.counties.map((county) => ({
-            county,
-            value: countyVtpValue(ind.current, county, p.id, idx),
-          })),
-        })),
-      })),
-    [partners],
+      partners.map((p) => {
+        const l = liveByPartner[p.id] ?? {};
+        const pending = p.id === "nuru-ya-mtoto";
+        return {
+          partner: p,
+          pending,
+          rows: VTP_QOC.map((ind, idx) => {
+            const liveBase =
+              idx === 1 && l.testedPct != null
+                ? l.testedPct
+                : idx === 2 && l.artPct != null
+                  ? l.artPct
+                  : null;
+            return {
+              label: ind.short,
+              full: ind.label,
+              target: ind.target,
+              values: p.counties.map((county) => ({
+                county,
+                value: pending
+                  ? 0
+                  : countyVtpValue(liveBase ?? ind.current, county, p.id, idx),
+              })),
+            };
+          }),
+        };
+      }),
+    [partners, liveByPartner],
   );
 
   // §5.4 — Safe systems per partner, each enabler compared across counties.
@@ -1089,8 +1450,10 @@ export function HomeTab() {
     () =>
       partners.map((p) => {
         const pD3 = readinessByPartner[p.id].avg;
+        const pending = p.id === "nuru-ya-mtoto";
         return {
           partner: p,
+          pending,
           rows: SAFE_SYSTEMS.map((ind, idx) => ({
             label: ind.short,
             full: ind.label,
@@ -1098,7 +1461,9 @@ export function HomeTab() {
             values: p.counties.map((county) => {
               const cD3 = readinessForCounties(allAssessments, [county]).avg;
               let value: number;
-              if (pD3 !== null && cD3 !== null && pD3 > 0) {
+              if (pending) {
+                value = 0;
+              } else if (pD3 !== null && cD3 !== null && pD3 > 0) {
                 value = Math.max(
                   0,
                   Math.min(
@@ -1130,6 +1495,11 @@ export function HomeTab() {
 
   return (
     <div className="space-y-6">
+      <AIAssistant
+        chartContext={activeChart}
+        onSaveToPlayground={addChartToPlayground}
+      />
+
       {/* Theory of Change — §2 */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
         {TOC_STEPS.map((s, i) => {
@@ -1194,58 +1564,95 @@ export function HomeTab() {
           </span>
         </div>
         <div className="px-6 pb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-          {CORE_IMPACT.map((c) => (
-            <div
-              key={c.key}
-              className={`rounded-xl border p-4 bg-gradient-to-br ${c.gradient}`}
-            >
-              <div className="flex items-center justify-between">
-                <p className="text-xs font-bold text-gray-600 uppercase tracking-wide">
-                  {c.key}
+          {CORE_IMPACT.map((c) => {
+            const liveNow =
+              c.key === "MMR"
+                ? livePillars.mmr
+                : c.key === "NMR"
+                  ? livePillars.nmr
+                  : c.key === "SB"
+                    ? livePillars.sbr
+                    : undefined;
+            return (
+              <div
+                key={c.key}
+                className={`rounded-xl border p-4 bg-gradient-to-br ${c.gradient}`}
+              >
+                <div className="flex items-center justify-between">
+                  <p className="text-xs font-bold text-gray-600 uppercase tracking-wide">
+                    {c.key}
+                  </p>
+                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-white/80 text-gray-600 border border-white">
+                    2028 target
+                  </span>
+                </div>
+                <p className="text-sm font-semibold text-gray-800 mt-1">
+                  {c.label}
                 </p>
-                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-white/80 text-gray-600 border border-white">
-                  2028 target
-                </span>
+                <div className="flex items-end gap-2 mt-3">
+                  <p className={`text-3xl font-extrabold ${c.ring}`}>
+                    {c.target}
+                  </p>
+                  <p className="text-xs text-gray-500 pb-1">{c.unit}</p>
+                </div>
+                <div className="flex items-center gap-2 mt-3 text-xs text-gray-600">
+                  <span className="px-2 py-1 rounded-md bg-white/70 border border-slate-200 font-semibold">
+                    Baseline {c.baseline}
+                  </span>
+                  <ArrowRight className="w-3.5 h-3.5 text-slate-400" />
+                  <span className="px-2 py-1 rounded-md bg-white/70 border border-slate-200 font-semibold">
+                    {c.target}
+                  </span>
+                </div>
+                {liveNow != null && (
+                  <p className="text-[11px] mt-2 font-semibold text-rose-600">
+                    ● Now (KHIS {peLabel}): {liveNow}
+                  </p>
+                )}
+                <p className="text-[11px] mt-3 text-gray-500">{c.note}</p>
               </div>
-              <p className="text-sm font-semibold text-gray-800 mt-1">
-                {c.label}
-              </p>
-              <div className="flex items-end gap-2 mt-3">
-                <p className={`text-3xl font-extrabold ${c.ring}`}>
-                  {c.target}
-                </p>
-                <p className="text-xs text-gray-500 pb-1">{c.unit}</p>
-              </div>
-              <div className="flex items-center gap-2 mt-3 text-xs text-gray-600">
-                <span className="px-2 py-1 rounded-md bg-white/70 border border-slate-200 font-semibold">
-                  Baseline {c.baseline}
-                </span>
-                <ArrowRight className="w-3.5 h-3.5 text-slate-400" />
-                <span className="px-2 py-1 rounded-md bg-white/70 border border-slate-200 font-semibold">
-                  {c.target}
-                </span>
-              </div>
-              <p className="text-[11px] mt-3 text-gray-500">{c.note}</p>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 
       {/* EWENE 90:90:80:80 Pillars — §5.2 */}
       <div className="bg-white rounded-lg border border-slate-200 overflow-hidden">
-        <div className="px-6 pt-5 pb-3">
-          <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-            <TrendingUp className="w-5 h-5 text-teal-600" />
-            EWENE 90:90:80:80 Pillar Status
-          </h3>
-          <p className="text-sm text-gray-500 mt-0.5">
-            Four coverage pillars — current reported vs 2028 target (§5.2).
-          </p>
+        <div className="px-6 pt-5 pb-3 flex items-center justify-between flex-wrap gap-2">
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+              <TrendingUp className="w-5 h-5 text-teal-600" />
+              EWENE 90:90:80:80 Pillar Status
+            </h3>
+            <p className="text-sm text-gray-500 mt-0.5">
+              Four coverage pillars — current reported vs 2028 target (§5.2).
+            </p>
+          </div>
+          <span
+            className={`text-xs font-medium px-2.5 py-1 rounded-full border ${
+              livePillars.anyLive
+                ? "bg-teal-50 text-teal-700 border-teal-200"
+                : "bg-slate-100 text-slate-600 border-slate-200"
+            }`}
+          >
+            {livePillars.anyLive
+              ? `Live · KHIS ${peLabel} · ${getPartner(filter.partner)?.shortName ?? filter.partner}${filter.county ? ` · ${filter.county}` : ""}`
+              : "Baseline (national)"}
+          </span>
         </div>
         <div className="px-6 pb-6 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
           {PILLARS.map((p) => {
-            const tone = targetTone(p.current / p.target);
-            const pct = Math.min(100, (p.current / p.target) * 100);
+            const liveVal =
+              p.label === "ANC Coverage"
+                ? livePillars.anc
+                : p.label === "Skilled Delivery"
+                  ? livePillars.sba
+                  : p.label === "Early PNC"
+                    ? livePillars.pncM
+                    : livePillars.pncI;
+            const current = liveVal ?? p.current;
+            const tone = targetTone(current / p.target);
+            const pct = Math.min(100, (current / p.target) * 100);
             return (
               <div
                 key={p.label}
@@ -1258,7 +1665,7 @@ export function HomeTab() {
                 <p className="text-xs text-gray-500 mt-0.5">{p.indicator}</p>
                 <div className="flex items-end gap-1.5 mt-3">
                   <p className="text-3xl font-extrabold text-gray-900">
-                    {p.current}%
+                    {current}%
                   </p>
                   <p className="text-xs text-gray-500 pb-1">
                     target ≥ {p.target}%
@@ -1276,6 +1683,11 @@ export function HomeTab() {
                   <span className={`w-1.5 h-1.5 rounded-full ${tone.dot}`} />
                   {tone.label}
                 </p>
+                {liveVal != null && (
+                  <p className="text-[10px] mt-1 text-teal-600 font-semibold">
+                    ● Live KHIS
+                  </p>
+                )}
               </div>
             );
           })}
@@ -1300,11 +1712,15 @@ export function HomeTab() {
           </span>
         </div>
         <div className="px-6 pb-6 space-y-5">
-          {vtpByPartner.map(({ partner, rows }) => (
+          {vtpByPartner.map(({ partner, rows, pending }) => (
             <PartnerIndicatorChart
               key={partner.id}
               title={partner.name}
-              subtitle={`${partner.counties.length} counties · 9 VTP indicators vs ≥95% target`}
+              subtitle={
+                pending
+                  ? "facility list not yet loaded — VTP scores default to 0"
+                  : `${partner.counties.length} counties · 9 VTP indicators vs ≥95% target`
+              }
               rows={rows}
               counties={partner.counties}
             />
@@ -1331,11 +1747,15 @@ export function HomeTab() {
           </span>
         </div>
         <div className="px-6 pb-6 space-y-5">
-          {safeByPartner.map(({ partner, rows }) => (
+          {safeByPartner.map(({ partner, rows, pending }) => (
             <PartnerIndicatorChart
               key={partner.id}
               title={partner.name}
-              subtitle={`${partner.counties.length} counties · 5 systemic enablers vs ≥60–100% targets`}
+              subtitle={
+                pending
+                  ? "facility list not yet loaded — readiness scores default to 0"
+                  : `${partner.counties.length} counties · 5 systemic enablers vs ≥60–100% targets`
+              }
               rows={rows}
               counties={partner.counties}
             />
@@ -1382,7 +1802,8 @@ export function HomeTab() {
                 {avg === null ? "—" : `${avg.toFixed(1)}%`}
               </p>
               <p className="text-xs text-gray-500 mt-1">
-                All 7 partners · average of partner scores
+                All {rows.filter((r) => !r.pending).length} active partners ·
+                average of partner scores
               </p>
             </div>
           );
@@ -1397,7 +1818,8 @@ export function HomeTab() {
           </h3>
           <p className="text-sm text-gray-500 mt-1">
             Green ≥ 80% (on track) · Amber 60–79% (needs attention) · Red &lt;
-            60% (off track) · Gray — no data.
+            60% (off track) · Gray — no data. Amber “Pending” rows default to 0
+            until their facility list is loaded.
           </p>
         </div>
         <div className="overflow-x-auto">
@@ -1426,31 +1848,65 @@ export function HomeTab() {
                 return (
                   <tr key={r.partner.id} className="hover:bg-slate-50/60">
                     <td className="px-6 py-3">
-                      <p className="text-sm font-semibold text-gray-900">
-                        {r.partner.name}
-                      </p>
+                      <div className="flex items-center gap-2">
+                        <p className="text-sm font-semibold text-gray-900">
+                          {r.partner.name}
+                        </p>
+                        {r.pending && (
+                          <span
+                            title="No facility list loaded yet — KHIS county totals would overstate support because Nuru Ya Mtoto does not serve every facility in the county. Scores default to 0 until the roster is added."
+                            className="px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200 text-[10px] font-bold uppercase tracking-wide"
+                          >
+                            Pending
+                          </span>
+                        )}
+                      </div>
                       <p className="text-xs text-gray-500">
-                        {r.partner.counties.length} counties
-                        {r.d3Count > 0
-                          ? ` · ${r.d3Count} assessment${r.d3Count === 1 ? "" : "s"}`
-                          : ""}
+                        {r.pending
+                          ? "facility list not yet loaded — scores default to 0"
+                          : `${r.partner.counties.length} counties${r.d3Count > 0 ? ` · ${r.d3Count} assessment${r.d3Count === 1 ? "" : "s"}` : ""}`}
                       </p>
                     </td>
                     {r.domains.map((v, idx) => {
-                      const tone = scoreTone(v);
+                      const tone = r.pending ? scoreTone(null) : scoreTone(v);
+                      const isLive = r.live[idx];
                       return (
                         <td
                           key={DOMAIN_COLUMNS[idx].key}
-                          className={`px-4 py-3 text-center text-sm font-bold whitespace-nowrap ${tone.bg} ${tone.text}`}
+                          className={`px-4 py-3 text-center text-sm font-bold whitespace-nowrap ${tone.bg} ${tone.text} ${r.pending ? "opacity-70" : ""}`}
+                          title={
+                            r.pending
+                              ? "Pending — facility list not yet loaded"
+                              : undefined
+                          }
                         >
-                          {v === null ? "—" : `${v.toFixed(1)}%`}
+                          {r.pending
+                            ? "0.0%"
+                            : v === null
+                              ? "—"
+                              : `${v.toFixed(1)}%`}
+                          {isLive && (
+                            <span
+                              title="Live from KHIS (May 2026)"
+                              className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500 ml-1.5 align-middle"
+                            />
+                          )}
                         </td>
                       );
                     })}
                     <td
-                      className={`px-4 py-3 text-center text-sm font-bold whitespace-nowrap ${overallTone.bg} ${overallTone.text}`}
+                      className={`px-4 py-3 text-center text-sm font-bold whitespace-nowrap ${overallTone.bg} ${overallTone.text} ${r.pending ? "opacity-70" : ""}`}
+                      title={
+                        r.pending
+                          ? "Pending — facility list not yet loaded"
+                          : undefined
+                      }
                     >
-                      {r.overall === null ? "—" : `${r.overall.toFixed(1)}%`}
+                      {r.pending
+                        ? "0.0%"
+                        : r.overall === null
+                          ? "—"
+                          : `${r.overall.toFixed(1)}%`}
                     </td>
                   </tr>
                 );
@@ -1475,6 +1931,7 @@ export function HomeTab() {
                 <td className="px-4 py-3 text-center text-sm font-bold whitespace-nowrap bg-white">
                   {(() => {
                     const values = rows
+                      .filter((r) => !r.pending)
                       .map((r) => r.overall)
                       .filter((v): v is number => v !== null);
                     return values.length
@@ -1487,9 +1944,15 @@ export function HomeTab() {
           </table>
         </div>
         <div className="px-6 pb-5 pt-2 text-xs text-gray-500">
-          Domain 3 (Readiness) is computed live from entered facility
-          assessments (N/A excluded); Domains 1, 2, 4 &amp; 5 are
-          KHIS/EMR-illustrative baselines pending live data entry.
+          <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5 align-middle" />
+          live from national KHIS (May 2026) where reported — falls back to the
+          KHIS/EMR baseline constant when a domain has no KHIS value. Domain 3
+          (Readiness) is computed live from entered facility assessments (N/A
+          excluded) and is never sourced from KHIS.
+          {!liveLoaded && " Loading live KHIS domain scores…"} Nuru Ya Mtoto is{" "}
+          <span className="font-semibold text-amber-600">pending</span> — no
+          facility list is loaded yet, so its scores default to 0 until the
+          roster is added.
         </div>
       </div>
 
@@ -1522,14 +1985,27 @@ export function HomeTab() {
               key={group.partner.id}
               className="bg-white rounded-lg p-6 border border-slate-200"
             >
-              <div className="mb-5">
-                <h4 className="font-semibold text-gray-900">
-                  {group.partner.name}
-                </h4>
-                <p className="text-sm text-gray-500">
-                  {group.partner.counties.length} counties · comparing each
-                  domain across counties
-                </p>
+              <div className="mb-5 flex items-start justify-between gap-3 flex-wrap">
+                <div>
+                  <h4 className="font-semibold text-gray-900 flex items-center gap-2">
+                    {group.partner.name}
+                    {group.pending && (
+                      <span className="px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200 text-[10px] font-bold uppercase tracking-wide">
+                        Pending
+                      </span>
+                    )}
+                  </h4>
+                  <p className="text-sm text-gray-500">
+                    {group.pending
+                      ? "facility list not yet loaded — county scores default to 0"
+                      : `${group.partner.counties.length} counties · comparing each domain across counties`}
+                  </p>
+                </div>
+                <ViewDataButton
+                  title={`${group.partner.name} — Domain Scores by County`}
+                  data={data}
+                  note="% per domain per county (— = no data)"
+                />
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
                 {BAR_SERIES.map((s) => (
@@ -1601,12 +2077,21 @@ export function HomeTab() {
 
       {/* Overall score by partner */}
       <div className="bg-white rounded-lg p-6 border border-slate-200">
-        <h3 className="text-lg font-semibold text-gray-900 mb-1">
-          Overall 5-Domain Score by Partner
-        </h3>
-        <p className="text-sm text-gray-500 mb-4">
-          Average of the five domain scores per implementing partner.
-        </p>
+        <div className="flex flex-wrap items-start justify-between gap-3 mb-1">
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900">
+              Overall 5-Domain Score by Partner
+            </h3>
+            <p className="text-sm text-gray-500">
+              Average of the five domain scores per implementing partner.
+            </p>
+          </div>
+          <ViewDataButton
+            title="Overall 5-Domain Score by Partner"
+            data={overallChartData}
+            note="overall % = average of available domain scores"
+          />
+        </div>
         <ResponsiveContainer width="100%" height={300}>
           <BarChart
             data={overallChartData}
@@ -1782,7 +2267,11 @@ export function HomeTab() {
 // Domains — replica of the Home tab, with full per-domain subtabs
 // ---------------------------------------------------------------------------
 
-export function DomainsTab() {
+export function DomainsTab({
+  onSaveToPlayground,
+}: {
+  onSaveToPlayground?: (chart: ChartInsight) => void;
+}) {
   const [activeSubtab, setActiveSubtab] = useState("1");
 
   const subtabs = [
@@ -1816,10 +2305,14 @@ export function DomainsTab() {
         })}
       </div>
 
-      {activeSubtab === "1" && <ClinicalTab />}
+      {activeSubtab === "1" && (
+        <ClinicalTab onSaveToPlayground={onSaveToPlayground} />
+      )}
       {activeSubtab === "2" && <CoverageSection />}
       {activeSubtab === "3" && <ReadinessSection />}
-      {activeSubtab === "4" && <MpdsrSection />}
+      {activeSubtab === "4" && (
+        <MpdsrSection onSaveToPlayground={onSaveToPlayground} />
+      )}
       {activeSubtab === "5" && <DataSystemsSection />}
     </div>
   );
@@ -1890,14 +2383,168 @@ function SubtabKpi({
 // 2. Coverage — EWENE 90:90:80:80
 // ---------------------------------------------------------------------------
 
+// Live KHIS county coverage — Jamii Tekelezi counties (pe 202505).
+const JT_COVERAGE_COUNTIES = ["Embu", "Tharaka-Nithi", "Meru", "Nyandarua"];
+
+// Fallback values used while KHIS loads or on failure (prior baselines).
+const COUNTY_COVERAGE_FALLBACK: Record<
+  string,
+  { anc4: number; sba: number; pnc: number }
+> = {
+  Embu: { anc4: 58, sba: 84, pnc: 72 },
+  "Tharaka-Nithi": { anc4: 51, sba: 76, pnc: 64 },
+  Meru: { anc4: 55, sba: 80, pnc: 69 },
+  Nyandarua: { anc4: 47, sba: 71, pnc: 60 },
+};
+
+interface CountyCoverageLive {
+  anc4Pct?: number;
+  sba?: number;
+  pnc?: number;
+  pncInfant?: number;
+  kmc?: number;
+  chlorhexidine?: number;
+  stillbirths?: number;
+  mmr?: number;
+}
+
 function CoverageSection() {
-  // County-level coverage — Jamii Tekelezi counties (KHIS-illustrative).
-  const countyCoverageData = [
-    { name: "Embu", anc4: 58, sba: 84, pnc: 72 },
-    { name: "Tharaka-Nithi", anc4: 51, sba: 76, pnc: 64 },
-    { name: "Meru", anc4: 55, sba: 80, pnc: 69 },
-    { name: "Nyandarua", anc4: 47, sba: 71, pnc: 60 },
-  ];
+  const { filter, pe, peLabel } = useGeoFilter();
+  // Scope the county strip to the CURRENT partner — when a specific county is
+  // selected in the filter bar, only that county shows.
+  const counties = useMemo(() => {
+    const base =
+      PARTNER_COUNTIES[filter.partner]?.length > 0
+        ? PARTNER_COUNTIES[filter.partner]
+        : JT_COVERAGE_COUNTIES;
+    return filter.county ? [filter.county] : base;
+  }, [filter.partner, filter.county]);
+
+  const partnerLabel = useMemo(
+    () => getPartner(filter.partner)?.shortName ?? "Partner",
+    [filter.partner],
+  );
+
+  const [coverage, setCoverage] = useState<Record<
+    string,
+    CountyCoverageLive
+  > | null>(null);
+  const [coverageLoading, setCoverageLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    setCoverageLoading(true);
+    Promise.all(
+      counties.map((c) =>
+        fetch(
+          `/api/khis?county=${encodeURIComponent(
+            c,
+          )}&pe=${pe}&indicators=anc4_visits,anc1_4_dropout,sba_pct_live,pnc_48h_mother,pnc_48h_infant,kmc,chlorhexidine,stillbirths,mmr`,
+        )
+          .then((r) => (r.ok ? r.json() : null))
+          .catch(() => null),
+      ),
+    ).then((results) => {
+      if (cancelled) return;
+      const map: Record<string, CountyCoverageLive> = {};
+      results.forEach((res, i) => {
+        const name = counties[i];
+        if (!name || !res?.indicators) return;
+        const ind = (key: string): number | null => {
+          const found = res.indicators.find(
+            (x: { id: string; value: number | null }) => x.id === key,
+          );
+          return found?.value ?? null;
+        };
+        const r1 = (v: number | null) =>
+          v != null ? Math.round(v * 10) / 10 : undefined;
+        const dropout = ind("anc1_4_dropout");
+        map[name] = {
+          anc4Pct:
+            dropout != null ? Math.round((100 - dropout) * 10) / 10 : undefined,
+          sba: r1(ind("sba_pct_live")),
+          pnc: r1(ind("pnc_48h_mother")),
+          pncInfant: r1(ind("pnc_48h_infant")),
+          kmc: ind("kmc") ?? undefined,
+          chlorhexidine: ind("chlorhexidine") ?? undefined,
+          stillbirths: ind("stillbirths") ?? undefined,
+          mmr: r1(ind("mmr")),
+        };
+      });
+      if (!cancelled) {
+        setCoverage(map);
+        setCoverageLoading(false);
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [counties, pe]);
+
+  // Partner-level live aggregates — average of reported counties (or sum of
+  // counts), falling back to the baseline constants when KHIS has no value.
+  const live = useMemo(() => {
+    if (!coverage) return null;
+    const rows = counties
+      .map((c) => coverage[c])
+      .filter((r): r is CountyCoverageLive => Boolean(r));
+    const avg = (key: "anc4Pct" | "sba" | "pnc" | "pncInfant" | "mmr") => {
+      const vals = rows
+        .map((r) => r[key])
+        .filter((v): v is number => v != null);
+      return vals.length
+        ? Math.round((vals.reduce((a, b) => a + b, 0) / vals.length) * 10) / 10
+        : undefined;
+    };
+    const sum = (key: "kmc" | "chlorhexidine" | "stillbirths") => {
+      const vals = rows
+        .map((r) => r[key])
+        .filter((v): v is number => v != null);
+      return vals.length ? vals.reduce((a, b) => a + b, 0) : undefined;
+    };
+    return {
+      anc4Pct: avg("anc4Pct"),
+      sba: avg("sba"),
+      pnc: avg("pnc"),
+      pncInfant: avg("pncInfant"),
+      kmc: sum("kmc"),
+      chlorhexidine: sum("chlorhexidine"),
+      stillbirths: sum("stillbirths"),
+      mmr: avg("mmr"),
+    };
+  }, [coverage, counties]);
+
+  const liveReady = live != null && Object.values(live).some((v) => v != null);
+  const liveSub = coverageLoading
+    ? "Loading KHIS…"
+    : liveReady
+      ? `Live · KHIS ${peLabel} · ${filter.county ? filter.county : partnerLabel}`
+      : "Baseline (national)";
+
+  // Live current values per indicator code (2.1–2.8) with baseline fallback.
+  const liveCurrent: Record<string, number> = {
+    "2.1": live?.anc4Pct ?? REPORTED_CURRENT["2.1"],
+    "2.2": live?.sba ?? REPORTED_CURRENT["2.2"],
+    "2.3": live?.pnc ?? REPORTED_CURRENT["2.3"],
+    "2.4": live?.pncInfant ?? REPORTED_CURRENT["2.4"],
+    "2.5": live?.kmc ?? REPORTED_CURRENT["2.5"],
+    "2.6": live?.chlorhexidine ?? REPORTED_CURRENT["2.6"],
+    "2.7": live?.stillbirths ?? REPORTED_CURRENT["2.7"],
+    "2.8": live?.mmr ?? REPORTED_CURRENT["2.8"],
+  };
+
+  const countyCoverageData = counties.map((name) => {
+    const c = coverage?.[name];
+    const fb =
+      COUNTY_COVERAGE_FALLBACK[name] ??
+      ({ anc4: 52, sba: 70, pnc: 66.6 } as const);
+    return {
+      name,
+      anc4: c?.anc4Pct ?? fb.anc4,
+      sba: c?.sba ?? fb.sba,
+      pnc: c?.pnc ?? fb.pnc,
+    };
+  });
 
   return (
     <div className="space-y-6">
@@ -1907,13 +2554,13 @@ function CoverageSection() {
           The coverage story: too many women fall out of the continuum
         </h3>
         <p className="text-sm mt-1 opacity-80">
-          Only <b>52%</b> of pregnant women reach 4+ ANC visits and <b>70%</b>{" "}
-          deliver with a skilled attendant — far short of the 90:90:80:80
-          ambition. Every missed ANC visit is a missed opportunity for HIV
-          testing, syphilis screening, and delivery planning; every
-          facility-only delivery is a risk for mother and baby. Closing the gap
-          means tracing each mother–baby pair from first contact through the
-          postnatal period.
+          Only <b>{live?.anc4Pct ?? 52}%</b> of pregnant women reach 4+ ANC
+          visits and <b>{live?.sba ?? 70}%</b> deliver with a skilled attendant
+          — far short of the 90:90:80:80 ambition. Every missed ANC visit is a
+          missed opportunity for HIV testing, syphilis screening, and delivery
+          planning; every facility-only delivery is a risk for mother and baby.
+          Closing the gap means tracing each mother–baby pair from first contact
+          through the postnatal period.
         </p>
       </div>
 
@@ -1922,30 +2569,30 @@ function CoverageSection() {
         <SubtabKpi
           code="2.1 · ANC 4+"
           title="4+ ANC Visits"
-          value="52%"
-          sub="Target ≥ 90% (Y2) · KHIS monthly"
-          tone={toneOf(52, 90)}
+          value={`${live?.anc4Pct ?? 52}%`}
+          sub={`Target ≥ 90% (Y2) · ${liveSub}`}
+          tone={toneOf(live?.anc4Pct ?? 52, 90)}
         />
         <SubtabKpi
           code="2.2 · SBA"
           title="Skilled Birth Attendance"
-          value="70%"
-          sub="Target ≥ 95% (Y2) · KHIS monthly"
-          tone={toneOf(70, 95)}
+          value={`${live?.sba ?? 70}%`}
+          sub={`Target ≥ 95% (Y2) · ${liveSub}`}
+          tone={toneOf(live?.sba ?? 70, 95)}
         />
         <SubtabKpi
           code="2.3 · PNC"
           title="Maternal PNC ≤ 48 hrs"
-          value="66.6%"
-          sub="Target ≥ 80% (Y2) · KHIS monthly"
-          tone={toneOf(66.6, 80)}
+          value={`${live?.pnc ?? 66.6}%`}
+          sub={`Target ≥ 80% (Y2) · ${liveSub}`}
+          tone={toneOf(live?.pnc ?? 66.6, 80)}
         />
         <SubtabKpi
           code="2.4 · Newborn PNC"
           title="Newborn PNC ≤ 48 hrs"
-          value="68.4%"
-          sub="Target ≥ 80% (Y2) · KHIS monthly"
-          tone={toneOf(68.4, 80)}
+          value={`${live?.pncInfant ?? 68.4}%`}
+          sub={`Target ≥ 80% (Y2) · ${liveSub}`}
+          tone={toneOf(live?.pncInfant ?? 68.4, 80)}
         />
       </div>
 
@@ -1973,9 +2620,22 @@ function CoverageSection() {
 
       {/* County aspects — where the gaps are biggest */}
       <div className="bg-white rounded-lg p-6 border border-slate-200">
-        <h3 className="text-lg font-semibold text-gray-900 mb-1">
-          Coverage by County — Jamii Tekelezi
-        </h3>
+        <div className="flex flex-wrap items-center justify-between gap-2 mb-1">
+          <h3 className="text-lg font-semibold text-gray-900">
+            Coverage by County — {partnerLabel}
+            {filter.county ? ` · ${filter.county}` : ""}
+          </h3>
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="px-2.5 py-1 rounded-full bg-teal-50 text-teal-700 border border-teal-200 text-xs font-semibold whitespace-nowrap">
+              {liveSub}
+            </span>
+            <ViewDataButton
+              title={`Coverage by County — ${partnerLabel}`}
+              data={countyCoverageData}
+              note={`${liveSub} · % of eligible women (county-level average)`}
+            />
+          </div>
+        </div>
         <p className="text-sm text-gray-500 mb-4">
           ANC 4+, skilled birth attendance and early PNC differ widely by county
           — targeting the laggards is where the biggest gains lie.
@@ -2018,7 +2678,7 @@ function CoverageSection() {
             <IndicatorBar
               key={ind.code}
               indicator={ind}
-              current={REPORTED_CURRENT[ind.code] ?? 0}
+              current={liveCurrent[ind.code] ?? 0}
             />
           ))}
         </div>
@@ -2393,14 +3053,78 @@ function ReadinessSection() {
 // 4. MPDSR & Accountability
 // ---------------------------------------------------------------------------
 
-function MpdsrSection() {
+function MpdsrSection({
+  onSaveToPlayground,
+}: {
+  onSaveToPlayground?: (chart: ChartInsight) => void;
+}) {
+  const { filter, pe, peLabel } = useGeoFilter();
+  const partner = filter.partner || "jamii-tekelezi";
+  const mpdsr = useKhis({
+    partner,
+    pe,
+    indicators: [
+      "maternal_deaths_reported",
+      "maternal_deaths_audited",
+      "neonatal_deaths",
+      "neonatal_deaths_audited",
+    ],
+    county: filter.county || undefined,
+    subCounty: filter.subCounty || undefined,
+    facility: filter.facility || undefined,
+  });
+  const matAudPct =
+    mpdsr.value("maternal_deaths_reported") &&
+    mpdsr.value("maternal_deaths_audited") != null &&
+    mpdsr.value("maternal_deaths_reported")! > 0
+      ? Math.round(
+          (mpdsr.value("maternal_deaths_audited")! /
+            mpdsr.value("maternal_deaths_reported")!) *
+            100,
+        )
+      : null;
+  const neoAudPct =
+    mpdsr.value("neonatal_deaths") &&
+    mpdsr.value("neonatal_deaths_audited") != null &&
+    mpdsr.value("neonatal_deaths")! > 0
+      ? Math.round(
+          (mpdsr.value("neonatal_deaths_audited")! /
+            mpdsr.value("neonatal_deaths")!) *
+            100,
+        )
+      : null;
+
+  // KHIS answered but reported ZERO deaths for this period/scope — show "—"
+  // instead of the illustrative 88%/74% baselines (they would read as data).
+  const mpdsrNoData =
+    !!mpdsr.data &&
+    !mpdsr.loading &&
+    !mpdsr.error &&
+    matAudPct == null &&
+    neoAudPct == null;
+
   const chartData = [
-    { name: "Maternal deaths audited", current: 88, target: 100 },
-    { name: "Neonatal deaths audited", current: 74, target: 100 },
-    { name: "Monthly MPDSR/QI meetings", current: 67, target: 100 },
-    { name: "Recommendations implemented", current: 55, target: 90 },
-    { name: "PPH Treatment Skills", current: 40, target: 70 },
-    { name: "Asphyxia Treatment Skills", current: 36, target: 65 },
+    {
+      name: "Maternal deaths audited",
+      current: matAudPct ?? 88,
+      target: 100,
+      est: matAudPct == null,
+    },
+    {
+      name: "Neonatal deaths audited",
+      current: neoAudPct ?? 74,
+      target: 100,
+      est: neoAudPct == null,
+    },
+    { name: "Monthly MPDSR/QI meetings", current: 67, target: 100, est: true },
+    {
+      name: "Recommendations implemented",
+      current: 55,
+      target: 90,
+      est: true,
+    },
+    { name: "PPH Treatment Skills", current: 40, target: 70, est: true },
+    { name: "Asphyxia Treatment Skills", current: 36, target: 65, est: true },
   ];
 
   // County MPDSR performance — Jamii Tekelezi counties (illustrative).
@@ -2422,6 +3146,24 @@ function MpdsrSection() {
     { name: "Other", maternal: 9, neonatal: 10 },
   ];
 
+  const auditedBadge = mpdsr.loading ? (
+    <span className="px-2 py-1 rounded-md bg-amber-50 text-amber-700 text-xs font-bold">
+      Loading KHIS…
+    </span>
+  ) : matAudPct != null || neoAudPct != null ? (
+    <span className="px-2 py-1 rounded-md bg-emerald-50 text-emerald-700 text-xs font-bold">
+      Live · KHIS · {mpdsr.data?.scope} · {mpdsr.data?.peLabel}
+    </span>
+  ) : mpdsrNoData ? (
+    <span className="px-2 py-1 rounded-md bg-amber-50 text-amber-700 text-xs font-bold">
+      No KHIS deaths reported for {peLabel} in this scope
+    </span>
+  ) : (
+    <span className="px-2 py-1 rounded-md bg-slate-100 text-slate-600 text-xs font-bold">
+      Illustrative baselines — no KHIS deaths reported for this scope
+    </span>
+  );
+
   return (
     <div className="space-y-6">
       {/* Story banner — audit is the accountability engine */}
@@ -2439,35 +3181,54 @@ function MpdsrSection() {
       </div>
 
       {/* Subtab KPI strip — Domain 4 headline indicators */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <SubtabKpi
-          code="4.1 · MPDSR"
-          title="Maternal Deaths Audited"
-          value="88%"
-          sub="Target 100% · KHIS monthly"
-          tone={toneOf(88, 100)}
-        />
-        <SubtabKpi
-          code="4.2 · MPDSR"
-          title="Neonatal Deaths Audited"
-          value="74%"
-          sub="Target 100% (Y2) · KHIS monthly"
-          tone={toneOf(74, 100)}
-        />
-        <SubtabKpi
-          code="4.3 · Reviews"
-          title="Monthly MPDSR/QI Meetings"
-          value="67%"
-          sub="Target 100% · county records"
-          tone={toneOf(67, 100)}
-        />
-        <SubtabKpi
-          code="4.4 · Action"
-          title="Recommendations Implemented"
-          value="55%"
-          sub="Target ≥ 90% (Y2) · action tracker"
-          tone={toneOf(55, 90)}
-        />
+      <div className="flex items-start justify-between gap-3">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 flex-1">
+          <SubtabKpi
+            code="4.1 · MPDSR"
+            title="Maternal Deaths Audited"
+            value={
+              mpdsrNoData ? "—" : matAudPct != null ? `${matAudPct}%` : "88%"
+            }
+            sub={
+              matAudPct != null
+                ? `KHIS · ${mpdsr.value("maternal_deaths_audited")} of ${mpdsr.value("maternal_deaths_reported")} audited`
+                : mpdsrNoData
+                  ? "no KHIS deaths reported this period"
+                  : "Target 100% · KHIS monthly (est.)"
+            }
+            tone={toneOf(mpdsrNoData ? 0 : (matAudPct ?? 88), 100)}
+          />
+          <SubtabKpi
+            code="4.2 · MPDSR"
+            title="Neonatal Deaths Audited"
+            value={
+              mpdsrNoData ? "—" : neoAudPct != null ? `${neoAudPct}%` : "74%"
+            }
+            sub={
+              neoAudPct != null
+                ? `KHIS · ${mpdsr.value("neonatal_deaths_audited")} of ${mpdsr.value("neonatal_deaths")} audited`
+                : mpdsrNoData
+                  ? "no KHIS deaths reported this period"
+                  : "Target 100% (Y2) · KHIS monthly (est.)"
+            }
+            tone={toneOf(mpdsrNoData ? 0 : (neoAudPct ?? 74), 100)}
+          />
+          <SubtabKpi
+            code="4.3 · Reviews"
+            title="Monthly MPDSR/QI Meetings"
+            value="67%"
+            sub="Target 100% · county records (est.)"
+            tone={toneOf(67, 100)}
+          />
+          <SubtabKpi
+            code="4.4 · Action"
+            title="Recommendations Implemented"
+            value="55%"
+            sub="Target ≥ 90% (Y2) · action tracker (est.)"
+            tone={toneOf(55, 90)}
+          />
+        </div>
+        {auditedBadge}
       </div>
 
       {/* Cause-of-death disaggregation — where deaths concentrate */}
@@ -2476,9 +3237,16 @@ function MpdsrSection() {
           <h3 className="text-lg font-semibold text-gray-900">
             Cause of Death Disaggregation (4.1 / 4.2)
           </h3>
-          <span className="px-2 py-1 rounded-md bg-rose-50 text-rose-700 text-xs font-bold">
-            Maternal vs neonatal — YTD
-          </span>
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="px-2 py-1 rounded-md bg-slate-100 text-slate-600 text-xs font-bold">
+              Illustrative — cause-of-death is not reported on KHIS monthly
+            </span>
+            <ViewDataButton
+              title="Cause of Death Disaggregation"
+              data={causeOfDeathData}
+              note="Illustrative — not available on KHIS"
+            />
+          </div>
         </div>
         <p className="text-sm text-gray-500 mb-4">
           The audit must name the cause before it can fix the system. PPH and
@@ -2510,12 +3278,24 @@ function MpdsrSection() {
 
       {/* Full Mortality & MPDSR content (KPI cards, deaths by facility,
           monthly trends, facility review list) */}
-      <MortalityTab />
+      <MortalityTab onSaveToPlayground={onSaveToPlayground} />
 
       <div className="bg-white rounded-lg p-6 border border-slate-200">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">
-          The MPDSR Audit Loop — % vs Target (4.1 – 4.6)
-        </h3>
+        <div className="flex flex-wrap items-center justify-between gap-2 mb-1">
+          <h3 className="text-lg font-semibold text-gray-900">
+            The MPDSR Audit Loop — % vs Target (4.1 – 4.6)
+          </h3>
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="px-2 py-1 rounded-md bg-slate-100 text-slate-600 text-xs font-bold">
+              Audited % live · remainder illustrative
+            </span>
+            <ViewDataButton
+              title="MPDSR Audit Loop — % vs Target"
+              data={chartData}
+              note={`${mpdsr.loading ? "Loading KHIS…" : matAudPct != null || neoAudPct != null ? `Live audit % · KHIS · ${mpdsr.data?.scope} · ${mpdsr.data?.peLabel}` : "Audit % illustrative — no KHIS deaths in scope"} · est = fallback`}
+            />
+          </div>
+        </div>
         <ResponsiveContainer width="100%" height={300}>
           <BarChart data={chartData} margin={{ left: 0, right: 12 }}>
             <CartesianGrid strokeDasharray="3 3" />
@@ -2548,9 +3328,21 @@ function MpdsrSection() {
 
       {/* County aspects — who audits and who meets */}
       <div className="bg-white rounded-lg p-6 border border-slate-200">
-        <h3 className="text-lg font-semibold text-gray-900 mb-1">
-          MPDSR by County — Jamii Tekelezi
-        </h3>
+        <div className="flex flex-wrap items-center justify-between gap-2 mb-1">
+          <h3 className="text-lg font-semibold text-gray-900 mb-1">
+            MPDSR by County — {partner}
+          </h3>
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="px-2 py-1 rounded-md bg-slate-100 text-slate-600 text-xs font-bold">
+              Illustrative — county registers, not on KHIS
+            </span>
+            <ViewDataButton
+              title={`MPDSR by County — ${partner}`}
+              data={countyMpdsrData}
+              note="Illustrative — county registers"
+            />
+          </div>
+        </div>
         <p className="text-sm text-gray-500 mb-4">
           % of deaths audited vs % of facilities holding monthly MPDSR/QI
           meetings, per county.
@@ -2579,9 +3371,14 @@ function MpdsrSection() {
       </div>
 
       <div className="bg-white rounded-lg p-6 border border-slate-200">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">
-          MPDSR &amp; Clinical Quality Indicators (4.1 – 4.8)
-        </h3>
+        <div className="flex flex-wrap items-center justify-between gap-2 mb-1">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">
+            MPDSR &amp; Clinical Quality Indicators (4.1 – 4.8)
+          </h3>
+          <span className="px-2 py-1 rounded-md bg-slate-100 text-slate-600 text-xs font-bold">
+            Illustrative baselines — EMR/registers
+          </span>
+        </div>
         <div className="space-y-5">
           {MPDSR_INDICATORS.map((ind) => (
             <IndicatorBar
@@ -2601,6 +3398,57 @@ function MpdsrSection() {
 // ---------------------------------------------------------------------------
 
 function DataSystemsSection() {
+  const { filter, pe, peLabel } = useGeoFilter();
+  const dCounties = useMemo(() => {
+    const base =
+      PARTNER_COUNTIES[filter.partner]?.length > 0
+        ? PARTNER_COUNTIES[filter.partner]
+        : JT_COVERAGE_COUNTIES;
+    return filter.county ? [filter.county] : base;
+  }, [filter.partner, filter.county]);
+  const dPartnerLabel = useMemo(
+    () => getPartner(filter.partner)?.shortName ?? "Partner",
+    [filter.partner],
+  );
+
+  // Live KHIS reporting rate per county: facilities that submitted the MOH
+  // 731 ANC row / total facilities in the county roster (May 2025).
+  const [khisByCounty, setKhisByCounty] = useState<Record<
+    string,
+    number
+  > | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    setKhisByCounty(null);
+    Promise.all(
+      dCounties.map((c) =>
+        fetch(
+          `/api/khis?county=${encodeURIComponent(c)}&pe=${pe}&indicators=pmtct_anc1_visits&reporting=1`,
+        )
+          .then((r) => (r.ok ? r.json() : null))
+          .catch(() => null),
+      ),
+    ).then((results) => {
+      if (cancelled) return;
+      const map: Record<string, number> = {};
+      results.forEach((res, i) => {
+        const name = dCounties[i];
+        if (!name || !res?.ouCount) return;
+        const row = res.reporting?.find(
+          (x: { id: string; facilities: number }) =>
+            x.id === "pmtct_anc1_visits",
+        );
+        if (row?.facilities != null && res.ouCount > 0) {
+          map[name] = Math.round((row.facilities / res.ouCount) * 100);
+        }
+      });
+      if (!cancelled) setKhisByCounty(map);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [dCounties, pe]);
+
   const flow = [
     {
       step: "Community",
@@ -2634,12 +3482,12 @@ function DataSystemsSection() {
     },
   ];
 
-  const countyDataData = [
-    { name: "Embu", khis: 92, emr: 78, dqa: 85 },
-    { name: "Tharaka-Nithi", khis: 84, emr: 62, dqa: 70 },
-    { name: "Meru", khis: 90, emr: 74, dqa: 82 },
-    { name: "Nyandarua", khis: 86, emr: 66, dqa: 72 },
-  ];
+  const countyDataData = dCounties.map((name) => ({
+    name,
+    khis: khisByCounty?.[name] ?? 0,
+    emr: 0,
+    dqa: 0,
+  }));
 
   // DQA measures (§5) — how data quality is assured.
   const dqaMeasures = [
@@ -2748,12 +3596,28 @@ function DataSystemsSection() {
 
       {/* County data systems */}
       <div className="bg-white rounded-lg p-6 border border-slate-200">
-        <h3 className="text-lg font-semibold text-gray-900 mb-1">
-          Data Systems by County — Jamii Tekelezi
-        </h3>
+        <div className="flex flex-wrap items-center justify-between gap-2 mb-1">
+          <h3 className="text-lg font-semibold text-gray-900 mb-1">
+            Data Systems by County — {dPartnerLabel}
+            {filter.county ? ` · ${filter.county}` : ""}
+          </h3>
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200 text-xs font-semibold whitespace-nowrap">
+              {khisByCounty
+                ? `Live · KHIS ${peLabel} · facilities submitting MOH 731`
+                : "Loading KHIS…"}
+            </span>
+            <ViewDataButton
+              title={`Data Systems by County — ${dPartnerLabel}`}
+              data={countyDataData}
+              note="KHIS = live facilities reporting MOH 731 · EMR & DQA = 0 (no source wired)"
+            />
+          </div>
+        </div>
         <p className="text-sm text-gray-500 mb-4">
-          Timely KHIS submission, active EMR capturing mother–baby pairs, and
-          monthly DQA — the three gears of a healthy data system.
+          Timely KHIS submission (facilities reporting the MOH 731 ANC row in{" "}
+          {peLabel}), active EMR capturing mother–baby pairs, and monthly DQA —
+          the three gears of a healthy data system.
         </p>
         <ResponsiveContainer width="100%" height={260}>
           <BarChart data={countyDataData} margin={{ left: 0, right: 12 }}>
@@ -2764,7 +3628,7 @@ function DataSystemsSection() {
             <Legend />
             <Bar
               dataKey="khis"
-              name="KHIS timely (%)"
+              name="KHIS reporting (%)"
               fill="#6366f1"
               radius={[4, 4, 0, 0]}
             />

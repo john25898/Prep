@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { Filter, RotateCcw } from "lucide-react";
+import { AlertTriangle, CalendarRange, Filter, RotateCcw } from "lucide-react";
 import { useGeoFilter } from "@/lib/geo-filter-context";
 import { useAssessments } from "@/lib/use-assessments";
 import {
@@ -11,7 +11,13 @@ import {
   getCountiesForPartner,
   PARTNERS,
   partnerOptionLabel,
+  type PeriodMode,
 } from "@/lib/geo";
+import {
+  hasFacilityRoster,
+  partnerFacilities,
+  partnerSubCounties,
+} from "@/lib/partners";
 
 const selectClass =
   "w-full px-3 py-2 border border-slate-300 rounded-lg text-gray-900 text-sm bg-white focus:ring-2 focus:ring-emerald-500 focus:border-transparent";
@@ -21,18 +27,54 @@ const selectClass =
  * Selecting a parent resets the children; charts re-render instantly.
  */
 export function GeoFilterBar() {
-  const { filter, setFilter, resetFilter } = useGeoFilter();
+  const { filter, setFilter, resetFilter, pe, peLabel, periodFuture } =
+    useGeoFilter();
   const assessments = useAssessments();
+
+  // KHIS can only have data for past/current months — cap the pickers at
+  // today so the native calendar UI can't offer future dates.
+  const today = new Date();
+  const maxMonth = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}`;
+  const maxDate = today.toISOString().slice(0, 10);
 
   const counties = useMemo(
     () => getCountiesForPartner(filter.partner),
     [filter.partner],
   );
 
-  const facilities = useMemo(
-    () => facilityOptions(assessments, filter),
-    [assessments, filter],
-  );
+  const subCounties = useMemo(() => {
+    if (hasFacilityRoster(filter.partner) && filter.county) {
+      return partnerSubCounties(filter.partner, filter.county);
+    }
+    return [];
+  }, [filter.partner, filter.county]);
+
+  const facilities = useMemo(() => {
+    // Partners with a facility roster (Excel) list their REAL facilities;
+    // partners without one fall back to facilities from entered assessments.
+    if (hasFacilityRoster(filter.partner)) {
+      const seen = new Set<string>();
+      return partnerFacilities(
+        filter.partner,
+        filter.county || undefined,
+        filter.subCounty || undefined,
+      )
+        .filter((f) => {
+          const key = f.name.trim().toLowerCase();
+          if (!key || seen.has(key)) return false;
+          seen.add(key);
+          return true;
+        })
+        .map((f) => ({
+          name: f.name,
+          mfl: "—",
+          county: f.county,
+          subCounty: f.subCounty,
+        }))
+        .sort((a, b) => a.name.localeCompare(b.name));
+    }
+    return facilityOptions(assessments, filter);
+  }, [assessments, filter]);
 
   const inScope = useMemo(
     () => assessments.filter((a) => geoMatches(a, filter)).length,
@@ -59,6 +101,7 @@ export function GeoFilterBar() {
             setFilter({
               partner: e.target.value,
               county: "",
+              subCounty: "",
               facility: "",
             })
           }
@@ -81,6 +124,7 @@ export function GeoFilterBar() {
           onChange={(e) =>
             setFilter({
               county: e.target.value,
+              subCounty: "",
               facility: "",
             })
           }
@@ -89,6 +133,32 @@ export function GeoFilterBar() {
           {counties.map((c) => (
             <option key={c} value={c}>
               {c}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <div className="w-44">
+        <label className="block text-xs font-medium text-gray-500 mb-1">
+          Sub-County
+        </label>
+        <select
+          className={selectClass}
+          value={filter.subCounty}
+          onChange={(e) =>
+            setFilter({
+              subCounty: e.target.value,
+              facility: "",
+            })
+          }
+          disabled={subCounties.length === 0}
+        >
+          <option value="">
+            {subCounties.length === 0 ? "All Sub-Counties" : "All Sub-Counties"}
+          </option>
+          {subCounties.map((s) => (
+            <option key={s} value={s}>
+              {s}
             </option>
           ))}
         </select>
@@ -107,7 +177,7 @@ export function GeoFilterBar() {
           <option value="">
             {facilities.length === 0
               ? "No facilities in scope"
-              : "All Facilities"}
+              : `All Facilities (${facilities.length})`}
           </option>
           {facilities.map((f) => (
             <option key={f.name} value={f.name}>
@@ -116,6 +186,120 @@ export function GeoFilterBar() {
             </option>
           ))}
         </select>
+      </div>
+
+      {/* ------------------------------------------------------------------
+        Period — single reporting month OR a multi-month range (e.g. quarter).
+        Month mode -> pe = "202505". Range mode -> pe = "202508;202509" (one
+        row per month; totals are summed across the whole range).
+      ------------------------------------------------------------------ */}
+      <div className="flex items-end gap-2 rounded-lg border border-slate-200 p-2 bg-white">
+        <div className="flex items-center gap-1.5 pr-1 pb-2">
+          <CalendarRange className="w-4 h-4 text-emerald-600" />
+          <span className="text-sm font-semibold text-gray-700">Period</span>
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-gray-500 mb-1">
+            Mode
+          </label>
+          <div className="flex rounded-lg border border-slate-300 overflow-hidden">
+            {(["month", "range"] as PeriodMode[]).map((m) => (
+              <button
+                key={m}
+                type="button"
+                onClick={() => setFilter({ periodMode: m })}
+                className={`px-3 py-2 text-xs font-semibold capitalize transition-colors ${
+                  filter.periodMode === m
+                    ? "bg-emerald-600 text-white"
+                    : "bg-white text-gray-600 hover:bg-slate-50"
+                }`}
+              >
+                {m === "month" ? "Month" : "Range"}
+              </button>
+            ))}
+          </div>
+        </div>
+        {filter.periodMode === "month" ? (
+          <div className="w-40">
+            <label className="block text-xs font-medium text-gray-500 mb-1">
+              Month
+            </label>
+            <input
+              type="month"
+              max={maxMonth}
+              className={selectClass}
+              value={filter.periodMonth}
+              onChange={(e) =>
+                setFilter({ periodMonth: e.target.value || "2025-05" })
+              }
+            />
+          </div>
+        ) : (
+          <>
+            <div className="w-36">
+              <label className="block text-xs font-medium text-gray-500 mb-1">
+                From
+              </label>
+              <input
+                type="date"
+                max={maxDate}
+                className={`${selectClass} w-36`}
+                value={filter.periodStart}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  if (!v) return;
+                  // Keep the range valid: never let start pass end.
+                  const end =
+                    filter.periodEnd && v > filter.periodEnd
+                      ? v
+                      : filter.periodEnd;
+                  setFilter({ periodStart: v, periodEnd: end });
+                }}
+              />
+            </div>
+            <div className="w-36">
+              <label className="block text-xs font-medium text-gray-500 mb-1">
+                To
+              </label>
+              <input
+                type="date"
+                max={maxDate}
+                className={`${selectClass} w-36`}
+                value={filter.periodEnd}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  if (!v) return;
+                  // Keep the range valid: never let end precede start.
+                  const start =
+                    filter.periodStart && v < filter.periodStart
+                      ? v
+                      : filter.periodStart;
+                  setFilter({ periodStart: start, periodEnd: v });
+                }}
+              />
+            </div>
+          </>
+        )}
+        <div className="pb-2">
+          <label className="block text-xs font-medium text-gray-500 mb-1">
+            Resolved
+          </label>
+          <span
+            className="inline-flex items-center px-2.5 py-1.5 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-semibold whitespace-nowrap"
+            title={`pe = ${pe}`}
+          >
+            {peLabel}
+          </span>
+          {periodFuture && (
+            <span
+              className="mt-1 flex items-center gap-1 px-2 py-1 rounded-lg bg-amber-50 text-amber-700 border border-amber-200 text-[11px] font-semibold"
+              title="This period is in the future — KHIS has no data for it yet."
+            >
+              <AlertTriangle className="w-3 h-3" />
+              Future period — no data yet
+            </span>
+          )}
+        </div>
       </div>
 
       <div className="flex items-center gap-3 ml-auto pb-2">

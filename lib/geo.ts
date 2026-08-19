@@ -7,6 +7,15 @@
 // ---------------------------------------------------------------------------
 
 import { FacilityAssessment, KENYA_COUNTIES } from "@/lib/assessment";
+import type { PeriodMode } from "@/lib/period";
+export type { PeriodMode };
+export {
+  periodToPe,
+  monthsBetween,
+  resolvePe,
+  peToLabel,
+  MONTH_NAMES,
+} from "@/lib/period";
 
 export interface Partner {
   id: string;
@@ -95,14 +104,30 @@ export interface GeoFilter {
   partner: string;
   /** "" = all counties in the partner. */
   county: string;
-  /** "" = all facilities in the county. */
+  /** "" = all sub-counties in the county (roster-driven). */
+  subCounty: string;
+  /** "" = all facilities in the county/sub-county. */
   facility: string;
+  /** "month" = a single reporting month, "range" = a multi-month range. */
+  periodMode: PeriodMode;
+  /** Single month as "YYYY-MM" (matches <input type="month">). */
+  periodMonth: string;
+  /** Range start date "YYYY-MM-DD". */
+  periodStart: string;
+  /** Range end date "YYYY-MM-DD". */
+  periodEnd: string;
 }
 
 export const DEFAULT_GEO_FILTER: GeoFilter = {
   partner: "jamii-tekelezi",
   county: "",
+  subCounty: "",
   facility: "",
+  // Default period = May 2025 (the reporting month every chart was pinned to).
+  periodMode: "month",
+  periodMonth: "2025-05",
+  periodStart: "2025-05-01",
+  periodEnd: "2025-07-31",
 };
 
 // ---------------------------------------------------------------------------
@@ -127,6 +152,12 @@ const norm = (s: string) => s.trim().toLowerCase();
 /** Does an assessment fall inside the given scope? */
 export function geoMatches(a: FacilityAssessment, filter: GeoFilter): boolean {
   if (filter.county && norm(a.county) !== norm(filter.county)) return false;
+  if (
+    filter.subCounty &&
+    a.subCounty &&
+    norm(a.subCounty) !== norm(filter.subCounty)
+  )
+    return false;
   if (filter.facility && norm(a.facilityName) !== norm(filter.facility))
     return false;
   return true;
@@ -170,6 +201,7 @@ export function geoScopeLabel(filter: GeoFilter): string {
   const parts = [getPartner(filter.partner)?.shortName ?? filter.partner];
   if (filter.county) {
     parts.push(filter.county);
+    if (filter.subCounty) parts.push(filter.subCounty);
     if (filter.facility) parts.push(filter.facility);
   }
   return parts.join(" → ");

@@ -56,9 +56,36 @@ export const COUNTY_OUS: Record<string, string> = {
  * UIDs verified present on national KHIS.
  */
 import jtRoster from "@/data/jamii-tekelezi-facilities.json";
+import tujengeRoster from "@/data/tujenge-jamii-facilities.json";
+import dumishaRoster from "@/data/dumisha-afya-facilities.json";
+import imarishaRoster from "@/data/imarisha-jamii-facilities.json";
+import ampathRoster from "@/data/ampath-uzima-facilities.json";
+import stawishaRoster from "@/data/stawisha-pwani-facilities.json";
+import ouCountyMap from "@/data/ou-county-map.json";
+import ouSubCountyMap from "@/data/ou-subcounty-map.json";
 
 export const JAMII_TEKELEZI_FACILITIES: PartnerFacility[] =
   jtRoster as PartnerFacility[];
+
+/**
+ * Facility rosters supplied by the implementing partners (Excel, Aug 2026):
+ *   - Tujenge Jamii     277 facilities (Baringo, Nakuru, Samburu, Laikipia, Kajiado)
+ *   - Dumisha Afya      169 facilities (Bungoma, Busia)
+ *   - Imarisha Jamii     56 facilities (Turkana)
+ *   - AMPATH Uzima      241 facilities (Elgeyo-Marakwet, Uasin Gishu, West Pokot, Trans-Nzoia)
+ *   - Stawisha Pwani    365 facilities (Kilifi, Kwale, Mombasa, Taita-Taveta)
+ * MFL codes resolved to KHIS org-unit UIDs 2026-08 (all verified on national KHIS).
+ */
+export const TUJENGE_JAMII_FACILITIES: PartnerFacility[] =
+  tujengeRoster as PartnerFacility[];
+export const DUMISHA_AFYA_FACILITIES: PartnerFacility[] =
+  dumishaRoster as PartnerFacility[];
+export const IMARISHA_JAMII_FACILITIES: PartnerFacility[] =
+  imarishaRoster as PartnerFacility[];
+export const AMPATH_UZIMA_FACILITIES: PartnerFacility[] =
+  ampathRoster as PartnerFacility[];
+export const STAWISHA_PWANI_FACILITIES: PartnerFacility[] =
+  stawishaRoster as PartnerFacility[];
 
 /** Partner id → counties (matches lib/geo.ts PARTNERS). */
 export const PARTNER_COUNTIES: Record<string, string[]> = {
@@ -80,6 +107,11 @@ export const PARTNER_COUNTIES: Record<string, string[]> = {
 /** Partner id → facility roster (undefined until extracted for that partner). */
 export const PARTNER_FACILITIES: Record<string, PartnerFacility[]> = {
   "jamii-tekelezi": JAMII_TEKELEZI_FACILITIES,
+  "tujenge-jamii": TUJENGE_JAMII_FACILITIES,
+  "dumisha-afya": DUMISHA_AFYA_FACILITIES,
+  "imarisha-jamii": IMARISHA_JAMII_FACILITIES,
+  "ampath-uzima": AMPATH_UZIMA_FACILITIES,
+  "stawisha-pwani": STAWISHA_PWANI_FACILITIES,
 };
 
 /** County OU UIDs for a partner (all counties, regardless of roster). */
@@ -96,4 +128,87 @@ export function partnerFacilityOUs(partnerId: string): string[] {
 /** Does this partner have a facility-level roster (vs county-level fallback)? */
 export function hasFacilityRoster(partnerId: string): boolean {
   return (PARTNER_FACILITIES[partnerId]?.length ?? 0) > 0;
+}
+
+const OU_COUNTY_MAP = ouCountyMap as Record<string, string>;
+const OU_SUBCOUNTY_MAP = ouSubCountyMap as Record<string, string>;
+
+/**
+ * Resolve a roster sub-county value to its display name. Rosters extracted
+ * from KHIS (Stawisha, Tujenge, Dumisha, Imarisha, AMPATH) store the KHIS
+ * org-unit UID (usually a ward-level OU); names are resolved from
+ * ou-subcounty-map.json. The original Jamii Tekelezi roster already stores
+ * plain names, so those pass through unchanged.
+ */
+function resolveSubCountyName(value?: string): string {
+  if (!value) return "";
+  return /^[A-Za-z0-9]{11}$/.test(value)
+    ? (OU_SUBCOUNTY_MAP[value] ?? "")
+    : value;
+}
+
+/**
+ * Facilities for a partner's roster, each with its COUNTY NAME and
+ * SUB-COUNTY NAME resolved from the KHIS parent org-units
+ * (ou-county-map.json / ou-subcounty-map.json). Used by filter dropdowns so
+ * the Facility select lists the partner's real facilities and cascades with
+ * the County select. Roster entries whose `county`/`subCounty` fields are
+ * already names (e.g. the original Jamii Tekelezi roster) are used as-is.
+ */
+export function partnerFacilities(
+  partnerId: string,
+  countyName?: string,
+  subCountyName?: string,
+): { name: string; county: string; subCounty: string }[] {
+  const roster = PARTNER_FACILITIES[partnerId] ?? [];
+  return roster
+    .map((f) => ({
+      name: f.name,
+      county:
+        f.county && /^[A-Za-z0-9]{11}$/.test(f.county)
+          ? (OU_COUNTY_MAP[f.county] ?? "")
+          : (f.county ?? ""),
+      subCounty: resolveSubCountyName(f.subCounty),
+    }))
+    .filter((f) => !countyName || f.county === countyName)
+    .filter((f) => !subCountyName || f.subCounty === subCountyName);
+}
+
+/**
+ * Unique sub-county names present in a partner's roster, optionally scoped to
+ * one county. Used by the Sub-County filter dropdown (roster-driven).
+ */
+export function partnerSubCounties(
+  partnerId: string,
+  countyName?: string,
+): string[] {
+  const seen = new Set<string>();
+  for (const f of partnerFacilities(partnerId, countyName)) {
+    if (f.subCounty) seen.add(f.subCounty);
+  }
+  return Array.from(seen).sort((a, b) => a.localeCompare(b));
+}
+
+/**
+ * Facility UIDs for a partner roster at a given county/sub-county scope.
+ * Empty county+subCounty → the whole roster. Used by /api/khis to scope
+ * analytics to exactly the facilities in the selected filter.
+ */
+export function partnerFacilityOUsFor(
+  partnerId: string,
+  countyName?: string,
+  subCountyName?: string,
+): string[] {
+  const roster = PARTNER_FACILITIES[partnerId] ?? [];
+  const county = countyName ?? "";
+  const sub = subCountyName ?? "";
+  const uids: string[] = [];
+  for (const f of roster) {
+    let fc = f.county;
+    if (fc && /^[A-Za-z0-9]{11}$/.test(fc)) fc = OU_COUNTY_MAP[fc] ?? "";
+    if (county && fc !== county) continue;
+    if (sub && resolveSubCountyName(f.subCounty) !== sub) continue;
+    uids.push(f.uid);
+  }
+  return uids;
 }

@@ -1,0 +1,2557 @@
+[
+  {
+    "uid": "qZIiCNR0SIG",
+    "name": "Malanga (AIC) Dispensary",
+    "county": "x7qUMtZZvo9",
+    "subCounty": "kpL4HsQ7YZ5",
+    "ward": "qZIiCNR0SIG"
+  },
+  {
+    "uid": "rWIwO9kmzvi",
+    "name": "ICRH Drop In Centre (Kilifi)",
+    "county": "MEkEH8ZmcOU",
+    "subCounty": "M5NeUqFK6KO",
+    "ward": "rWIwO9kmzvi"
+  },
+  {
+    "uid": "VrQHTaPqMWP",
+    "name": "Mtwapa Drop in and resource centre",
+    "county": "xWAZBULwGxp",
+    "subCounty": "QfHPo7H918V",
+    "ward": "VrQHTaPqMWP"
+  },
+  {
+    "uid": "P0NgegX5uEG",
+    "name": "Goldstar Drop In Centre",
+    "county": "lGg3wEy784X",
+    "subCounty": "kKIgRAJckI3",
+    "ward": "P0NgegX5uEG"
+  },
+  {
+    "uid": "qQv1jWzru0A",
+    "name": "The Omari Project VCT Centre",
+    "county": "lGg3wEy784X",
+    "subCounty": "kKIgRAJckI3",
+    "ward": "qQv1jWzru0A"
+  },
+  {
+    "uid": "E7liN0388Dd",
+    "name": "Bamba Maternity Nursing Home",
+    "county": "x7qUMtZZvo9",
+    "subCounty": "BE24fZlEXxt",
+    "ward": "E7liN0388Dd"
+  },
+  {
+    "uid": "UvWDhQlknid",
+    "name": "Bamba Sub County Hospital",
+    "county": "x7qUMtZZvo9",
+    "subCounty": "BE24fZlEXxt",
+    "ward": "UvWDhQlknid"
+  },
+  {
+    "uid": "pyG9z3VbFRG",
+    "name": "Chamalo Medical Clinic",
+    "county": "x7qUMtZZvo9",
+    "subCounty": "f51CfBzKknF",
+    "ward": "pyG9z3VbFRG"
+  },
+  {
+    "uid": "uCHPPTPXtBt",
+    "name": "Dida Dispensary",
+    "county": "x7qUMtZZvo9",
+    "subCounty": "kpL4HsQ7YZ5",
+    "ward": "uCHPPTPXtBt"
+  },
+  {
+    "uid": "edVT1j1E1yC",
+    "name": "Dungicha Dispensary",
+    "county": "x7qUMtZZvo9",
+    "subCounty": "f51CfBzKknF",
+    "ward": "edVT1j1E1yC"
+  },
+  {
+    "uid": "HWKmcSTRCuv",
+    "name": "Dzikunze Dispensary",
+    "county": "x7qUMtZZvo9",
+    "subCounty": "kpL4HsQ7YZ5",
+    "ward": "HWKmcSTRCuv"
+  },
+  {
+    "uid": "OZzaTu0NyK2",
+    "name": "Ganze Health Centre",
+    "county": "x7qUMtZZvo9",
+    "subCounty": "f51CfBzKknF",
+    "ward": "OZzaTu0NyK2"
+  },
+  {
+    "uid": "O9iiqr06g3S",
+    "name": "Jaribuni Dispensary",
+    "county": "x7qUMtZZvo9",
+    "subCounty": "JLTt8kf6vtA",
+    "ward": "O9iiqr06g3S"
+  },
+  {
+    "uid": "f4qVre0RVQQ",
+    "name": "Jila Model Health Centre",
+    "county": "x7qUMtZZvo9",
+    "subCounty": "f51CfBzKknF",
+    "ward": "f4qVre0RVQQ"
+  },
+  {
+    "uid": "fNm4rcRIKUF",
+    "name": "Kachororoni Dispensary",
+    "county": "x7qUMtZZvo9",
+    "subCounty": "f51CfBzKknF",
+    "ward": "fNm4rcRIKUF"
+  },
+  {
+    "uid": "kIjD3LTfQD0",
+    "name": "Kaembeni Dispensary",
+    "county": "x7qUMtZZvo9",
+    "subCounty": "kpL4HsQ7YZ5",
+    "ward": "kIjD3LTfQD0"
+  },
+  {
+    "uid": "gNN3hkfq0Ty",
+    "name": "Madamani Dispensary",
+    "county": "x7qUMtZZvo9",
+    "subCounty": "kpL4HsQ7YZ5",
+    "ward": "gNN3hkfq0Ty"
+  },
+  {
+    "uid": "O0RZADYsZKW",
+    "name": "Mbudzi Community Health Centre",
+    "county": "x7qUMtZZvo9",
+    "subCounty": "JLTt8kf6vtA",
+    "ward": "O0RZADYsZKW"
+  },
+  {
+    "uid": "qMNc3YVyu0P",
+    "name": "Midoina Dispensary",
+    "county": "x7qUMtZZvo9",
+    "subCounty": "BE24fZlEXxt",
+    "ward": "qMNc3YVyu0P"
+  },
+  {
+    "uid": "qavGVyGtzJd",
+    "name": "Mirihini Dispensary",
+    "county": "x7qUMtZZvo9",
+    "subCounty": "f51CfBzKknF",
+    "ward": "qavGVyGtzJd"
+  },
+  {
+    "uid": "hhKVTn2Ynjl",
+    "name": "Muryachakwe Dispensary",
+    "county": "x7qUMtZZvo9",
+    "subCounty": "kpL4HsQ7YZ5",
+    "ward": "hhKVTn2Ynjl"
+  },
+  {
+    "uid": "Mf2qlnhPutO",
+    "name": "Mwapula Dispensary",
+    "county": "x7qUMtZZvo9",
+    "subCounty": "JLTt8kf6vtA",
+    "ward": "Mf2qlnhPutO"
+  },
+  {
+    "uid": "qgE64yhjxkr",
+    "name": "Palakumi Dispensary",
+    "county": "x7qUMtZZvo9",
+    "subCounty": "JLTt8kf6vtA",
+    "ward": "qgE64yhjxkr"
+  },
+  {
+    "uid": "oBdVZPgL1d9",
+    "name": "Sokoke Dispensary",
+    "county": "x7qUMtZZvo9",
+    "subCounty": "f51CfBzKknF",
+    "ward": "oBdVZPgL1d9"
+  },
+  {
+    "uid": "u6txfT5EKDc",
+    "name": "Vitengeni Health Centre",
+    "county": "x7qUMtZZvo9",
+    "subCounty": "kpL4HsQ7YZ5",
+    "ward": "u6txfT5EKDc"
+  },
+  {
+    "uid": "YoVeKFPle8w",
+    "name": "Chalani Dispensary",
+    "county": "tSKDWoVKiPo",
+    "subCounty": "KOJIrVBHq0c",
+    "ward": "YoVeKFPle8w"
+  },
+  {
+    "uid": "VXqTYwgQvHx",
+    "name": "Giriama Mission Dispensary",
+    "county": "tSKDWoVKiPo",
+    "subCounty": "FzfEfKdj7p6",
+    "ward": "VXqTYwgQvHx"
+  },
+  {
+    "uid": "K1YU8aOlHWu",
+    "name": "Gotani Model Health Centre",
+    "county": "tSKDWoVKiPo",
+    "subCounty": "FzfEfKdj7p6",
+    "ward": "K1YU8aOlHWu"
+  },
+  {
+    "uid": "kZ1VUENMMCn",
+    "name": "Jibana Sub District Hospital",
+    "county": "tSKDWoVKiPo",
+    "subCounty": "KOJIrVBHq0c",
+    "ward": "kZ1VUENMMCn"
+  },
+  {
+    "uid": "aN1Tlm1CJ1S",
+    "name": "Kamkomani Dispensary",
+    "county": "tSKDWoVKiPo",
+    "subCounty": "utg5SKGYTGO",
+    "ward": "aN1Tlm1CJ1S"
+  },
+  {
+    "uid": "h4umoQOV2pq",
+    "name": "Kinarani Dispensary",
+    "county": "tSKDWoVKiPo",
+    "subCounty": "B2L7OVm0ZO1",
+    "ward": "h4umoQOV2pq"
+  },
+  {
+    "uid": "aHPOWlrPB0l",
+    "name": "Mariakani Community Health Care services",
+    "county": "tSKDWoVKiPo",
+    "subCounty": "utg5SKGYTGO",
+    "ward": "aHPOWlrPB0l"
+  },
+  {
+    "uid": "mITAGtWnWEK",
+    "name": "Mariakani Sub County Hospital",
+    "county": "tSKDWoVKiPo",
+    "subCounty": "utg5SKGYTGO",
+    "ward": "mITAGtWnWEK"
+  },
+  {
+    "uid": "crwMVmc9804",
+    "name": "Mgamboni Dispensary",
+    "county": "tSKDWoVKiPo",
+    "subCounty": "KOJIrVBHq0c",
+    "ward": "crwMVmc9804"
+  },
+  {
+    "uid": "vuTWdCN7s7K",
+    "name": "Shangia Dispensary",
+    "county": "tSKDWoVKiPo",
+    "subCounty": "utg5SKGYTGO",
+    "ward": "vuTWdCN7s7K"
+  },
+  {
+    "uid": "s2g4LbaNE2w",
+    "name": "Tsangatsini Dispensary",
+    "county": "tSKDWoVKiPo",
+    "subCounty": "FzfEfKdj7p6",
+    "ward": "s2g4LbaNE2w"
+  },
+  {
+    "uid": "m7UbpJjPOIj",
+    "name": "Viragoni Dispensary",
+    "county": "tSKDWoVKiPo",
+    "subCounty": "B2L7OVm0ZO1",
+    "ward": "m7UbpJjPOIj"
+  },
+  {
+    "uid": "iiAqayBXPQh",
+    "name": "Vishakani Dispensary",
+    "county": "tSKDWoVKiPo",
+    "subCounty": "KOJIrVBHq0c",
+    "ward": "iiAqayBXPQh"
+  },
+  {
+    "uid": "LGPVNsrp6og",
+    "name": "Amani Medical Clinic (Kilifi)",
+    "county": "MEkEH8ZmcOU",
+    "subCounty": "QvkC6t7JwZB",
+    "ward": "LGPVNsrp6og"
+  },
+  {
+    "uid": "kELHw0BoPXc",
+    "name": "Chumani Dispensary",
+    "county": "MEkEH8ZmcOU",
+    "subCounty": "XWYco24xiw4",
+    "ward": "kELHw0BoPXc"
+  },
+  {
+    "uid": "MBbMKKGM2wv",
+    "name": "Cowdray Dispensary",
+    "county": "MEkEH8ZmcOU",
+    "subCounty": "FmnSathgx18",
+    "ward": "MBbMKKGM2wv"
+  },
+  {
+    "uid": "FkB4lcoQfnz",
+    "name": "Gede Health Centre",
+    "county": "MEkEH8ZmcOU",
+    "subCounty": "rgdgbj0yHfG",
+    "ward": "FkB4lcoQfnz"
+  },
+  {
+    "uid": "NBK0zdNYfl9",
+    "name": "Kadaina Community Dispensary",
+    "county": "MEkEH8ZmcOU",
+    "subCounty": "XWYco24xiw4",
+    "ward": "NBK0zdNYfl9"
+  },
+  {
+    "uid": "k1gDvwc81yh",
+    "name": "Kadzinuni Dispensary",
+    "county": "MEkEH8ZmcOU",
+    "subCounty": "QvkC6t7JwZB",
+    "ward": "k1gDvwc81yh"
+  },
+  {
+    "uid": "fey434PjdTi",
+    "name": "Khairat Medical Centre",
+    "county": "MEkEH8ZmcOU",
+    "subCounty": "M5NeUqFK6KO",
+    "ward": "fey434PjdTi"
+  },
+  {
+    "uid": "HVsXeh7EatU",
+    "name": "Kilifi County Hospital",
+    "county": "MEkEH8ZmcOU",
+    "subCounty": "M5NeUqFK6KO",
+    "ward": "HVsXeh7EatU"
+  },
+  {
+    "uid": "FYGO2TZZWuq",
+    "name": "Kiwandani Dispensary",
+    "county": "MEkEH8ZmcOU",
+    "subCounty": "M5NeUqFK6KO",
+    "ward": "FYGO2TZZWuq"
+  },
+  {
+    "uid": "XrHTTd5zyjn",
+    "name": "Konjora Dispensary",
+    "county": "MEkEH8ZmcOU",
+    "subCounty": "MrSf22UB5d3",
+    "ward": "XrHTTd5zyjn"
+  },
+  {
+    "uid": "ttGIIqGqFOt",
+    "name": "Matsangoni Model Health Centre",
+    "county": "MEkEH8ZmcOU",
+    "subCounty": "XWYco24xiw4",
+    "ward": "ttGIIqGqFOt"
+  },
+  {
+    "uid": "IcAY6Oco0YH",
+    "name": "Mavueni Dispensary",
+    "county": "MEkEH8ZmcOU",
+    "subCounty": "QvkC6t7JwZB",
+    "ward": "IcAY6Oco0YH"
+  },
+  {
+    "uid": "Ght4C4o0gse",
+    "name": "Mijomboni Dispensary",
+    "county": "MEkEH8ZmcOU",
+    "subCounty": "rgdgbj0yHfG",
+    "ward": "Ght4C4o0gse"
+  },
+  {
+    "uid": "aYdjz9VZhBX",
+    "name": "Mnarani Dispensary",
+    "county": "MEkEH8ZmcOU",
+    "subCounty": "QvkC6t7JwZB",
+    "ward": "aYdjz9VZhBX"
+  },
+  {
+    "uid": "IBlqC33L7rn",
+    "name": "Mtondia Dispensary",
+    "county": "MEkEH8ZmcOU",
+    "subCounty": "xmMP1QapXiY",
+    "ward": "IBlqC33L7rn"
+  },
+  {
+    "uid": "Um0p6ZhwWFP",
+    "name": "Mtondia Medical Clinic",
+    "county": "MEkEH8ZmcOU",
+    "subCounty": "xmMP1QapXiY",
+    "ward": "Um0p6ZhwWFP"
+  },
+  {
+    "uid": "GJ4Cd9RXMop",
+    "name": "Ngerenya Dispensary",
+    "county": "MEkEH8ZmcOU",
+    "subCounty": "xmMP1QapXiY",
+    "ward": "GJ4Cd9RXMop"
+  },
+  {
+    "uid": "Bq9L3QREUFy",
+    "name": "Roka Maweni Dispensary",
+    "county": "MEkEH8ZmcOU",
+    "subCounty": "XWYco24xiw4",
+    "ward": "Bq9L3QREUFy"
+  },
+  {
+    "uid": "ozwn11j2cO0",
+    "name": "Roka Medical Clinic (Chumani)",
+    "county": "MEkEH8ZmcOU",
+    "subCounty": "XWYco24xiw4",
+    "ward": "ozwn11j2cO0"
+  },
+  {
+    "uid": "a4s2wKfJc30",
+    "name": "Takaungu Dispensary",
+    "county": "MEkEH8ZmcOU",
+    "subCounty": "QvkC6t7JwZB",
+    "ward": "a4s2wKfJc30"
+  },
+  {
+    "uid": "gNujOVxWPWY",
+    "name": "Wananchi Nursing Home",
+    "county": "MEkEH8ZmcOU",
+    "subCounty": "M5NeUqFK6KO",
+    "ward": "gNujOVxWPWY"
+  },
+  {
+    "uid": "Gtj9Z3IFCRZ",
+    "name": "Watamu Community Health Centre",
+    "county": "MEkEH8ZmcOU",
+    "subCounty": "rgdgbj0yHfG",
+    "ward": "Gtj9Z3IFCRZ"
+  },
+  {
+    "uid": "nrl4EXu8KV0",
+    "name": "Watamu Community Health Centre",
+    "county": "MEkEH8ZmcOU",
+    "subCounty": "FmnSathgx18",
+    "ward": "nrl4EXu8KV0"
+  },
+  {
+    "uid": "X7X4kKtcy0H",
+    "name": "Watamu Dispensary",
+    "county": "MEkEH8ZmcOU",
+    "subCounty": "FmnSathgx18",
+    "ward": "X7X4kKtcy0H"
+  },
+  {
+    "uid": "bq8XC39c2rE",
+    "name": "Watamu Maternity and Nursing Home",
+    "county": "MEkEH8ZmcOU",
+    "subCounty": "FmnSathgx18",
+    "ward": "bq8XC39c2rE"
+  },
+  {
+    "uid": "pqlqyGfUJKO",
+    "name": "Zowerani Dispensary",
+    "county": "MEkEH8ZmcOU",
+    "subCounty": "xmMP1QapXiY",
+    "ward": "pqlqyGfUJKO"
+  },
+  {
+    "uid": "dHfz2Btkj1g",
+    "name": "Barani Dispensary",
+    "county": "xWAZBULwGxp",
+    "subCounty": "Z6pxPuARGdF",
+    "ward": "dHfz2Btkj1g"
+  },
+  {
+    "uid": "w84mh8esInK",
+    "name": "Bomani Dispensary",
+    "county": "xWAZBULwGxp",
+    "subCounty": "FyFIsGw4IJR",
+    "ward": "w84mh8esInK"
+  },
+  {
+    "uid": "oGBXTwGNwBb",
+    "name": "Chasimba Health Centre",
+    "county": "xWAZBULwGxp",
+    "subCounty": "yi6G0JRSjwo",
+    "ward": "oGBXTwGNwBb"
+  },
+  {
+    "uid": "ehWIvgTwDHI",
+    "name": "Junju Dispensary",
+    "county": "xWAZBULwGxp",
+    "subCounty": "FyFIsGw4IJR",
+    "ward": "ehWIvgTwDHI"
+  },
+  {
+    "uid": "JW0Lexz7zKS",
+    "name": "Kanamai Health Services Mtwapa",
+    "county": "xWAZBULwGxp",
+    "subCounty": "Z6pxPuARGdF",
+    "ward": "JW0Lexz7zKS"
+  },
+  {
+    "uid": "EiHWFXmX21L",
+    "name": "Kizingo Health Centre",
+    "county": "xWAZBULwGxp",
+    "subCounty": "sWZmeA6lkx9",
+    "ward": "EiHWFXmX21L"
+  },
+  {
+    "uid": "xfYcuLK2GfY",
+    "name": "Maamba Medical Clinic",
+    "county": "xWAZBULwGxp",
+    "subCounty": "Z6pxPuARGdF",
+    "ward": "xfYcuLK2GfY"
+  },
+  {
+    "uid": "NTzu6NwxPed",
+    "name": "Msumarini Dispensary",
+    "county": "xWAZBULwGxp",
+    "subCounty": "Z6pxPuARGdF",
+    "ward": "NTzu6NwxPed"
+  },
+  {
+    "uid": "XH4Hly3VogG",
+    "name": "Mt Harmony Clinic",
+    "county": "xWAZBULwGxp",
+    "subCounty": "QfHPo7H918V",
+    "ward": "XH4Hly3VogG"
+  },
+  {
+    "uid": "B6rHrU256iw",
+    "name": "Mtepeni Dispensary",
+    "county": "xWAZBULwGxp",
+    "subCounty": "Z6pxPuARGdF",
+    "ward": "B6rHrU256iw"
+  },
+  {
+    "uid": "ng3BeGLyq7p",
+    "name": "Mtwapa dispensary (Shimo la Tewa)",
+    "county": "xWAZBULwGxp",
+    "subCounty": "QfHPo7H918V",
+    "ward": "ng3BeGLyq7p"
+  },
+  {
+    "uid": "g93vSYftyjR",
+    "name": "Mtwapa Sub County Hospital",
+    "county": "xWAZBULwGxp",
+    "subCounty": "QfHPo7H918V",
+    "ward": "g93vSYftyjR"
+  },
+  {
+    "uid": "xO3P9qyihvm",
+    "name": "Mtwapa Medical Clinic and Nursing Home",
+    "county": "xWAZBULwGxp",
+    "subCounty": "QfHPo7H918V",
+    "ward": "xO3P9qyihvm"
+  },
+  {
+    "uid": "lmRB0IvtF1n",
+    "name": "Oasis Medical Centre",
+    "county": "xWAZBULwGxp",
+    "subCounty": "QfHPo7H918V",
+    "ward": "lmRB0IvtF1n"
+  },
+  {
+    "uid": "n3qj1uzKmsT",
+    "name": "Pingilikani Dispensary",
+    "county": "xWAZBULwGxp",
+    "subCounty": "sWZmeA6lkx9",
+    "ward": "n3qj1uzKmsT"
+  },
+  {
+    "uid": "hFFWfOsBbqK",
+    "name": "Rea Vipingo Dispensary",
+    "county": "xWAZBULwGxp",
+    "subCounty": "FyFIsGw4IJR",
+    "ward": "hFFWfOsBbqK"
+  },
+  {
+    "uid": "nglM1rnUbDc",
+    "name": "St Mary's Health Care",
+    "county": "xWAZBULwGxp",
+    "subCounty": "QfHPo7H918V",
+    "ward": "nglM1rnUbDc"
+  },
+  {
+    "uid": "hkGIxRAqS3b",
+    "name": "St Theresa Dispensary",
+    "county": "xWAZBULwGxp",
+    "subCounty": "sWZmeA6lkx9",
+    "ward": "hkGIxRAqS3b"
+  },
+  {
+    "uid": "hCnhN2p6C9T",
+    "name": "Vipingo Rural Demonstration Health Centre",
+    "county": "xWAZBULwGxp",
+    "subCounty": "FyFIsGw4IJR",
+    "ward": "hCnhN2p6C9T"
+  },
+  {
+    "uid": "pONv529fYTR",
+    "name": "Ziani Dispensary",
+    "county": "xWAZBULwGxp",
+    "subCounty": "yi6G0JRSjwo",
+    "ward": "pONv529fYTR"
+  },
+  {
+    "uid": "rdvu0VThvPb",
+    "name": "Adc Danisa Dispensary",
+    "county": "KMWrMZrlO5u",
+    "subCounty": "EO3kbx8nZIp",
+    "ward": "rdvu0VThvPb"
+  },
+  {
+    "uid": "pkKPZUYXl5l",
+    "name": "Adu Dispensary",
+    "county": "KMWrMZrlO5u",
+    "subCounty": "EO3kbx8nZIp",
+    "ward": "pkKPZUYXl5l"
+  },
+  {
+    "uid": "OGia3FphS8p",
+    "name": "Baricho Dispensary",
+    "county": "KMWrMZrlO5u",
+    "subCounty": "nResMsI1yRw",
+    "ward": "OGia3FphS8p"
+  },
+  {
+    "uid": "iKAnCP0fHW9",
+    "name": "Bombi Dispensary",
+    "county": "KMWrMZrlO5u",
+    "subCounty": "EO3kbx8nZIp",
+    "ward": "iKAnCP0fHW9"
+  },
+  {
+    "uid": "SLGEop85px5",
+    "name": "Chakama Dispensary",
+    "county": "KMWrMZrlO5u",
+    "subCounty": "EO3kbx8nZIp",
+    "ward": "SLGEop85px5"
+  },
+  {
+    "uid": "gWOJcwZe4Jx",
+    "name": "Chamari Dispensary",
+    "county": "KMWrMZrlO5u",
+    "subCounty": "Icchyn9Ob1j",
+    "ward": "gWOJcwZe4Jx"
+  },
+  {
+    "uid": "eqnv3W3wuKp",
+    "name": "Dagamra Dispensary",
+    "county": "KMWrMZrlO5u",
+    "subCounty": "nResMsI1yRw",
+    "ward": "eqnv3W3wuKp"
+  },
+  {
+    "uid": "Lm8o853knxl",
+    "name": "Fundi Issa Dispensary",
+    "county": "KMWrMZrlO5u",
+    "subCounty": "nsigtOm8lE7",
+    "ward": "Lm8o853knxl"
+  },
+  {
+    "uid": "SqO6tJoEOCP",
+    "name": "Garashi Dispensary",
+    "county": "KMWrMZrlO5u",
+    "subCounty": "nResMsI1yRw",
+    "ward": "SqO6tJoEOCP"
+  },
+  {
+    "uid": "hRvE0UfQ1LZ",
+    "name": "Gongoni Health Centre",
+    "county": "KMWrMZrlO5u",
+    "subCounty": "nsigtOm8lE7",
+    "ward": "hRvE0UfQ1LZ"
+  },
+  {
+    "uid": "Qv92hTqycLz",
+    "name": "Kambi Ya Waya Dispensary",
+    "county": "KMWrMZrlO5u",
+    "subCounty": "nsigtOm8lE7",
+    "ward": "Qv92hTqycLz"
+  },
+  {
+    "uid": "boDlBthOKF3",
+    "name": "Kijana Heri Medical Clinic",
+    "county": "KMWrMZrlO5u",
+    "subCounty": "uI1MltAs8p3",
+    "ward": "boDlBthOKF3"
+  },
+  {
+    "uid": "O8cO0JfUo2l",
+    "name": "Mambrui Dispensary",
+    "county": "KMWrMZrlO5u",
+    "subCounty": "uI1MltAs8p3",
+    "ward": "O8cO0JfUo2l"
+  },
+  {
+    "uid": "kKVNAgtxsgI",
+    "name": "Marafa Sub County Hospital",
+    "county": "KMWrMZrlO5u",
+    "subCounty": "Icchyn9Ob1j",
+    "ward": "kKVNAgtxsgI"
+  },
+  {
+    "uid": "xFk3GI5SCCl",
+    "name": "Marereni Dispensary",
+    "county": "KMWrMZrlO5u",
+    "subCounty": "EO3kbx8nZIp",
+    "ward": "xFk3GI5SCCl"
+  },
+  {
+    "uid": "CARbfjQWQR4",
+    "name": "Marikebuni Dispensary",
+    "county": "KMWrMZrlO5u",
+    "subCounty": "uI1MltAs8p3",
+    "ward": "CARbfjQWQR4"
+  },
+  {
+    "uid": "znBMfGldUnB",
+    "name": "Matolani Dispensary",
+    "county": "KMWrMZrlO5u",
+    "subCounty": "EO3kbx8nZIp",
+    "ward": "znBMfGldUnB"
+  },
+  {
+    "uid": "K6aZavAsVgS",
+    "name": "Meridian Hospital",
+    "county": "KMWrMZrlO5u",
+    "subCounty": "fXc21yLLxVd",
+    "ward": "K6aZavAsVgS"
+  },
+  {
+    "uid": "rmc0r2tMXfk",
+    "name": "Mizijini Dispensary",
+    "county": "KMWrMZrlO5u",
+    "subCounty": "Icchyn9Ob1j",
+    "ward": "rmc0r2tMXfk"
+  },
+  {
+    "uid": "bXF0VY9kv3l",
+    "name": "Mjanaheri Dispensary",
+    "county": "KMWrMZrlO5u",
+    "subCounty": "uI1MltAs8p3",
+    "ward": "bXF0VY9kv3l"
+  },
+  {
+    "uid": "K5j2UgJMhNI",
+    "name": "Mtoroni Dispensary",
+    "county": "KMWrMZrlO5u",
+    "subCounty": "EO3kbx8nZIp",
+    "ward": "K5j2UgJMhNI"
+  },
+  {
+    "uid": "fMaHgOPyJr9",
+    "name": "Mwangatini Dispensary",
+    "county": "KMWrMZrlO5u",
+    "subCounty": "uI1MltAs8p3",
+    "ward": "fMaHgOPyJr9"
+  },
+  {
+    "uid": "QO0aBp9JWPI",
+    "name": "Ngomeni Health Centre (Magarini)",
+    "county": "KMWrMZrlO5u",
+    "subCounty": "nsigtOm8lE7",
+    "ward": "QO0aBp9JWPI"
+  },
+  {
+    "uid": "EqOqZ31xi3Y",
+    "name": "Sabaki Dispensary",
+    "county": "KMWrMZrlO5u",
+    "subCounty": "fXc21yLLxVd",
+    "ward": "EqOqZ31xi3Y"
+  },
+  {
+    "uid": "qNME55udR97",
+    "name": "Sosoni Dispensary",
+    "county": "KMWrMZrlO5u",
+    "subCounty": "Icchyn9Ob1j",
+    "ward": "qNME55udR97"
+  },
+  {
+    "uid": "DThwjc1ds5J",
+    "name": "St Benedetto Health Centre",
+    "county": "KMWrMZrlO5u",
+    "subCounty": "fXc21yLLxVd",
+    "ward": "DThwjc1ds5J"
+  },
+  {
+    "uid": "RrxywQuOoio",
+    "name": "Baolala Dispensary",
+    "county": "lGg3wEy784X",
+    "subCounty": "nqJwUrOo66m",
+    "ward": "RrxywQuOoio"
+  },
+  {
+    "uid": "uApzQdVcBRc",
+    "name": "Gahaleni Dispensary",
+    "county": "lGg3wEy784X",
+    "subCounty": "gWqTliiaRaB",
+    "ward": "uApzQdVcBRc"
+  },
+  {
+    "uid": "LcbKtIpSxFP",
+    "name": "Ganda Dispensary",
+    "county": "lGg3wEy784X",
+    "subCounty": "gWqTliiaRaB",
+    "ward": "LcbKtIpSxFP"
+  },
+  {
+    "uid": "zaTjgZjfqxe",
+    "name": "Jilore Dispensary",
+    "county": "lGg3wEy784X",
+    "subCounty": "nqJwUrOo66m",
+    "ward": "zaTjgZjfqxe"
+  },
+  {
+    "uid": "ZNYPhRxeNRt",
+    "name": "Kakoneni Dispensary",
+    "county": "lGg3wEy784X",
+    "subCounty": "nqJwUrOo66m",
+    "ward": "ZNYPhRxeNRt"
+  },
+  {
+    "uid": "sS95RyqYQ0d",
+    "name": "Kakuyuni Dispensary (Malindi)",
+    "county": "lGg3wEy784X",
+    "subCounty": "ckJv892Aokb",
+    "ward": "sS95RyqYQ0d"
+  },
+  {
+    "uid": "RELmuAM0tcj",
+    "name": "Madunguni Dispensary",
+    "county": "lGg3wEy784X",
+    "subCounty": "ckJv892Aokb",
+    "ward": "RELmuAM0tcj"
+  },
+  {
+    "uid": "vzRh9ON9ZsM",
+    "name": "Malindi Sub-County Hospital",
+    "county": "lGg3wEy784X",
+    "subCounty": "kKIgRAJckI3",
+    "ward": "vzRh9ON9ZsM"
+  },
+  {
+    "uid": "GSMLIGa68Lp",
+    "name": "Maweni Community Clinic",
+    "county": "lGg3wEy784X",
+    "subCounty": "kKIgRAJckI3",
+    "ward": "GSMLIGa68Lp"
+  },
+  {
+    "uid": "VxqDZoryqi4",
+    "name": "Mshongoleni Community Dispensary",
+    "county": "lGg3wEy784X",
+    "subCounty": "gWqTliiaRaB",
+    "ward": "VxqDZoryqi4"
+  },
+  {
+    "uid": "i091Ei10XBM",
+    "name": "Muyeye Health Centre (Municipal)",
+    "county": "lGg3wEy784X",
+    "subCounty": "kKIgRAJckI3",
+    "ward": "i091Ei10XBM"
+  },
+  {
+    "uid": "HpNKXuX3c1n",
+    "name": "Mwawesa Medical Clinic",
+    "county": "lGg3wEy784X",
+    "subCounty": "u6oi5OySCnQ",
+    "ward": "HpNKXuX3c1n"
+  },
+  {
+    "uid": "LVgw150DT2K",
+    "name": "St Marys Msabaha Catholic Dispensary",
+    "county": "lGg3wEy784X",
+    "subCounty": "gWqTliiaRaB",
+    "ward": "LVgw150DT2K"
+  },
+  {
+    "uid": "v8TZZfCfq38",
+    "name": "Star Specialist Hospital Limited",
+    "county": "lGg3wEy784X",
+    "subCounty": "u6oi5OySCnQ",
+    "ward": "v8TZZfCfq38"
+  },
+  {
+    "uid": "Wcgkpv2BHcy",
+    "name": "Tawfiq Muslim Hospital",
+    "county": "lGg3wEy784X",
+    "subCounty": "u6oi5OySCnQ",
+    "ward": "Wcgkpv2BHcy"
+  },
+  {
+    "uid": "HGLQF59nCsF",
+    "name": "Bwagamoyo Dispensary",
+    "county": "hJf4rt7cvI6",
+    "subCounty": "eT3Udm3xjFw",
+    "ward": "HGLQF59nCsF"
+  },
+  {
+    "uid": "r0QVOCbx6Rp",
+    "name": "Chibarani Dispensary",
+    "county": "hJf4rt7cvI6",
+    "subCounty": "mi5ayQN77v7",
+    "ward": "r0QVOCbx6Rp"
+  },
+  {
+    "uid": "Z4w1CvpUabT",
+    "name": "Dagamra Medical Clinic",
+    "county": "hJf4rt7cvI6",
+    "subCounty": "mi5ayQN77v7",
+    "ward": "Z4w1CvpUabT"
+  },
+  {
+    "uid": "Oxj36jLUDn8",
+    "name": "Kokotoni Dispensary",
+    "county": "hJf4rt7cvI6",
+    "subCounty": "mi5ayQN77v7",
+    "ward": "Oxj36jLUDn8"
+  },
+  {
+    "uid": "pAb5dOqbI6V",
+    "name": "Kombeni Dispensary",
+    "county": "hJf4rt7cvI6",
+    "subCounty": "u36eldinqnE",
+    "ward": "pAb5dOqbI6V"
+  },
+  {
+    "uid": "JJczCny1gT1",
+    "name": "Lenga Dispensary",
+    "county": "hJf4rt7cvI6",
+    "subCounty": "rJRyj2PndJ3",
+    "ward": "JJczCny1gT1"
+  },
+  {
+    "uid": "toCFIFoLvvy",
+    "name": "Makanzani Dispensary",
+    "county": "hJf4rt7cvI6",
+    "subCounty": "u36eldinqnE",
+    "ward": "toCFIFoLvvy"
+  },
+  {
+    "uid": "eMMojDvhND0",
+    "name": "Rabai Sub County Hospital",
+    "county": "hJf4rt7cvI6",
+    "subCounty": "mi5ayQN77v7",
+    "ward": "eMMojDvhND0"
+  },
+  {
+    "uid": "UAANSI2ssxg",
+    "name": "Ribe Dispensary",
+    "county": "hJf4rt7cvI6",
+    "subCounty": "rJRyj2PndJ3",
+    "ward": "UAANSI2ssxg"
+  },
+  {
+    "uid": "I5TrVHHQiTO",
+    "name": "Uwanja Wa Ndege Dispensary",
+    "county": "hJf4rt7cvI6",
+    "subCounty": "mi5ayQN77v7",
+    "ward": "I5TrVHHQiTO"
+  },
+  {
+    "uid": "pUx9e19epql",
+    "name": "Bofu Dispensary",
+    "county": "LOgbecTRkbp",
+    "subCounty": "aom47Uzq1RZ",
+    "ward": "pUx9e19epql"
+  },
+  {
+    "uid": "cYrHrtCUWDR",
+    "name": "Gandini Dispensary (Kinango)",
+    "county": "LOgbecTRkbp",
+    "subCounty": "PrGoCfZ06gm",
+    "ward": "cYrHrtCUWDR"
+  },
+  {
+    "uid": "MWEDyBsOpxM",
+    "name": "Kibandaongo Dispensary",
+    "county": "LOgbecTRkbp",
+    "subCounty": "PrGoCfZ06gm",
+    "ward": "MWEDyBsOpxM"
+  },
+  {
+    "uid": "KT34EaG36YR",
+    "name": "Kinango Sub County Hospital",
+    "county": "LOgbecTRkbp",
+    "subCounty": "PrGoCfZ06gm",
+    "ward": "KT34EaG36YR"
+  },
+  {
+    "uid": "mWfiQXewlzK",
+    "name": "Lutsangani Dispensary",
+    "county": "LOgbecTRkbp",
+    "subCounty": "PrGoCfZ06gm",
+    "ward": "mWfiQXewlzK"
+  },
+  {
+    "uid": "pnHduTXb4hB",
+    "name": "Mazeras Health Centre",
+    "county": "LOgbecTRkbp",
+    "subCounty": "aom47Uzq1RZ",
+    "ward": "pnHduTXb4hB"
+  },
+  {
+    "uid": "wXwH1HE5zBG",
+    "name": "Mbita Dispensary",
+    "county": "LOgbecTRkbp",
+    "subCounty": "YZvux1SW3bs",
+    "ward": "wXwH1HE5zBG"
+  },
+  {
+    "uid": "we0DUGyAhOI",
+    "name": "Mkang'ombe Dispensary",
+    "county": "LOgbecTRkbp",
+    "subCounty": "YZvux1SW3bs",
+    "ward": "we0DUGyAhOI"
+  },
+  {
+    "uid": "bplF50Sazvt",
+    "name": "Mnyenzeni Health Centre",
+    "county": "LOgbecTRkbp",
+    "subCounty": "aom47Uzq1RZ",
+    "ward": "bplF50Sazvt"
+  },
+  {
+    "uid": "Mi57MBhhiet",
+    "name": "Mtaa Dispensary",
+    "county": "LOgbecTRkbp",
+    "subCounty": "aom47Uzq1RZ",
+    "ward": "Mi57MBhhiet"
+  },
+  {
+    "uid": "nKyBwCMaG1X",
+    "name": "Mwachinga Dispensary",
+    "county": "LOgbecTRkbp",
+    "subCounty": "PrGoCfZ06gm",
+    "ward": "nKyBwCMaG1X"
+  },
+  {
+    "uid": "CJn1auuIZAo",
+    "name": "Ndavaya Health centre",
+    "county": "LOgbecTRkbp",
+    "subCounty": "YZvux1SW3bs",
+    "ward": "CJn1auuIZAo"
+  },
+  {
+    "uid": "AqLdqbmRxuw",
+    "name": "Nyango Dispensary",
+    "county": "LOgbecTRkbp",
+    "subCounty": "QEGPqON6Zcj",
+    "ward": "AqLdqbmRxuw"
+  },
+  {
+    "uid": "Yb2CWS6G5vL",
+    "name": "Vigurungani Dispensary",
+    "county": "LOgbecTRkbp",
+    "subCounty": "QEGPqON6Zcj",
+    "ward": "Yb2CWS6G5vL"
+  },
+  {
+    "uid": "A0Ln8q092qB",
+    "name": "Bwiti Dispensary",
+    "county": "TdcYaufNV4p",
+    "subCounty": "oJkRlx56eac",
+    "ward": "A0Ln8q092qB"
+  },
+  {
+    "uid": "qBmMdCCXus8",
+    "name": "Godo Dispensary",
+    "county": "TdcYaufNV4p",
+    "subCounty": "PBhYjIVYdhk",
+    "ward": "qBmMdCCXus8"
+  },
+  {
+    "uid": "UrRsO2NsxHZ",
+    "name": "Kikoneni Health Centre",
+    "county": "TdcYaufNV4p",
+    "subCounty": "oJkRlx56eac",
+    "ward": "UrRsO2NsxHZ"
+  },
+  {
+    "uid": "S6X2QNJUj2g",
+    "name": "Kilimangodo Dispensary",
+    "county": "TdcYaufNV4p",
+    "subCounty": "PBhYjIVYdhk",
+    "ward": "S6X2QNJUj2g"
+  },
+  {
+    "uid": "mz64odxfFPq",
+    "name": "Lungalunga Sub County Hospital",
+    "county": "TdcYaufNV4p",
+    "subCounty": "HEKTLM0EwH0",
+    "ward": "mz64odxfFPq"
+  },
+  {
+    "uid": "ksNfsN3CiNc",
+    "name": "Majimoto Dispensary",
+    "county": "TdcYaufNV4p",
+    "subCounty": "lijbuerznbA",
+    "ward": "ksNfsN3CiNc"
+  },
+  {
+    "uid": "k25SFxZn4B9",
+    "name": "Majoreni Dispensary",
+    "county": "TdcYaufNV4p",
+    "subCounty": "oJkRlx56eac",
+    "ward": "k25SFxZn4B9"
+  },
+  {
+    "uid": "MRQeZtlocOi",
+    "name": "Mamba Dispensary",
+    "county": "TdcYaufNV4p",
+    "subCounty": "lijbuerznbA",
+    "ward": "MRQeZtlocOi"
+  },
+  {
+    "uid": "xmDX1o9oBG3",
+    "name": "Mrima (Catholic) Dispensary",
+    "county": "TdcYaufNV4p",
+    "subCounty": "lijbuerznbA",
+    "ward": "xmDX1o9oBG3"
+  },
+  {
+    "uid": "XuM0h7o9wot",
+    "name": "Mtumwa Dispensary",
+    "county": "TdcYaufNV4p",
+    "subCounty": "PBhYjIVYdhk",
+    "ward": "XuM0h7o9wot"
+  },
+  {
+    "uid": "cOgv5EHeFRj",
+    "name": "Mwananyamala CDF Dispensary",
+    "county": "TdcYaufNV4p",
+    "subCounty": "lijbuerznbA",
+    "ward": "cOgv5EHeFRj"
+  },
+  {
+    "uid": "AR8hK8NvYFa",
+    "name": "Mwanguda Dispensary",
+    "county": "TdcYaufNV4p",
+    "subCounty": "lijbuerznbA",
+    "ward": "AR8hK8NvYFa"
+  },
+  {
+    "uid": "VVcbqmCinwl",
+    "name": "Mwangulu Dispensary",
+    "county": "TdcYaufNV4p",
+    "subCounty": "PBhYjIVYdhk",
+    "ward": "VVcbqmCinwl"
+  },
+  {
+    "uid": "Tuwzk3ENvM5",
+    "name": "Mwena Dispensary",
+    "county": "TdcYaufNV4p",
+    "subCounty": "PBhYjIVYdhk",
+    "ward": "Tuwzk3ENvM5"
+  },
+  {
+    "uid": "aZcZ3CdOcM0",
+    "name": "Mzizima (CDF) Dispensary",
+    "county": "TdcYaufNV4p",
+    "subCounty": "oJkRlx56eac",
+    "ward": "aZcZ3CdOcM0"
+  },
+  {
+    "uid": "dcM4sXObsyP",
+    "name": "Ngathini Dispensary",
+    "county": "TdcYaufNV4p",
+    "subCounty": "HEKTLM0EwH0",
+    "ward": "dcM4sXObsyP"
+  },
+  {
+    "uid": "zqNKCbQy3AJ",
+    "name": "Perani clinic",
+    "county": "TdcYaufNV4p",
+    "subCounty": "HEKTLM0EwH0",
+    "ward": "zqNKCbQy3AJ"
+  },
+  {
+    "uid": "I1uyMohbaUS",
+    "name": "Pongwe/Kidimu Dispensary",
+    "county": "TdcYaufNV4p",
+    "subCounty": "oJkRlx56eac",
+    "ward": "I1uyMohbaUS"
+  },
+  {
+    "uid": "xOIShowo1zr",
+    "name": "Shimoni Dispensary",
+    "county": "TdcYaufNV4p",
+    "subCounty": "oJkRlx56eac",
+    "ward": "xOIShowo1zr"
+  },
+  {
+    "uid": "EIAsU8lMsZJ",
+    "name": "Sister's of St. Josepth Catholic Dispensary",
+    "county": "TdcYaufNV4p",
+    "subCounty": "HEKTLM0EwH0",
+    "ward": "EIAsU8lMsZJ"
+  },
+  {
+    "uid": "CFOmFTRmpEp",
+    "name": "Vanga Health Centre",
+    "county": "TdcYaufNV4p",
+    "subCounty": "HEKTLM0EwH0",
+    "ward": "CFOmFTRmpEp"
+  },
+  {
+    "uid": "nTLGF3pu49r",
+    "name": "Vitsangalaweni Dispensary",
+    "county": "TdcYaufNV4p",
+    "subCounty": "lijbuerznbA",
+    "ward": "nTLGF3pu49r"
+  },
+  {
+    "uid": "uWZStRB5zxs",
+    "name": "Bethany Dispensary",
+    "county": "wUNEDOnx9uB",
+    "subCounty": "XZNJ3zaiaZH",
+    "ward": "uWZStRB5zxs"
+  },
+  {
+    "uid": "OR9keyneDae",
+    "name": "Kibuyuni Dispensary",
+    "county": "wUNEDOnx9uB",
+    "subCounty": "dQkHuP0kVjq",
+    "ward": "OR9keyneDae"
+  },
+  {
+    "uid": "ifilZzpttrk",
+    "name": "Kiteje Dispensary",
+    "county": "wUNEDOnx9uB",
+    "subCounty": "XZNJ3zaiaZH",
+    "ward": "ifilZzpttrk"
+  },
+  {
+    "uid": "b9PRSKsPyq0",
+    "name": "Kizibe Dispensary",
+    "county": "wUNEDOnx9uB",
+    "subCounty": "rzPzDuVVuqw",
+    "ward": "b9PRSKsPyq0"
+  },
+  {
+    "uid": "m3LmuT3zzVS",
+    "name": "Kombani Dispensary",
+    "county": "wUNEDOnx9uB",
+    "subCounty": "XZNJ3zaiaZH",
+    "ward": "m3LmuT3zzVS"
+  },
+  {
+    "uid": "vstve0ATifu",
+    "name": "Kombani Mat clinic",
+    "county": "wUNEDOnx9uB",
+    "subCounty": "XZNJ3zaiaZH",
+    "ward": "vstve0ATifu"
+  },
+  {
+    "uid": "gbQw8OQtjpj",
+    "name": "Kwale Sub County Hospital",
+    "county": "wUNEDOnx9uB",
+    "subCounty": "HLbG24kuSHF",
+    "ward": "gbQw8OQtjpj"
+  },
+  {
+    "uid": "XeJ5kJzSBTR",
+    "name": "Lukore Dispensary",
+    "county": "wUNEDOnx9uB",
+    "subCounty": "dQkHuP0kVjq",
+    "ward": "XeJ5kJzSBTR"
+  },
+  {
+    "uid": "OQaFzTxqOby",
+    "name": "Magodzoni Dispensary",
+    "county": "wUNEDOnx9uB",
+    "subCounty": "JBSYO3skSW5",
+    "ward": "OQaFzTxqOby"
+  },
+  {
+    "uid": "eJFV4QoSfJT",
+    "name": "Matuga Dispensary",
+    "county": "wUNEDOnx9uB",
+    "subCounty": "XZNJ3zaiaZH",
+    "ward": "eJFV4QoSfJT"
+  },
+  {
+    "uid": "RMxrov0mRw3",
+    "name": "Mazumalume Dispensary",
+    "county": "wUNEDOnx9uB",
+    "subCounty": "HLbG24kuSHF",
+    "ward": "RMxrov0mRw3"
+  },
+  {
+    "uid": "UpSJbkTCmSw",
+    "name": "Mbuguni Dispensary",
+    "county": "wUNEDOnx9uB",
+    "subCounty": "HLbG24kuSHF",
+    "ward": "UpSJbkTCmSw"
+  },
+  {
+    "uid": "THNDq8DTAhT",
+    "name": "Mkongani Health Centre",
+    "county": "wUNEDOnx9uB",
+    "subCounty": "rzPzDuVVuqw",
+    "ward": "THNDq8DTAhT"
+  },
+  {
+    "uid": "Al89kMrg3Yt",
+    "name": "Mkundi Dispensary",
+    "county": "wUNEDOnx9uB",
+    "subCounty": "dQkHuP0kVjq",
+    "ward": "Al89kMrg3Yt"
+  },
+  {
+    "uid": "nqpogjIlKtQ",
+    "name": "Msulwa Dispensary",
+    "county": "wUNEDOnx9uB",
+    "subCounty": "HLbG24kuSHF",
+    "ward": "nqpogjIlKtQ"
+  },
+  {
+    "uid": "RhP9ywU9c7a",
+    "name": "Mwaluphamba Dispensary",
+    "county": "wUNEDOnx9uB",
+    "subCounty": "rzPzDuVVuqw",
+    "ward": "RhP9ywU9c7a"
+  },
+  {
+    "uid": "rwBKTKbWnzb",
+    "name": "Mwaluvanga Dispensary",
+    "county": "wUNEDOnx9uB",
+    "subCounty": "dQkHuP0kVjq",
+    "ward": "rwBKTKbWnzb"
+  },
+  {
+    "uid": "OArtNCNolNl",
+    "name": "Ng'ombeni Dispensary",
+    "county": "wUNEDOnx9uB",
+    "subCounty": "XZNJ3zaiaZH",
+    "ward": "OArtNCNolNl"
+  },
+  {
+    "uid": "lwITlY4Rd2j",
+    "name": "Royal Run Medical Clinic",
+    "county": "wUNEDOnx9uB",
+    "subCounty": "HLbG24kuSHF",
+    "ward": "lwITlY4Rd2j"
+  },
+  {
+    "uid": "erZvaDeCoQ3",
+    "name": "Shimba Hills Health Centre",
+    "county": "wUNEDOnx9uB",
+    "subCounty": "dQkHuP0kVjq",
+    "ward": "erZvaDeCoQ3"
+  },
+  {
+    "uid": "OjZbKpyClzL",
+    "name": "Tiwi Kwa Sammy Medical Center Limited",
+    "county": "wUNEDOnx9uB",
+    "subCounty": "JBSYO3skSW5",
+    "ward": "OjZbKpyClzL"
+  },
+  {
+    "uid": "gEvZgtrunJY",
+    "name": "Tiwi RHTC",
+    "county": "wUNEDOnx9uB",
+    "subCounty": "JBSYO3skSW5",
+    "ward": "gEvZgtrunJY"
+  },
+  {
+    "uid": "khbVI9AHqV9",
+    "name": "Vyongwani Dispensary",
+    "county": "wUNEDOnx9uB",
+    "subCounty": "HLbG24kuSHF",
+    "ward": "khbVI9AHqV9"
+  },
+  {
+    "uid": "O6vTdQ8hQL1",
+    "name": "Waa Dispensary",
+    "county": "wUNEDOnx9uB",
+    "subCounty": "XZNJ3zaiaZH",
+    "ward": "O6vTdQ8hQL1"
+  },
+  {
+    "uid": "uhuTgMdpGDx",
+    "name": "Diani Health Centre",
+    "county": "ADMywdLwoRX",
+    "subCounty": "ByAmsolBen5",
+    "ward": "uhuTgMdpGDx"
+  },
+  {
+    "uid": "a9OHUtkxjO8",
+    "name": "Eshu Dispensary",
+    "county": "ADMywdLwoRX",
+    "subCounty": "VGENlt3MTt7",
+    "ward": "a9OHUtkxjO8"
+  },
+  {
+    "uid": "TfsKMWO3CEU",
+    "name": "Gombato Dispensary (CDF)",
+    "county": "ADMywdLwoRX",
+    "subCounty": "ByAmsolBen5",
+    "ward": "TfsKMWO3CEU"
+  },
+  {
+    "uid": "wEmj5Y6nGNJ",
+    "name": "Kinondo Kwetu Hospital",
+    "county": "ADMywdLwoRX",
+    "subCounty": "pOKIONEzUyF",
+    "ward": "wEmj5Y6nGNJ"
+  },
+  {
+    "uid": "RYumT9hJ8Ss",
+    "name": "Mafisini Dispensary",
+    "county": "ADMywdLwoRX",
+    "subCounty": "VGENlt3MTt7",
+    "ward": "RYumT9hJ8Ss"
+  },
+  {
+    "uid": "roHvB9P8Of1",
+    "name": "Magaoni Health Centre",
+    "county": "ADMywdLwoRX",
+    "subCounty": "pOKIONEzUyF",
+    "ward": "roHvB9P8Of1"
+  },
+  {
+    "uid": "gwB2ZiLFNyy",
+    "name": "Mbuwani Dispensary",
+    "county": "ADMywdLwoRX",
+    "subCounty": "ByAmsolBen5",
+    "ward": "gwB2ZiLFNyy"
+  },
+  {
+    "uid": "IBO76lif4Fr",
+    "name": "Mivumoni (Catholic) Dispensary",
+    "county": "ADMywdLwoRX",
+    "subCounty": "VGENlt3MTt7",
+    "ward": "IBO76lif4Fr"
+  },
+  {
+    "uid": "nUFNIok7EwF",
+    "name": "Msambweni County Referral Hospital",
+    "county": "ADMywdLwoRX",
+    "subCounty": "VGENlt3MTt7",
+    "ward": "nUFNIok7EwF"
+  },
+  {
+    "uid": "Rqy8p7UOvvx",
+    "name": "Muhaka Dispensary",
+    "county": "ADMywdLwoRX",
+    "subCounty": "pOKIONEzUyF",
+    "ward": "Rqy8p7UOvvx"
+  },
+  {
+    "uid": "HhrPyREkyqN",
+    "name": "Mvindeni Dispensary",
+    "county": "ADMywdLwoRX",
+    "subCounty": "iBuXrh8ESS2",
+    "ward": "HhrPyREkyqN"
+  },
+  {
+    "uid": "Z08KIZqMqp7",
+    "name": "Pendo Medical Clinic",
+    "county": "ADMywdLwoRX",
+    "subCounty": "ByAmsolBen5",
+    "ward": "Z08KIZqMqp7"
+  },
+  {
+    "uid": "GqRPZuGWkm1",
+    "name": "Ukunda Diani Catholic Dispensary",
+    "county": "ADMywdLwoRX",
+    "subCounty": "iBuXrh8ESS2",
+    "ward": "GqRPZuGWkm1"
+  },
+  {
+    "uid": "Iup62QtD0aw",
+    "name": "Ukunda Medical Clinic",
+    "county": "ADMywdLwoRX",
+    "subCounty": "iBuXrh8ESS2",
+    "ward": "Iup62QtD0aw"
+  },
+  {
+    "uid": "Lbmua1AMw7d",
+    "name": "Kafuduni Dispensary",
+    "county": "TnCu7j4XNj6",
+    "subCounty": "vjeHNVWOsRk",
+    "ward": "Lbmua1AMw7d"
+  },
+  {
+    "uid": "bGJEeoqpsS0",
+    "name": "Kilibasi Dispensary",
+    "county": "TnCu7j4XNj6",
+    "subCounty": "wfUbX2QagwS",
+    "ward": "bGJEeoqpsS0"
+  },
+  {
+    "uid": "NijIFuj8eTF",
+    "name": "Kinagoni Dispensary",
+    "county": "TnCu7j4XNj6",
+    "subCounty": "TwX1KTjb8Qp",
+    "ward": "NijIFuj8eTF"
+  },
+  {
+    "uid": "J6BZQiPUm4R",
+    "name": "Mackinon Road Dispensary",
+    "county": "TnCu7j4XNj6",
+    "subCounty": "wfUbX2QagwS",
+    "ward": "J6BZQiPUm4R"
+  },
+  {
+    "uid": "gfk5MBvovOM",
+    "name": "Makamini Dispensary",
+    "county": "TnCu7j4XNj6",
+    "subCounty": "wfUbX2QagwS",
+    "ward": "gfk5MBvovOM"
+  },
+  {
+    "uid": "JUML6lzisNI",
+    "name": "Matumbi Dispensary",
+    "county": "TnCu7j4XNj6",
+    "subCounty": "vjeHNVWOsRk",
+    "ward": "JUML6lzisNI"
+  },
+  {
+    "uid": "LunYFWqFNiA",
+    "name": "Mwabila Dispensary",
+    "county": "TnCu7j4XNj6",
+    "subCounty": "vjeHNVWOsRk",
+    "ward": "LunYFWqFNiA"
+  },
+  {
+    "uid": "QKJ6fVUHJhT",
+    "name": "Mwanda Dispensary ",
+    "county": "TnCu7j4XNj6",
+    "subCounty": "vjeHNVWOsRk",
+    "ward": "QKJ6fVUHJhT"
+  },
+  {
+    "uid": "GRZc4EZ9PuV",
+    "name": "Samburu Sub County Hospital",
+    "county": "TnCu7j4XNj6",
+    "subCounty": "TwX1KTjb8Qp",
+    "ward": "GRZc4EZ9PuV"
+  },
+  {
+    "uid": "Q0oTmpiCXFG",
+    "name": "Silaloni Dispensary",
+    "county": "TnCu7j4XNj6",
+    "subCounty": "TwX1KTjb8Qp",
+    "ward": "Q0oTmpiCXFG"
+  },
+  {
+    "uid": "hVc9GNgGPYF",
+    "name": "Taru Dispensary",
+    "county": "TnCu7j4XNj6",
+    "subCounty": "wfUbX2QagwS",
+    "ward": "hVc9GNgGPYF"
+  },
+  {
+    "uid": "a6KR1c7QXeL",
+    "name": "Bokole CDF Dispensary",
+    "county": "OvI6w06DhPJ",
+    "subCounty": "bmyrNLOPAAW",
+    "ward": "a6KR1c7QXeL"
+  },
+  {
+    "uid": "kJ5MjZkaoSP",
+    "name": "Coast General Teaching and Referral Hospital (Chaani Outreach Centre)",
+    "county": "OvI6w06DhPJ",
+    "subCounty": "PeLH4hGTO17",
+    "ward": "kJ5MjZkaoSP"
+  },
+  {
+    "uid": "ThT4PxgmYQL",
+    "name": "Magongo (MCM) Dispensary",
+    "county": "OvI6w06DhPJ",
+    "subCounty": "qyQg0b3mxEL",
+    "ward": "ThT4PxgmYQL"
+  },
+  {
+    "uid": "Y7tjIU4DR2a",
+    "name": "Msikiti Noor Medical Clinic",
+    "county": "OvI6w06DhPJ",
+    "subCounty": "qyQg0b3mxEL",
+    "ward": "Y7tjIU4DR2a"
+  },
+  {
+    "uid": "K6JHRvs7bAu",
+    "name": "Port Reitz Sub County Hospital",
+    "county": "OvI6w06DhPJ",
+    "subCounty": "bmyrNLOPAAW",
+    "ward": "K6JHRvs7bAu"
+  },
+  {
+    "uid": "py5vYZIHN6z",
+    "name": "St Valeria Medical Clinic",
+    "county": "OvI6w06DhPJ",
+    "subCounty": "qyQg0b3mxEL",
+    "ward": "py5vYZIHN6z"
+  },
+  {
+    "uid": "ttlDLtD7gUI",
+    "name": "Jomvu Kuu (MCM) Dispensary",
+    "county": "vSISrsNNHwq",
+    "subCounty": "T0eflkFOYOF",
+    "ward": "ttlDLtD7gUI"
+  },
+  {
+    "uid": "MP8fPGLlphd",
+    "name": "Jomvu Model Health Centre",
+    "county": "vSISrsNNHwq",
+    "subCounty": "T0eflkFOYOF",
+    "ward": "MP8fPGLlphd"
+  },
+  {
+    "uid": "U1QrV9EjWvR",
+    "name": "Joy Medical Clinic (Jomvu)",
+    "county": "vSISrsNNHwq",
+    "subCounty": "AtSX1b8b5wZ",
+    "ward": "U1QrV9EjWvR"
+  },
+  {
+    "uid": "YymiTkFWN6F",
+    "name": "Judy Medical Clinic",
+    "county": "vSISrsNNHwq",
+    "subCounty": "KgGyWS1YxMx",
+    "ward": "YymiTkFWN6F"
+  },
+  {
+    "uid": "Zbiixb1PWrk",
+    "name": "Mikindani (MCM) Dispensary",
+    "county": "vSISrsNNHwq",
+    "subCounty": "AtSX1b8b5wZ",
+    "ward": "Zbiixb1PWrk"
+  },
+  {
+    "uid": "vGh67T1wnv9",
+    "name": "Mikindani Medical Clinic",
+    "county": "vSISrsNNHwq",
+    "subCounty": "AtSX1b8b5wZ",
+    "ward": "vGh67T1wnv9"
+  },
+  {
+    "uid": "b50DtgUAzgG",
+    "name": "Miritini (MCM) Dispensary",
+    "county": "vSISrsNNHwq",
+    "subCounty": "KgGyWS1YxMx",
+    "ward": "b50DtgUAzgG"
+  },
+  {
+    "uid": "WF04P1pRp2f",
+    "name": "Miritini CDF Health Centre",
+    "county": "vSISrsNNHwq",
+    "subCounty": "KgGyWS1YxMx",
+    "ward": "WF04P1pRp2f"
+  },
+  {
+    "uid": "V8D1wDlLKTR",
+    "name": "Mother Amadea Health Centre",
+    "county": "vSISrsNNHwq",
+    "subCounty": "AtSX1b8b5wZ",
+    "ward": "V8D1wDlLKTR"
+  },
+  {
+    "uid": "DNLEbCijBau",
+    "name": "Vikobani Dispensary",
+    "county": "vSISrsNNHwq",
+    "subCounty": "KgGyWS1YxMx",
+    "ward": "DNLEbCijBau"
+  },
+  {
+    "uid": "KpP492AtgPu",
+    "name": "Barsheba Medical Clinic",
+    "county": "C1hO6wNOgrH",
+    "subCounty": "ZvkGsTVOoog",
+    "ward": "KpP492AtgPu"
+  },
+  {
+    "uid": "zMZlZZkLMsd",
+    "name": "Borabu Medical Clinic",
+    "county": "C1hO6wNOgrH",
+    "subCounty": "ZvkGsTVOoog",
+    "ward": "zMZlZZkLMsd"
+  },
+  {
+    "uid": "wi1we3OlD7A",
+    "name": "Coast General Teaching and Referral Hospital Vikwatani Outreach Centre",
+    "county": "C1hO6wNOgrH",
+    "subCounty": "hi7bKqPsdhE",
+    "ward": "wi1we3OlD7A"
+  },
+  {
+    "uid": "OjKfyArZa2J",
+    "name": "Jocham Hospital",
+    "county": "C1hO6wNOgrH",
+    "subCounty": "YCeebXtrvTd",
+    "ward": "OjKfyArZa2J"
+  },
+  {
+    "uid": "yZv0nIvtuNa",
+    "name": "Jordan Medical Clinic",
+    "county": "C1hO6wNOgrH",
+    "subCounty": "hi7bKqPsdhE",
+    "ward": "yZv0nIvtuNa"
+  },
+  {
+    "uid": "lR6W5tK8hAq",
+    "name": "Junda Dispensary",
+    "county": "C1hO6wNOgrH",
+    "subCounty": "sHr1V63b6gP",
+    "ward": "lR6W5tK8hAq"
+  },
+  {
+    "uid": "MD1tQdr3b1V",
+    "name": "Marimani CDF Dispensary",
+    "county": "C1hO6wNOgrH",
+    "subCounty": "zkZxEdH45U1",
+    "ward": "MD1tQdr3b1V"
+  },
+  {
+    "uid": "pnHWEUwoiUe",
+    "name": "Maunguja Dispensary",
+    "county": "C1hO6wNOgrH",
+    "subCounty": "zkZxEdH45U1",
+    "ward": "pnHWEUwoiUe"
+  },
+  {
+    "uid": "JLycfrnh9yB",
+    "name": "Mlaleo Afyacare",
+    "county": "C1hO6wNOgrH",
+    "subCounty": "YCeebXtrvTd",
+    "ward": "JLycfrnh9yB"
+  },
+  {
+    "uid": "qypRrdcvLie",
+    "name": "Mwakirunge Dispensary",
+    "county": "C1hO6wNOgrH",
+    "subCounty": "zkZxEdH45U1",
+    "ward": "qypRrdcvLie"
+  },
+  {
+    "uid": "KTMLdFBxIG6",
+    "name": "Nguuni Health Centre",
+    "county": "C1hO6wNOgrH",
+    "subCounty": "hi7bKqPsdhE",
+    "ward": "KTMLdFBxIG6"
+  },
+  {
+    "uid": "wNjdLhsWlAS",
+    "name": "St Elizabeth Medical Clinic Bakarani",
+    "county": "C1hO6wNOgrH",
+    "subCounty": "YCeebXtrvTd",
+    "ward": "wNjdLhsWlAS"
+  },
+  {
+    "uid": "bJxj094HsZL",
+    "name": "Utange Dispensary",
+    "county": "C1hO6wNOgrH",
+    "subCounty": "ZvkGsTVOoog",
+    "ward": "bJxj094HsZL"
+  },
+  {
+    "uid": "jLCDKWdsW28",
+    "name": "Akemo Medical Clinic",
+    "county": "iy93Mmi73Or",
+    "subCounty": "bZcRxqnzRy0",
+    "ward": "jLCDKWdsW28"
+  },
+  {
+    "uid": "b0aLkuteIbm",
+    "name": "Amurt Health Centre (Likoni)",
+    "county": "iy93Mmi73Or",
+    "subCounty": "dHlamDlw0NG",
+    "ward": "b0aLkuteIbm"
+  },
+  {
+    "uid": "VvCOSaPl5IR",
+    "name": "California Medical Clinic",
+    "county": "iy93Mmi73Or",
+    "subCounty": "cFjb7QOxAMu",
+    "ward": "VvCOSaPl5IR"
+  },
+  {
+    "uid": "yLhTPeusK9l",
+    "name": "Consolata Sisters Timbwani Dispensary (Stella Maris)",
+    "county": "iy93Mmi73Or",
+    "subCounty": "bZcRxqnzRy0",
+    "ward": "yLhTPeusK9l"
+  },
+  {
+    "uid": "otwzajK9xT1",
+    "name": "Geca Medical Clinic",
+    "county": "iy93Mmi73Or",
+    "subCounty": "dHlamDlw0NG",
+    "ward": "otwzajK9xT1"
+  },
+  {
+    "uid": "bVvybxoOuLr",
+    "name": "Likoni Catholic Hospital",
+    "county": "iy93Mmi73Or",
+    "subCounty": "bZcRxqnzRy0",
+    "ward": "bVvybxoOuLr"
+  },
+  {
+    "uid": "bvUg2vPkLWw",
+    "name": "Likoni Subcounty Hospital",
+    "county": "iy93Mmi73Or",
+    "subCounty": "bZcRxqnzRy0",
+    "ward": "bvUg2vPkLWw"
+  },
+  {
+    "uid": "DkqZGBy1IPy",
+    "name": "Mbuta Model Health Centre",
+    "county": "iy93Mmi73Or",
+    "subCounty": "SwcDu8wwQiR",
+    "ward": "DkqZGBy1IPy"
+  },
+  {
+    "uid": "musLWYtdRpQ",
+    "name": "Mrima Maternity Hospital",
+    "county": "iy93Mmi73Or",
+    "subCounty": "bZcRxqnzRy0",
+    "ward": "musLWYtdRpQ"
+  },
+  {
+    "uid": "QFvQazQx4Lf",
+    "name": "Santa Maria Medical Clinic",
+    "county": "iy93Mmi73Or",
+    "subCounty": "bZcRxqnzRy0",
+    "ward": "QFvQazQx4Lf"
+  },
+  {
+    "uid": "iCZTk27AHph",
+    "name": "Sau Health Services",
+    "county": "iy93Mmi73Or",
+    "subCounty": "y9LgUAIGBj7",
+    "ward": "iCZTk27AHph"
+  },
+  {
+    "uid": "HqFDy2vEQz6",
+    "name": "Shika Adabu (MCM) Dispensary",
+    "county": "iy93Mmi73Or",
+    "subCounty": "cFjb7QOxAMu",
+    "ward": "HqFDy2vEQz6"
+  },
+  {
+    "uid": "UuvEzG4s7rr",
+    "name": "Singawa Medical Clinic",
+    "county": "iy93Mmi73Or",
+    "subCounty": "dHlamDlw0NG",
+    "ward": "UuvEzG4s7rr"
+  },
+  {
+    "uid": "aiD3lzUJBTy",
+    "name": "Al Farooq Hospital",
+    "county": "C1xuoa1NAMm",
+    "subCounty": "Dvo3BcpbGkD",
+    "ward": "aiD3lzUJBTy"
+  },
+  {
+    "uid": "d2TqMWtDu8b",
+    "name": "Al Fridaus Medical Clinic",
+    "county": "C1xuoa1NAMm",
+    "subCounty": "Dvo3BcpbGkD",
+    "ward": "d2TqMWtDu8b"
+  },
+  {
+    "uid": "tvYS6hl4l6l",
+    "name": "Cdc Ganjoni Dispensary",
+    "county": "C1xuoa1NAMm",
+    "subCounty": "I1ioJIBPdpG",
+    "ward": "tvYS6hl4l6l"
+  },
+  {
+    "uid": "WQBUBXxXVe5",
+    "name": "Coast General Teaching and Referral Hospital",
+    "county": "C1xuoa1NAMm",
+    "subCounty": "Dvo3BcpbGkD",
+    "ward": "WQBUBXxXVe5"
+  },
+  {
+    "uid": "acwrBDe6sW2",
+    "name": "Jaffery Medical Clinic",
+    "county": "C1xuoa1NAMm",
+    "subCounty": "lZiLgEqsjq5",
+    "ward": "acwrBDe6sW2"
+  },
+  {
+    "uid": "fN7KqlgwStu",
+    "name": "Kaderbouy Medical Clinic (Old Town)",
+    "county": "C1xuoa1NAMm",
+    "subCounty": "lZiLgEqsjq5",
+    "ward": "fN7KqlgwStu"
+  },
+  {
+    "uid": "Ct9bQIfUoA3",
+    "name": "Kenya Ports Authority Medical Clinic",
+    "county": "C1xuoa1NAMm",
+    "subCounty": "I1ioJIBPdpG",
+    "ward": "Ct9bQIfUoA3"
+  },
+  {
+    "uid": "aNcnmaf1UCw",
+    "name": "Majengo Dispensary (Mombasa)",
+    "county": "C1xuoa1NAMm",
+    "subCounty": "i1bANekmIzQ",
+    "ward": "aNcnmaf1UCw"
+  },
+  {
+    "uid": "cCWHaspoKZ0",
+    "name": "Makande Healthcare Services",
+    "county": "C1xuoa1NAMm",
+    "subCounty": "I1ioJIBPdpG",
+    "ward": "cCWHaspoKZ0"
+  },
+  {
+    "uid": "Koi29tuLeJa",
+    "name": "Mary Immaculate Cottage Hospital (Mombasa)",
+    "county": "C1xuoa1NAMm",
+    "subCounty": "Dvo3BcpbGkD",
+    "ward": "Koi29tuLeJa"
+  },
+  {
+    "uid": "r1TbCZwi10y",
+    "name": "Mewa Hospital",
+    "county": "C1xuoa1NAMm",
+    "subCounty": "i1bANekmIzQ",
+    "ward": "r1TbCZwi10y"
+  },
+  {
+    "uid": "jTY37uG4jRF",
+    "name": "Mombasa Hospital",
+    "county": "C1xuoa1NAMm",
+    "subCounty": "lZiLgEqsjq5",
+    "ward": "jTY37uG4jRF"
+  },
+  {
+    "uid": "SkwAFqB5xbI",
+    "name": "Mvita Health Centre",
+    "county": "C1xuoa1NAMm",
+    "subCounty": "i1bANekmIzQ",
+    "ward": "SkwAFqB5xbI"
+  },
+  {
+    "uid": "lzOUpzvVUbj",
+    "name": "Mwembe Tayari Dispensary",
+    "county": "C1xuoa1NAMm",
+    "subCounty": "i1bANekmIzQ",
+    "ward": "lzOUpzvVUbj"
+  },
+  {
+    "uid": "QOgmD5WtQLd",
+    "name": "Optimum Care Medical Clinic",
+    "county": "C1xuoa1NAMm",
+    "subCounty": "lZiLgEqsjq5",
+    "ward": "QOgmD5WtQLd"
+  },
+  {
+    "uid": "iM48NtgCfPO",
+    "name": "Railways Dispensary (Mombasa)",
+    "county": "C1xuoa1NAMm",
+    "subCounty": "I1ioJIBPdpG",
+    "ward": "iM48NtgCfPO"
+  },
+  {
+    "uid": "eFXM0R5IBB4",
+    "name": "Seaside Nursing Home",
+    "county": "C1xuoa1NAMm",
+    "subCounty": "I1ioJIBPdpG",
+    "ward": "eFXM0R5IBB4"
+  },
+  {
+    "uid": "bKNoJXJZYXg",
+    "name": "State House Dispensary (Mombasa)",
+    "county": "C1xuoa1NAMm",
+    "subCounty": "lZiLgEqsjq5",
+    "ward": "bKNoJXJZYXg"
+  },
+  {
+    "uid": "XNC30RIDLbz",
+    "name": "Tononoka Ap Dispensary (Tononoka)",
+    "county": "C1xuoa1NAMm",
+    "subCounty": "Dvo3BcpbGkD",
+    "ward": "XNC30RIDLbz"
+  },
+  {
+    "uid": "Sr1PmoSNFhb",
+    "name": "Tudor Health Care",
+    "county": "C1xuoa1NAMm",
+    "subCounty": "oLZDP6nDlYc",
+    "ward": "Sr1PmoSNFhb"
+  },
+  {
+    "uid": "QXYRGaSfPBL",
+    "name": "Tudor Sub County Hospital",
+    "county": "C1xuoa1NAMm",
+    "subCounty": "oLZDP6nDlYc",
+    "ward": "QXYRGaSfPBL"
+  },
+  {
+    "uid": "GaJDwc23dzp",
+    "name": "AAR Nyali Heallthcare(K) LTD Nyali",
+    "county": "sr8WEz03EnP",
+    "subCounty": "XhBDUNeFqF6",
+    "ward": "GaJDwc23dzp"
+  },
+  {
+    "uid": "d8KDRlVNVFA",
+    "name": "Barakani Community Healthcare",
+    "county": "sr8WEz03EnP",
+    "subCounty": "EDosdjVkXb6",
+    "ward": "d8KDRlVNVFA"
+  },
+  {
+    "uid": "dO93Ue6OwRr",
+    "name": "Bamburi Dispensary",
+    "county": "sr8WEz03EnP",
+    "subCounty": "FydnlJp81aR",
+    "ward": "dO93Ue6OwRr"
+  },
+  {
+    "uid": "ZosyfWIzXWl",
+    "name": "Bamburi Medicare",
+    "county": "sr8WEz03EnP",
+    "subCounty": "FydnlJp81aR",
+    "ward": "ZosyfWIzXWl"
+  },
+  {
+    "uid": "F5QNnfbcxlE",
+    "name": "Baobab Clinic Bamburi Cement",
+    "county": "sr8WEz03EnP",
+    "subCounty": "FydnlJp81aR",
+    "ward": "F5QNnfbcxlE"
+  },
+  {
+    "uid": "xeJN8pFmFkk",
+    "name": "Family Medical Centre (Kisauni)",
+    "county": "sr8WEz03EnP",
+    "subCounty": "EDosdjVkXb6",
+    "ward": "xeJN8pFmFkk"
+  },
+  {
+    "uid": "MRzPKSMo4gJ",
+    "name": "Health Source Medical Centre",
+    "county": "sr8WEz03EnP",
+    "subCounty": "XhBDUNeFqF6",
+    "ward": "MRzPKSMo4gJ"
+  },
+  {
+    "uid": "HwRb5Ackqm4",
+    "name": "Jambo Healthcare Limited",
+    "county": "sr8WEz03EnP",
+    "subCounty": "LMCJ2zXfHyL",
+    "ward": "HwRb5Ackqm4"
+  },
+  {
+    "uid": "YJtzYxZ8W75",
+    "name": "Kisauni Health Centre",
+    "county": "sr8WEz03EnP",
+    "subCounty": "EDosdjVkXb6",
+    "ward": "YJtzYxZ8W75"
+  },
+  {
+    "uid": "msU3yyKbEFi",
+    "name": "Kisauni MAT Clinic",
+    "county": "sr8WEz03EnP",
+    "subCounty": "EDosdjVkXb6",
+    "ward": "msU3yyKbEFi"
+  },
+  {
+    "uid": "E4L1RgaAbiM",
+    "name": "Kisimani Health Services",
+    "county": "sr8WEz03EnP",
+    "subCounty": "EDosdjVkXb6",
+    "ward": "E4L1RgaAbiM"
+  },
+  {
+    "uid": "f7VNgpLhVwW",
+    "name": "Kongowea Health Centre",
+    "county": "sr8WEz03EnP",
+    "subCounty": "LMCJ2zXfHyL",
+    "ward": "f7VNgpLhVwW"
+  },
+  {
+    "uid": "cDWVOPhvdMX",
+    "name": "Maweni CDF Dispensary",
+    "county": "sr8WEz03EnP",
+    "subCounty": "FXRGaOT9JD8",
+    "ward": "cDWVOPhvdMX"
+  },
+  {
+    "uid": "JFawTT0Jmxy",
+    "name": "Meditrust Health Care Services",
+    "county": "sr8WEz03EnP",
+    "subCounty": "FydnlJp81aR",
+    "ward": "JFawTT0Jmxy"
+  },
+  {
+    "uid": "ebxBpxNXZP1",
+    "name": "Mlaleo CDF Health Centre",
+    "county": "sr8WEz03EnP",
+    "subCounty": "EDosdjVkXb6",
+    "ward": "ebxBpxNXZP1"
+  },
+  {
+    "uid": "XBVHcByduVe",
+    "name": "Sayyida Fatimah Hospital",
+    "county": "sr8WEz03EnP",
+    "subCounty": "EDosdjVkXb6",
+    "ward": "XBVHcByduVe"
+  },
+  {
+    "uid": "ke4moKRIpK6",
+    "name": "Ziwa La Ng'ombe Health Centre",
+    "county": "sr8WEz03EnP",
+    "subCounty": "XhBDUNeFqF6",
+    "ward": "ke4moKRIpK6"
+  },
+  {
+    "uid": "pnyCZ07HZhN",
+    "name": "Bura Health Centre (Taita Taveta)",
+    "county": "IBDoGsLdhvt",
+    "subCounty": "VDvkL0vcV5e",
+    "ward": "pnyCZ07HZhN"
+  },
+  {
+    "uid": "S9YgBWSHUsN",
+    "name": "Dawson Mwanyumba Dispensary",
+    "county": "IBDoGsLdhvt",
+    "subCounty": "Xc5oMwMoQcz",
+    "ward": "S9YgBWSHUsN"
+  },
+  {
+    "uid": "DOcBRLcGBUX",
+    "name": "Dembwa Dispensary",
+    "county": "IBDoGsLdhvt",
+    "subCounty": "Xc5oMwMoQcz",
+    "ward": "DOcBRLcGBUX"
+  },
+  {
+    "uid": "hd960rbac4q",
+    "name": "Horesha Medical Clinic",
+    "county": "IBDoGsLdhvt",
+    "subCounty": "i6WDSy6LjRp",
+    "ward": "hd960rbac4q"
+  },
+  {
+    "uid": "BeVClnWzOLi",
+    "name": "Mwatate Afya Centre Clinic",
+    "county": "IBDoGsLdhvt",
+    "subCounty": "i6WDSy6LjRp",
+    "ward": "BeVClnWzOLi"
+  },
+  {
+    "uid": "AXNHxgMDry0",
+    "name": "Kiangachinyi Dispensary",
+    "county": "IBDoGsLdhvt",
+    "subCounty": "Xc5oMwMoQcz",
+    "ward": "AXNHxgMDry0"
+  },
+  {
+    "uid": "kF0bKOP420A",
+    "name": "Kighombo Dispensary",
+    "county": "IBDoGsLdhvt",
+    "subCounty": "px49ejbHkuk",
+    "ward": "kF0bKOP420A"
+  },
+  {
+    "uid": "qCmeLUpuw4b",
+    "name": "Kwa-Mnegwa Dispensary",
+    "county": "IBDoGsLdhvt",
+    "subCounty": "VDvkL0vcV5e",
+    "ward": "qCmeLUpuw4b"
+  },
+  {
+    "uid": "PkLRGRtOY62",
+    "name": "Maktau Health Centre",
+    "county": "IBDoGsLdhvt",
+    "subCounty": "VDvkL0vcV5e",
+    "ward": "PkLRGRtOY62"
+  },
+  {
+    "uid": "CqE561275B7",
+    "name": "Manoa Dispensary",
+    "county": "IBDoGsLdhvt",
+    "subCounty": "NkcRjTGJbuh",
+    "ward": "CqE561275B7"
+  },
+  {
+    "uid": "S9itqWWPUqs",
+    "name": "Mbaga Dispensary",
+    "county": "IBDoGsLdhvt",
+    "subCounty": "VDvkL0vcV5e",
+    "ward": "S9itqWWPUqs"
+  },
+  {
+    "uid": "oXSYWYUv3SN",
+    "name": "Modambogho Dispensary",
+    "county": "IBDoGsLdhvt",
+    "subCounty": "i6WDSy6LjRp",
+    "ward": "oXSYWYUv3SN"
+  },
+  {
+    "uid": "Wftkk5ibasq",
+    "name": "Mpinzinyi Health Centre",
+    "county": "IBDoGsLdhvt",
+    "subCounty": "Xc5oMwMoQcz",
+    "ward": "Wftkk5ibasq"
+  },
+  {
+    "uid": "uo1WH5pbibv",
+    "name": "Mrughua Dispensary",
+    "county": "IBDoGsLdhvt",
+    "subCounty": "VDvkL0vcV5e",
+    "ward": "uo1WH5pbibv"
+  },
+  {
+    "uid": "TmUqDq9wyrW",
+    "name": "Msau Dispensary",
+    "county": "IBDoGsLdhvt",
+    "subCounty": "px49ejbHkuk",
+    "ward": "TmUqDq9wyrW"
+  },
+  {
+    "uid": "frYFcUIf8lC",
+    "name": "Mwambirwa Dispensary",
+    "county": "IBDoGsLdhvt",
+    "subCounty": "px49ejbHkuk",
+    "ward": "frYFcUIf8lC"
+  },
+  {
+    "uid": "eVzFQKlvAjO",
+    "name": "Mwashuma Dispensary (CDF)",
+    "county": "IBDoGsLdhvt",
+    "subCounty": "VDvkL0vcV5e",
+    "ward": "eVzFQKlvAjO"
+  },
+  {
+    "uid": "fcY1fkS6bL1",
+    "name": "Mwatate Sub-District Hospital",
+    "county": "IBDoGsLdhvt",
+    "subCounty": "NkcRjTGJbuh",
+    "ward": "fcY1fkS6bL1"
+  },
+  {
+    "uid": "SNCOL32lKCU",
+    "name": "Sagaighu Dispensary",
+    "county": "IBDoGsLdhvt",
+    "subCounty": "VDvkL0vcV5e",
+    "ward": "SNCOL32lKCU"
+  },
+  {
+    "uid": "GVzSIlzeDDx",
+    "name": "Shelemba Dispensary",
+    "county": "IBDoGsLdhvt",
+    "subCounty": "px49ejbHkuk",
+    "ward": "GVzSIlzeDDx"
+  },
+  {
+    "uid": "yz82FAm3ygB",
+    "name": "Challa Dispensary",
+    "county": "jNzRdAwjaQ1",
+    "subCounty": "uxxdF69wmFs",
+    "ward": "yz82FAm3ygB"
+  },
+  {
+    "uid": "Rre94o5TeOh",
+    "name": "Divine Mercy Eldoro (Catholic) Dispensary",
+    "county": "jNzRdAwjaQ1",
+    "subCounty": "SRbWfuqghtn",
+    "ward": "Rre94o5TeOh"
+  },
+  {
+    "uid": "H5Mn5QSE0CM",
+    "name": "Joscare Medical Clinic",
+    "county": "jNzRdAwjaQ1",
+    "subCounty": "umrac2I2Sg9",
+    "ward": "H5Mn5QSE0CM"
+  },
+  {
+    "uid": "F8285BUIOVd",
+    "name": "Kimorigho Dispensary",
+    "county": "jNzRdAwjaQ1",
+    "subCounty": "SRbWfuqghtn",
+    "ward": "F8285BUIOVd"
+  },
+  {
+    "uid": "z2ur5RpGme8",
+    "name": "Kitobo Dispensary (Taveta)",
+    "county": "jNzRdAwjaQ1",
+    "subCounty": "SRbWfuqghtn",
+    "ward": "z2ur5RpGme8"
+  },
+  {
+    "uid": "UVO6t17NAk5",
+    "name": "Kiwalwa Dispensary",
+    "county": "jNzRdAwjaQ1",
+    "subCounty": "SRbWfuqghtn",
+    "ward": "UVO6t17NAk5"
+  },
+  {
+    "uid": "aOVjR4sxcFF",
+    "name": "Mahandakini Dispensary",
+    "county": "jNzRdAwjaQ1",
+    "subCounty": "uxxdF69wmFs",
+    "ward": "aOVjR4sxcFF"
+  },
+  {
+    "uid": "eBEloHL6afC",
+    "name": "Mata Dispensary (Taveta)",
+    "county": "jNzRdAwjaQ1",
+    "subCounty": "m1IPtRRgcm9",
+    "ward": "eBEloHL6afC"
+  },
+  {
+    "uid": "gyhJyUbozV4",
+    "name": "Ndilidau Dispensary (Jipe)",
+    "county": "jNzRdAwjaQ1",
+    "subCounty": "m1IPtRRgcm9",
+    "ward": "gyhJyUbozV4"
+  },
+  {
+    "uid": "qnPQajuLKr7",
+    "name": "Ndongo Purple Clinic",
+    "county": "jNzRdAwjaQ1",
+    "subCounty": "umrac2I2Sg9",
+    "ward": "qnPQajuLKr7"
+  },
+  {
+    "uid": "gLkdFvweeSd",
+    "name": "Njukini Health Centre",
+    "county": "jNzRdAwjaQ1",
+    "subCounty": "uxxdF69wmFs",
+    "ward": "gLkdFvweeSd"
+  },
+  {
+    "uid": "UZUsQXKij1U",
+    "name": "Rekeke Model Health Centre",
+    "county": "jNzRdAwjaQ1",
+    "subCounty": "m1IPtRRgcm9",
+    "ward": "UZUsQXKij1U"
+  },
+  {
+    "uid": "HogroB7g3v3",
+    "name": "St Joseph Mission Dispensary Chumvini",
+    "county": "jNzRdAwjaQ1",
+    "subCounty": "uxxdF69wmFs",
+    "ward": "HogroB7g3v3"
+  },
+  {
+    "uid": "xlKQSUOfy0y",
+    "name": "Taveta Sub County Hospital",
+    "county": "jNzRdAwjaQ1",
+    "subCounty": "umrac2I2Sg9",
+    "ward": "xlKQSUOfy0y"
+  },
+  {
+    "uid": "RNp406vYYZV",
+    "name": "Acode Medical Clinic Maungu",
+    "county": "yoGLpCTgjed",
+    "subCounty": "mvDV6e04X7a",
+    "ward": "RNp406vYYZV"
+  },
+  {
+    "uid": "eZjUr1BHgQw",
+    "name": "Bughuta Health Centre",
+    "county": "yoGLpCTgjed",
+    "subCounty": "kMQqsjpcUFH",
+    "ward": "eZjUr1BHgQw"
+  },
+  {
+    "uid": "JAJ7YX1wFAr",
+    "name": "David Kayanda Dispensary",
+    "county": "yoGLpCTgjed",
+    "subCounty": "arVnioHdpH6",
+    "ward": "JAJ7YX1wFAr"
+  },
+  {
+    "uid": "wt82nplSMIL",
+    "name": "Ghazi Dispensary",
+    "county": "yoGLpCTgjed",
+    "subCounty": "XzqVKmvJA4m",
+    "ward": "wt82nplSMIL"
+  },
+  {
+    "uid": "pHA17Xy4wZk",
+    "name": "Kajire Dispensary",
+    "county": "yoGLpCTgjed",
+    "subCounty": "IawwjaYnKtR",
+    "ward": "pHA17Xy4wZk"
+  },
+  {
+    "uid": "GJda6nR1YiA",
+    "name": "Kasigau Rdch",
+    "county": "yoGLpCTgjed",
+    "subCounty": "kMQqsjpcUFH",
+    "ward": "GJda6nR1YiA"
+  },
+  {
+    "uid": "eqM0sRFaYP3",
+    "name": "Makwasinyi Dispensary",
+    "county": "yoGLpCTgjed",
+    "subCounty": "kMQqsjpcUFH",
+    "ward": "eqM0sRFaYP3"
+  },
+  {
+    "uid": "ccal2qRq8My",
+    "name": "Marungu Health Centre",
+    "county": "yoGLpCTgjed",
+    "subCounty": "mvDV6e04X7a",
+    "ward": "ccal2qRq8My"
+  },
+  {
+    "uid": "OTwG6MsbpwJ",
+    "name": "Maungu Model Health Centre",
+    "county": "yoGLpCTgjed",
+    "subCounty": "mvDV6e04X7a",
+    "ward": "OTwG6MsbpwJ"
+  },
+  {
+    "uid": "rwi0IMJ2HhP",
+    "name": "Mbulia Dispensary",
+    "county": "yoGLpCTgjed",
+    "subCounty": "XzqVKmvJA4m",
+    "ward": "rwi0IMJ2HhP"
+  },
+  {
+    "uid": "jYSPwpA0gha",
+    "name": "Miasenyi Dispensary",
+    "county": "yoGLpCTgjed",
+    "subCounty": "mvDV6e04X7a",
+    "ward": "jYSPwpA0gha"
+  },
+  {
+    "uid": "yOLZXnYLCeD",
+    "name": "Mleghwa Dispensary",
+    "county": "yoGLpCTgjed",
+    "subCounty": "KrQMvgSyMd7",
+    "ward": "yOLZXnYLCeD"
+  },
+  {
+    "uid": "guF7zg2Bdcy",
+    "name": "Moi County Referral Hospital (Voi)",
+    "county": "yoGLpCTgjed",
+    "subCounty": "arVnioHdpH6",
+    "ward": "guF7zg2Bdcy"
+  },
+  {
+    "uid": "LCELVppoBvS",
+    "name": "Mwangea Dispensary",
+    "county": "yoGLpCTgjed",
+    "subCounty": "arVnioHdpH6",
+    "ward": "LCELVppoBvS"
+  },
+  {
+    "uid": "hZCDGLQWIdh",
+    "name": "Ndome Dispensary (Taita)",
+    "county": "yoGLpCTgjed",
+    "subCounty": "XzqVKmvJA4m",
+    "ward": "hZCDGLQWIdh"
+  },
+  {
+    "uid": "DUoMcSbpU37",
+    "name": "Ndovu Health Centre",
+    "county": "yoGLpCTgjed",
+    "subCounty": "KrQMvgSyMd7",
+    "ward": "DUoMcSbpU37"
+  },
+  {
+    "uid": "QGdYYPYx4xn",
+    "name": "Rumangao Dispensary",
+    "county": "yoGLpCTgjed",
+    "subCounty": "IawwjaYnKtR",
+    "ward": "QGdYYPYx4xn"
+  },
+  {
+    "uid": "iHIbDSA0diT",
+    "name": "Sagala Health Centre",
+    "county": "yoGLpCTgjed",
+    "subCounty": "IawwjaYnKtR",
+    "ward": "iHIbDSA0diT"
+  },
+  {
+    "uid": "ynPfWsPSnEZ",
+    "name": "Tausa Health Centre",
+    "county": "yoGLpCTgjed",
+    "subCounty": "arVnioHdpH6",
+    "ward": "ynPfWsPSnEZ"
+  },
+  {
+    "uid": "sC3admN8uCC",
+    "name": "Dawida Maternity Nursing Home",
+    "county": "AM36DdkZ36Y",
+    "subCounty": "mkbKajFxEDT",
+    "ward": "sC3admN8uCC"
+  },
+  {
+    "uid": "aABRCk8mJeG",
+    "name": "Kishushe Dispensary",
+    "county": "AM36DdkZ36Y",
+    "subCounty": "MWZrkgY93fj",
+    "ward": "aABRCk8mJeG"
+  },
+  {
+    "uid": "pThhj7hcUnM",
+    "name": "Mbale Health Centre",
+    "county": "AM36DdkZ36Y",
+    "subCounty": "mkbKajFxEDT",
+    "ward": "pThhj7hcUnM"
+  },
+  {
+    "uid": "iZg0Knh5nhS",
+    "name": "Mgange Dawida Dispensary",
+    "county": "AM36DdkZ36Y",
+    "subCounty": "RXoThrI8OjU",
+    "ward": "iZg0Knh5nhS"
+  },
+  {
+    "uid": "J2Twz5u5b4j",
+    "name": "Mgange Nyika Health Centre",
+    "county": "AM36DdkZ36Y",
+    "subCounty": "RXoThrI8OjU",
+    "ward": "J2Twz5u5b4j"
+  },
+  {
+    "uid": "NyPWjP5knen",
+    "name": "Mvono Clinic",
+    "county": "AM36DdkZ36Y",
+    "subCounty": "mkbKajFxEDT",
+    "ward": "NyPWjP5knen"
+  },
+  {
+    "uid": "mCDPsFqAZ7m",
+    "name": "Mwanda Health Centre (Taita Taveta)",
+    "county": "AM36DdkZ36Y",
+    "subCounty": "RXoThrI8OjU",
+    "ward": "mCDPsFqAZ7m"
+  },
+  {
+    "uid": "vGsSZnuccgd",
+    "name": "Nyache Health Centre",
+    "county": "AM36DdkZ36Y",
+    "subCounty": "MWZrkgY93fj",
+    "ward": "vGsSZnuccgd"
+  },
+  {
+    "uid": "YSsiUEshEly",
+    "name": "Sangekoro Dispensary",
+    "county": "AM36DdkZ36Y",
+    "subCounty": "vwpMqmZzByo",
+    "ward": "YSsiUEshEly"
+  },
+  {
+    "uid": "FbVfA2p2Bon",
+    "name": "Werugha Health Centre",
+    "county": "AM36DdkZ36Y",
+    "subCounty": "vwpMqmZzByo",
+    "ward": "FbVfA2p2Bon"
+  },
+  {
+    "uid": "wCSn2WNV6Gq",
+    "name": "Wesu Sub County Hospital",
+    "county": "AM36DdkZ36Y",
+    "subCounty": "mkbKajFxEDT",
+    "ward": "wCSn2WNV6Gq"
+  },
+  {
+    "uid": "EDcCsYmI28j",
+    "name": "Wundanyi Sub County Hospital",
+    "county": "AM36DdkZ36Y",
+    "subCounty": "mkbKajFxEDT",
+    "ward": "EDcCsYmI28j"
+  }
+]
