@@ -22,6 +22,7 @@ import { useKhis } from "@/lib/use-khis";
 import { PARTNER_FACILITIES } from "@/lib/partners";
 import { AIAssistant, type ChartInsight } from "@/components/ai-assistant";
 import { ViewDataButton } from "@/components/view-data";
+import { captureChartImage } from "@/lib/capture-chart";
 
 // ---------------------------------------------------------------------------
 // PrEP — separate prevention track (own top-level tab)
@@ -876,7 +877,8 @@ export function PrepTab({
                   </button>
                   <button
                     type="button"
-                    onClick={() =>
+                    onClick={async (e) => {
+                      const image = await captureChartImage(e.currentTarget);
                       addChartToPlayground({
                         id: "prep-facility-coverage",
                         title: "PrEP Eligible vs Initiated by Facility",
@@ -884,8 +886,9 @@ export function PrepTab({
                           "This chart compares women assessed eligible and those actually started on PrEP across supported facilities.",
                         prompt:
                           "Explain the biggest gaps between eligible women and those initiated on PrEP and suggest where to focus follow-up.",
-                      })
-                    }
+                        image,
+                      });
+                    }}
                     className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-600 hover:border-sky-200 hover:text-sky-700"
                   >
                     <Save className="h-3.5 w-3.5" />
@@ -1152,7 +1155,8 @@ export function PrepTab({
                 </button>
                 <button
                   type="button"
-                  onClick={() =>
+                  onClick={async (e) => {
+                    const image = await captureChartImage(e.currentTarget);
                     addChartToPlayground({
                       id: "prep-momentum",
                       title:
@@ -1161,8 +1165,9 @@ export function PrepTab({
                         "This chart tracks monthly new initiations against the number of women still active on PrEP over time.",
                       prompt:
                         "Summarize the momentum in new initiations and tell me whether the retention gap is widening or improving.",
-                    })
-                  }
+                      image,
+                    });
+                  }}
                   className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-600 hover:border-sky-200 hover:text-sky-700"
                 >
                   <Save className="h-3.5 w-3.5" />

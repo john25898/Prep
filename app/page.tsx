@@ -75,7 +75,15 @@ function PlaygroundTab({
                 </button>
               </div>
 
-              <p className="mt-3 text-sm text-slate-600">{chart.summary}</p>
+              {chart.image ? (
+                <img
+                  src={chart.image}
+                  alt={chart.title}
+                  className="mt-3 w-full rounded-lg border border-slate-200 bg-white"
+                />
+              ) : (
+                <p className="mt-3 text-sm text-slate-600">{chart.summary}</p>
+              )}
 
               {chart.prompt && (
                 <div className="mt-4 rounded-xl border border-sky-100 bg-sky-50 p-3 text-sm text-slate-700">

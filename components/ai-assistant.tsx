@@ -9,6 +9,7 @@ export type ChartInsight = {
   subtitle?: string;
   summary: string;
   prompt?: string;
+  image?: string;
   createdAt?: string;
 };
 

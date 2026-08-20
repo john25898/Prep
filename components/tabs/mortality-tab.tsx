@@ -19,6 +19,7 @@ import { useKhis } from "@/lib/use-khis";
 import { PARTNER_FACILITIES } from "@/lib/partners";
 import { AIAssistant, type ChartInsight } from "@/components/ai-assistant";
 import { ViewDataButton } from "@/components/view-data";
+import { captureChartImage } from "@/lib/capture-chart";
 
 // ---------------------------------------------------------------------------
 // Domain 4 — MPDSR, Clinical Quality & Accountability
@@ -395,7 +396,8 @@ export function MortalityTab({
                 </button>
                 <button
                   type="button"
-                  onClick={() =>
+                  onClick={async (e) => {
+                    const image = await captureChartImage(e.currentTarget);
                     addChartToPlayground({
                       id: "mortality-facility-overview",
                       title: "Deaths Reported by Supported Facilities",
@@ -403,8 +405,9 @@ export function MortalityTab({
                         "This chart compares the total maternal and neonatal deaths reported through the supported facilities.",
                       prompt:
                         "Summarize the mortality burden and flag the main concern in the death profile.",
-                    })
-                  }
+                      image,
+                    });
+                  }}
                   className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-600 hover:border-sky-200 hover:text-sky-700"
                 >
                   <Save className="h-3.5 w-3.5" /> Save
@@ -533,7 +536,8 @@ export function MortalityTab({
             </button>
             <button
               type="button"
-              onClick={() =>
+              onClick={async (e) => {
+                const image = await captureChartImage(e.currentTarget);
                 addChartToPlayground({
                   id: "mortality-monthly-trend",
                   title: "Reported Deaths by Month (Maternal vs Neonatal)",
@@ -541,8 +545,9 @@ export function MortalityTab({
                     "This chart shows the month-on-month trend for maternal and neonatal mortality in supported facilities.",
                   prompt:
                     "Interpret the intra-year trend and highlight whether mortality is improving, worsening, or stable.",
-                })
-              }
+                  image,
+                });
+              }}
               className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-600 hover:border-sky-200 hover:text-sky-700"
             >
               <Save className="h-3.5 w-3.5" /> Save

@@ -22,6 +22,7 @@ import { useKhis } from "@/lib/use-khis";
 import { PARTNER_FACILITIES } from "@/lib/partners";
 import { AIAssistant, type ChartInsight } from "@/components/ai-assistant";
 import { ViewDataButton } from "@/components/view-data";
+import { captureChartImage } from "@/lib/capture-chart";
 
 // ---------------------------------------------------------------------------
 // PMTCT & HIV Care — two clearly separated tracks:
@@ -430,7 +431,8 @@ const Subtab2A = ({
                 </button>
                 <button
                   type="button"
-                  onClick={() =>
+                  onClick={async (e) => {
+                    const image = await captureChartImage(e.currentTarget);
                     onSaveToPlayground({
                       id: "clinical-anc-testing",
                       title: "1st ANC Attendance vs HIV Testing",
@@ -438,8 +440,9 @@ const Subtab2A = ({
                         "This chart compares women reached at first ANC against those who received an HIV test result.",
                       prompt:
                         "Explain the testing gap and tell me where the biggest coverage problem is emerging.",
-                    })
-                  }
+                      image,
+                    });
+                  }}
                   className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-600 hover:border-sky-200 hover:text-sky-700"
                 >
                   <Save className="h-3.5 w-3.5" /> Save

@@ -27,6 +27,7 @@ import {
 } from "lucide-react";
 import { AIAssistant, type ChartInsight } from "@/components/ai-assistant";
 import { ViewDataButton } from "@/components/view-data";
+import { captureChartImage } from "@/lib/capture-chart";
 
 // ---------------------------------------------------------------------------
 // SHA — Social Health Authority (Universal Health Coverage) enrollment
@@ -225,7 +226,8 @@ export function ShaTab({
               </button>
               <button
                 type="button"
-                onClick={() =>
+                onClick={async (e) => {
+                  const image = await captureChartImage(e.currentTarget);
                   addChartToPlayground({
                     id: "sha-facility-comparison",
                     title: "HIV+ Patients vs SHA-Enrolled (by Facility)",
@@ -233,8 +235,9 @@ export function ShaTab({
                       "This chart compares HIV-positive patients and those successfully enrolled in SHA across facilities.",
                     prompt:
                       "Explain the facility-level gap between HIV-positive women and SHA enrollment and identify where the biggest follow-up burden sits.",
-                  })
-                }
+                    image,
+                  });
+                }}
                 className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-600 hover:border-sky-200 hover:text-sky-700"
               >
                 <Save className="h-3.5 w-3.5" /> Save
@@ -302,7 +305,8 @@ export function ShaTab({
               </button>
               <button
                 type="button"
-                onClick={() =>
+                onClick={async (e) => {
+                  const image = await captureChartImage(e.currentTarget);
                   addChartToPlayground({
                     id: "sha-enrollment-trend",
                     title: "SHA Enrollment Trend (Jan – Jun)",
@@ -310,8 +314,9 @@ export function ShaTab({
                       "This chart shows the monthly pace of SHA registration growth across the supported facilities.",
                     prompt:
                       "Interpret the monthly SHA enrollment trend and say whether enrollment is accelerating or plateauing.",
-                  })
-                }
+                    image,
+                  });
+                }}
                 className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-600 hover:border-sky-200 hover:text-sky-700"
               >
                 <Save className="h-3.5 w-3.5" /> Save
