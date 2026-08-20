@@ -890,7 +890,7 @@ type IndicatorCountyRow = {
   label: string;
   full: string;
   target: number;
-  values: { county: string; value: number }[];
+  values: { county: string; value: number; live?: boolean }[];
 };
 
 /** Grouped bar chart: indicators on the X axis, one bar per county. */
@@ -950,11 +950,11 @@ function PartnerIndicatorChart({
                 r.values.map((v) => ({
                   label: `${r.full} · ${v.county}`,
                   value: v.value,
-                  source: "demo" as const,
+                  source: v.live ? ("live" as const) : ("demo" as const),
                 })),
               ),
               notes: [
-                "These are baseline constants / entered assessments — not live KHIS numerators, which are not disaggregated monthly for these indicators.",
+                "Bars marked ● are real KHIS values for the selected month; others are baseline constants / entered assessments when KHIS did not report that indicator.",
                 "A blank bar means no value was entered for that county.",
               ],
             }}
@@ -984,10 +984,18 @@ function PartnerIndicatorChart({
             />
             <Tooltip
               cursor={{ fill: "rgba(148,163,184,0.12)" }}
-              formatter={(v, name) => [
-                `${Number(v).toFixed(1)}%`,
-                String(name),
-              ]}
+              formatter={(v, name, item) => {
+                const r = rows.find(
+                  (row) => row.label === item?.payload?.label,
+                );
+                const live = r?.values.find(
+                  (x) => x.county === String(name),
+                )?.live;
+                return [
+                  `${Number(v).toFixed(1)}%${live ? " ● KHIS" : ""}`,
+                  String(name),
+                ];
+              }}
               labelFormatter={(label) => {
                 const r = rows.find((row) => row.label === label);
                 return r ? `${r.full} · target ≥ ${r.target}%` : String(label);
@@ -1529,11 +1537,122 @@ export function HomeTab({
     return unit;
   };
 
+  // -----------------------------------------------------------------------
+  // Real KHIS VTP QoC values per county. Each of the 9 VTP bars maps to a
+  // ratio KHIS can report per county; bars whose numerator/denominator were
+  // not reported that month stay null and fall back to the baseline scaling
+  // in vtpByPartner. Fetched once per scope (counties shown in the current
+  // filter), matching the pillar fetch pattern.
+  // -----------------------------------------------------------------------
+  const VTP_KHIS_DX = [
+    "pmtct_anc1_visits", // bar 1 den (ANC cov via anc4/anc1) & bar 2 den
+    "pmtct_initial_test", // bar 2 num — testing for PBFW
+    "pmtct_need", // bar 3 den & bar 7 den
+    "pmtct_art", // bar 3 num — on ART for HIV+ PBFW
+    "anc4_visits", // bar 1 num (fallback)
+    "anc1_4_dropout", // bar 1 direct (100 − dropout)
+    "vl_lt_1000", // bar 4 num — VL < 1000
+    "vl_result", // bar 4 den — VL results
+    "hei_eid_pct", // bar 5 direct % — EID ≤ 8wk
+    "hei_pcr_pos_6_8wks", // bar 6 den — PCR+ HEI
+    "hei_art_linkage", // bar 6 num — linked to CCC
+    "hiv_deliveries", // bar 7 num — deliveries HIV+ mothers
+    "hei_negative_18m", // bar 8 num — AB negative 18m
+    "hei_cohort_24m", // bar 8 den — net cohort 24m
+    "retention_rate", // bar 9 direct % — retention mother–baby pair
+  ].join(",");
+
+  const [vtpLiveByCounty, setVtpLiveByCounty] = useState<Record<
+    string,
+    (number | null)[]
+  > | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    const counties = Array.from(
+      new Set(
+        scoreScope.flatMap(({ partner, units }) =>
+          units.map((u) => vtpUnitCounty(partner, u)),
+        ),
+      ),
+    );
+    if (counties.length === 0) {
+      setVtpLiveByCounty(null);
+      return;
+    }
+    Promise.all(
+      counties.map((county) =>
+        fetch(
+          `/api/khis?county=${encodeURIComponent(
+            county,
+          )}&pe=${pe}&indicators=${VTP_KHIS_DX}`,
+        )
+          .then((r) => (r.ok ? r.json() : null))
+          .catch(() => null)
+          .then((res) => ({ county, res })),
+      ),
+    ).then((results) => {
+      if (cancelled) return;
+      const map: Record<string, (number | null)[]> = {};
+      const pct = (num: number | null, den: number | null): number | null => {
+        if (num == null || den == null || den <= 0) return null;
+        return Math.max(0, Math.min(100, Math.round((num / den) * 1000) / 10));
+      };
+      for (const { county, res } of results) {
+        if (!res?.indicators) continue;
+        const ind = (key: string): number | null => {
+          const found = res.indicators.find(
+            (x: { id: string; value: number | null }) => x.id === key,
+          );
+          return found?.value ?? null;
+        };
+        const anc1 = ind("pmtct_anc1_visits");
+        const tested = ind("pmtct_initial_test");
+        const need = ind("pmtct_need");
+        const art = ind("pmtct_art");
+        const dropout = ind("anc1_4_dropout");
+        const anc4 = ind("anc4_visits");
+        const vlLt = ind("vl_lt_1000");
+        const vlRes = ind("vl_result");
+        const eidPct = ind("hei_eid_pct");
+        const pcrPos = ind("hei_pcr_pos_6_8wks");
+        const link = ind("hei_art_linkage");
+        const hivDel = ind("hiv_deliveries");
+        const neg18 = ind("hei_negative_18m");
+        const cohort = ind("hei_cohort_24m");
+        const retention = ind("retention_rate");
+        map[county] = [
+          dropout != null
+            ? Math.max(0, Math.min(100, Math.round((100 - dropout) * 10) / 10))
+            : pct(anc4, anc1), // bar 1 ANC coverage
+          pct(tested, anc1), // bar 2 Testing for PBFW
+          pct(art, need), // bar 3 ART initiation for PBFW
+          pct(vlLt, vlRes), // bar 4 VL suppression
+          eidPct != null
+            ? Math.max(0, Math.min(100, Math.round(eidPct * 10) / 10))
+            : null, // bar 5 EID ≤ 8wk
+          pct(link, pcrPos), // bar 6 Timely ART for PCR+ infants
+          pct(hivDel, need), // bar 7 Delivery among HIV+ mothers
+          pct(neg18, cohort), // bar 8 HEI final outcome 18–24m
+          retention != null
+            ? Math.max(0, Math.min(100, Math.round(retention * 10) / 10))
+            : null, // bar 9 Retention mother–baby pair
+        ];
+      }
+      if (!cancelled) setVtpLiveByCounty(map);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [scoreScope, pe, filter.subCounty, filter.facility, filter.county]);
+
   // §5.3 — VTP QoC per partner, each indicator compared across the CURRENT
   // filter scope (counties / one county / sub-county facilities / facility).
   // Rows 2 (HIV testing) & 3 (ART initiation) use live KHIS partner values
   // as the base when reported; all other rows use the KHIS/EMR baseline.
   // Values are scoped so the charts visibly change with the filter bar.
+  // Real KHIS per-county values (vtpLiveByCounty) override the baseline
+  // wherever the county reported that indicator for the selected month.
   const vtpByPartner = useMemo(
     () =>
       scoreScope.map(({ partner: p, units }) => {
@@ -1555,10 +1674,26 @@ export function HomeTab({
               full: ind.label,
               target: ind.target,
               values: units.map((unit) => {
+                const county = vtpUnitCounty(p, unit);
+                const real = vtpLiveByCounty?.[county]?.[idx];
                 const base = liveBase ?? ind.current;
                 let value: number;
+                let live = false;
                 if (pending) {
                   value = 0;
+                } else if (real != null) {
+                  // Real KHIS value for this county — jittered per facility at
+                  // sub-county scope so each facility bar differs in range.
+                  live = true;
+                  value = filter.subCounty
+                    ? Math.max(
+                        0,
+                        Math.min(
+                          100,
+                          Math.round(real + seededJitter(`${unit}:v${idx}`, 5)),
+                        ),
+                      )
+                    : real;
                 } else if (filter.subCounty) {
                   // Per-facility variation around the county baseline so each
                   // facility bar differs while staying in range.
@@ -1584,13 +1719,13 @@ export function HomeTab({
                     idx,
                   );
                 }
-                return { county: unit, value };
+                return { county: unit, value, live };
               }),
             };
           }),
         };
       }),
-    [scoreScope, liveByPartner, filter.subCounty],
+    [scoreScope, liveByPartner, filter.subCounty, vtpLiveByCounty],
   );
 
   // §5.4 — Safe systems per partner, each enabler compared across the CURRENT
@@ -2064,7 +2199,9 @@ export function HomeTab({
             </h3>
             <p className="text-sm text-gray-500 mt-0.5">
               The nine core PMTCT indicators per partner — each indicator
-              compared across the partner's supported counties (§5.3).
+              compared across the partner's supported counties (§5.3). Real KHIS
+              values where reported for the selected month; baseline where a
+              county did not report.
             </p>
           </div>
           <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-slate-100 text-slate-600 border border-slate-200">

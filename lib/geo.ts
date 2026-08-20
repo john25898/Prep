@@ -70,8 +70,8 @@ export const PARTNERS: Partner[] = [
   },
   {
     id: "national",
-    name: "National (All 47 Counties)",
-    shortName: "National",
+    name: "DOS IP (All 47 Counties)",
+    shortName: "DOS IP",
     counties: KENYA_COUNTIES,
   },
 ];
