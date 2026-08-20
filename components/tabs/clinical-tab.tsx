@@ -333,6 +333,11 @@ const Subtab2A = ({
     <span className="px-2 py-1 rounded-md bg-amber-50 text-amber-700 text-xs font-bold">
       No KHIS data yet for {peLabel} — period is in the future (showing zeros)
     </span>
+  ) : noPeriodData && filter.facility ? (
+    <span className="px-2 py-1 rounded-md bg-amber-50 text-amber-700 text-xs font-bold">
+      {filter.facility} has not reported intake data on KHIS for {peLabel} — try
+      county/partner view (only a few facilities report MOH 731 intake)
+    </span>
   ) : noPeriodData ? (
     <span className="px-2 py-1 rounded-md bg-amber-50 text-amber-700 text-xs font-bold">
       No KHIS data for {peLabel} in this scope — showing zeros
