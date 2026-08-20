@@ -1455,10 +1455,8 @@ export function HomeTab({
           audited.push(clampPct((neoAud / neoRep) * 100));
         const s: LiveDomainScores = {};
         if (d1Parts.length > 0)
-          s.d1 =
-            d1Parts.reduce((a, b) => a + b, 0) / d1Parts.length;
-        if (pncM != null && pncM >= 0)
-          s.d2 = Math.min(100, pncM); // KHIS >100% → clamp (double-counted)
+          s.d1 = d1Parts.reduce((a, b) => a + b, 0) / d1Parts.length;
+        if (pncM != null && pncM >= 0) s.d2 = Math.min(100, pncM); // KHIS >100% → clamp (double-counted)
         if (audited.length > 0)
           s.d4 = audited.reduce((a, b) => a + b, 0) / audited.length;
         map[county] = s;
@@ -1571,7 +1569,9 @@ export function HomeTab({
   }, [partners, filter.partner]);
 
   // County distribution: per partner, each supported county with its
-  // 5-domain scores (d3 computed live from county-scoped assessments).
+  // 5-domain scores (d3 computed live from county-scoped assessments;
+  // d1/d2/d4 live per-county KHIS where reported, else illustrative
+  // constant; d5 has no county-scope KHIS source → illustrative constant).
   // Scoped to the county selected in the filter bar so these charts drill
   // with the filter.
   const countyRows = useMemo(
@@ -1589,10 +1589,17 @@ export function HomeTab({
               d4: null,
               d5: null,
             };
+            const live = domainByCounty?.[county] ?? {};
             const d3 = readinessForCounties(allAssessments, [county]);
             const domains: (number | null)[] = pending
               ? [0, 0, 0, 0, 0]
-              : [c.d1, c.d2, d3.avg, c.d4, c.d5];
+              : [
+                  live.d1 ?? c.d1,
+                  live.d2 ?? c.d2,
+                  d3.avg,
+                  live.d4 ?? c.d4,
+                  c.d5,
+                ];
             const available = pending
               ? []
               : domains.filter(
@@ -1606,7 +1613,7 @@ export function HomeTab({
           }),
         };
       }),
-    [scorePartners, allAssessments, filter.county],
+    [scorePartners, allAssessments, filter.county, domainByCounty],
   );
 
   // Scope axis for the per-partner VTP/Safe scoreboards — the current filter
@@ -2605,11 +2612,11 @@ export function HomeTab({
         </div>
         <div className="px-6 pb-5 pt-2 text-xs text-gray-500">
           <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5 align-middle" />
-          live from national KHIS ({peLabel}) where reported — per-county
-          values averaged for % indicators (PNC, testing, ART, MPDSR audits);
-          falls back to the KHIS/EMR baseline constant when a domain has no
-          KHIS value. Domain 3 (Readiness) is computed live from entered
-          facility assessments (N/A excluded) and is never sourced from KHIS.
+          live from national KHIS ({peLabel}) where reported — per-county values
+          averaged for % indicators (PNC, testing, ART, MPDSR audits); falls
+          back to the KHIS/EMR baseline constant when a domain has no KHIS
+          value. Domain 3 (Readiness) is computed live from entered facility
+          assessments (N/A excluded) and is never sourced from KHIS.
           {!liveLoaded && " Loading live KHIS domain scores…"} Nuru Ya Mtoto is{" "}
           <span className="font-semibold text-amber-600">pending</span> — no
           facility list is loaded yet, so its scores default to 0 until the
@@ -2626,9 +2633,11 @@ export function HomeTab({
           <p className="text-sm text-gray-500">
             For each implementing partner, every domain is compared across its
             supported counties in its own vertical bar chart — scoped to the
-            partner and county selected in the filter bar. E.g. Jamii Tekelezi —
-            Domain 3 (Readiness) across Embu, Tharaka-Nithi, Meru &amp;
-            Nyandarua. Charts with no bars have no data entered yet.
+            partner and county selected in the filter bar. Domains 1, 2 &amp; 4
+            are live from national KHIS ({peLabel}) where reported; Domain 3
+            (Readiness) is computed live from entered facility assessments. E.g.
+            Jamii Tekelezi — Domain 2 (Coverage) across Embu, Tharaka-Nithi,
+            Meru &amp; Nyandarua. Charts with no bars have no data entered yet.
           </p>
         </div>
         {countyRows.map((group) => {
@@ -2666,7 +2675,7 @@ export function HomeTab({
                 <ViewDataButton
                   title={`${group.partner.name} — Domain Scores by County`}
                   data={data}
-                  note="% per domain per county (— = no data)"
+                  note="% per domain per county (— = no data). Domains 1, 2 & 4 are live KHIS where reported; Domain 3 is live from entered assessments; Domain 5 uses the baseline constant (no county-scope KHIS source)."
                 />
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
