@@ -1387,6 +1387,89 @@ export function HomeTab({
     };
   }, [partners, pe]);
 
+  // Per-county KHIS domain scores (d1/d2/d4). The partner-scope fetch above
+  // sums percentage data elements across the roster, which is meaningless for
+  // % indicators (e.g. PNC 48h) — so each county is fetched on its own (every
+  // county value is a genuine 0–100 %) and averaged in the rows memo below.
+  // This is the same per-county pattern used by the pillar and VTP fetches.
+  // d5 stays partner-scope (share of roster facilities reporting MOH 731).
+  const [domainByCounty, setDomainByCounty] = useState<Record<
+    string,
+    LiveDomainScores
+  > | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    const counties = Array.from(new Set(partners.flatMap((p) => p.counties)));
+    if (counties.length === 0) {
+      setDomainByCounty(null);
+      return;
+    }
+    const DX =
+      "pmtct_anc1_visits,pmtct_initial_test,pmtct_need,pmtct_art,pnc_48h_mother,maternal_deaths_reported,maternal_deaths_audited,neonatal_deaths,neonatal_deaths_audited";
+    Promise.all(
+      counties.map((county) =>
+        fetch(
+          `/api/khis?county=${encodeURIComponent(
+            county,
+          )}&pe=${pe}&indicators=${DX}`,
+        )
+          .then((r) => (r.ok ? r.json() : null))
+          .catch(() => null)
+          .then((res) => ({ county, res })),
+      ),
+    ).then((results) => {
+      if (cancelled) return;
+      const map: Record<string, LiveDomainScores> = {};
+      const clampPct = (v: number) => Math.max(0, Math.min(100, v));
+      const pct = (num: number | null, den: number | null): number | null =>
+        num == null || den == null || den <= 0
+          ? null
+          : clampPct((num / den) * 100);
+      for (const { county, res } of results) {
+        if (!res?.indicators) continue;
+        const ind = (key: string): number | null => {
+          const found = res.indicators.find(
+            (x: { id: string; value: number | null }) => x.id === key,
+          );
+          return found?.value ?? null;
+        };
+        const anc1 = ind("pmtct_anc1_visits");
+        const tested = ind("pmtct_initial_test");
+        const need = ind("pmtct_need");
+        const art = ind("pmtct_art");
+        const pncM = ind("pnc_48h_mother");
+        const matRep = ind("maternal_deaths_reported");
+        const matAud = ind("maternal_deaths_audited");
+        const neoRep = ind("neonatal_deaths");
+        const neoAud = ind("neonatal_deaths_audited");
+        const testedPct = pct(tested, anc1);
+        const artPct = pct(art, need);
+        const d1Parts = [testedPct, artPct].filter(
+          (v): v is number => v != null,
+        );
+        const audited: number[] = [];
+        if (matRep != null && matRep > 0 && matAud != null)
+          audited.push(clampPct((matAud / matRep) * 100));
+        if (neoRep != null && neoRep > 0 && neoAud != null)
+          audited.push(clampPct((neoAud / neoRep) * 100));
+        const s: LiveDomainScores = {};
+        if (d1Parts.length > 0)
+          s.d1 =
+            d1Parts.reduce((a, b) => a + b, 0) / d1Parts.length;
+        if (pncM != null && pncM >= 0)
+          s.d2 = Math.min(100, pncM); // KHIS >100% → clamp (double-counted)
+        if (audited.length > 0)
+          s.d4 = audited.reduce((a, b) => a + b, 0) / audited.length;
+        map[county] = s;
+      }
+      if (!cancelled) setDomainByCounty(map);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [partners, pe]);
+
   // Domain 3 readiness per partner — computed live from entered assessments
   // scoped to the partner's counties.
   const readinessByPartner = useMemo(() => {
@@ -1403,17 +1486,37 @@ export function HomeTab({
         const s = PARTNER_DOMAIN_SCORES[p.id];
         const l = liveByPartner[p.id] ?? {};
         const d3 = readinessByPartner[p.id];
+        // Per-county KHIS averages (same pattern as the pillar/VTP fetches)
+        // are preferred; the roster-scope live value is the fallback, then the
+        // baseline constant.
+        const countyAvg = (key: "d1" | "d2" | "d4"): number | null => {
+          const vals = p.counties
+            .map((c) => domainByCounty?.[c]?.[key])
+            .filter((v): v is number => v != null);
+          return vals.length > 0
+            ? vals.reduce((a, b) => a + b, 0) / vals.length
+            : null;
+        };
         // Nuru Ya Mtoto has no facility roster yet — a KHIS county-level scope
         // would overstate support because they do not serve every facility in
         // the county. Mark the row PENDING and default all domains to 0 until
         // the facility list is loaded.
         const pending = p.id === "nuru-ya-mtoto";
+        const d1 = countyAvg("d1");
+        const d2 = countyAvg("d2");
+        const d4 = countyAvg("d4");
         const domains: (number | null)[] = pending
           ? [0, 0, 0, 0, 0]
-          : [l.d1 ?? s.d1, l.d2 ?? s.d2, d3.avg, l.d4 ?? s.d4, l.d5 ?? s.d5];
+          : [
+              d1 ?? l.d1 ?? s.d1,
+              d2 ?? l.d2 ?? s.d2,
+              d3.avg,
+              d4 ?? l.d4 ?? s.d4,
+              l.d5 ?? s.d5,
+            ];
         const live: boolean[] = pending
           ? [false, false, false, false, false]
-          : [l.d1 != null, l.d2 != null, false, l.d4 != null, l.d5 != null];
+          : [d1 != null, d2 != null, false, d4 != null, l.d5 != null];
         const available = pending
           ? []
           : domains.filter((v): v is number => v !== null && !Number.isNaN(v));
@@ -1430,7 +1533,7 @@ export function HomeTab({
           pending,
         };
       }),
-    [partners, readinessByPartner, liveByPartner],
+    [partners, readinessByPartner, liveByPartner, domainByCounty],
   );
 
   const columnAverages = useMemo(
@@ -2444,7 +2547,7 @@ export function HomeTab({
                               : `${v.toFixed(1)}%`}
                           {isLive && (
                             <span
-                              title="Live from KHIS (May 2026)"
+                              title={`Live from KHIS (${peLabel})`}
                               className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500 ml-1.5 align-middle"
                             />
                           )}
@@ -2502,10 +2605,11 @@ export function HomeTab({
         </div>
         <div className="px-6 pb-5 pt-2 text-xs text-gray-500">
           <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5 align-middle" />
-          live from national KHIS (May 2026) where reported — falls back to the
-          KHIS/EMR baseline constant when a domain has no KHIS value. Domain 3
-          (Readiness) is computed live from entered facility assessments (N/A
-          excluded) and is never sourced from KHIS.
+          live from national KHIS ({peLabel}) where reported — per-county
+          values averaged for % indicators (PNC, testing, ART, MPDSR audits);
+          falls back to the KHIS/EMR baseline constant when a domain has no
+          KHIS value. Domain 3 (Readiness) is computed live from entered
+          facility assessments (N/A excluded) and is never sourced from KHIS.
           {!liveLoaded && " Loading live KHIS domain scores…"} Nuru Ya Mtoto is{" "}
           <span className="font-semibold text-amber-600">pending</span> — no
           facility list is loaded yet, so its scores default to 0 until the
