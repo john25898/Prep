@@ -7,6 +7,7 @@
 // ---------------------------------------------------------------------------
 
 import { FacilityAssessment, KENYA_COUNTIES } from "@/lib/assessment";
+import { partnerSubCounties } from "@/lib/partners";
 import type { PeriodMode } from "@/lib/period";
 export type { PeriodMode };
 export {
@@ -142,8 +143,21 @@ export function getCountiesForPartner(partnerId: string): string[] {
   return getPartner(partnerId)?.counties ?? KENYA_COUNTIES;
 }
 
-/** Static sub-county list for a county (empty if not mapped). */
+/**
+ * Sub-county options for a county, used by the Assessment dialog. Roster
+ * names take precedence so the dialog matches the scope-filter dropdown
+ * (which is roster-driven via partnerSubCounties); counties without a
+ * facility roster yet fall back to the static map, then an empty list
+ * (the dialog shows a free-text field in that case).
+ */
 export function getSubCounties(county: string): string[] {
+  const seen = new Set<string>();
+  for (const p of PARTNERS) {
+    for (const sc of partnerSubCounties(p.id, county)) seen.add(sc);
+  }
+  if (seen.size > 0) {
+    return Array.from(seen).sort((a, b) => a.localeCompare(b));
+  }
   return SUB_COUNTIES[county] ?? [];
 }
 
