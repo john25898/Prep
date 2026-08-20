@@ -1448,67 +1448,76 @@ export function HomeTab({
     [rows],
   );
 
+  // Partners rendered in the per-partner scoreboards (VTP, Safe Systems) and
+  // the county comparison. National scope (or an unknown partner id) renders
+  // every implementing partner, each across its own counties — so no section
+  // disappears when the filter bar is cleared. Picking a specific partner
+  // narrows the scoreboards to that partner, scoped by county / sub-county /
+  // facility as before.
+  const scorePartners = useMemo(() => {
+    const p = partners.find((x) => x.id === filter.partner);
+    return p ? [p] : partners;
+  }, [partners, filter.partner]);
+
   // County distribution: per partner, each supported county with its
   // 5-domain scores (d3 computed live from county-scoped assessments).
-  // Scoped to the partner + county selected in the filter bar so these
-  // charts drill with the filter.
-  const countyRows = useMemo(() => {
-    const p = partners.find((x) => x.id === filter.partner) ?? partners[0];
-    if (!p) return [];
-    const pending = p.id === "nuru-ya-mtoto";
-    const scopeCounties = filter.county ? [filter.county] : p.counties;
-    return [
-      {
-        partner: p,
-        pending,
-        counties: scopeCounties.map((county) => {
-          const c = COUNTY_DOMAIN_SCORES[county] ?? {
-            d1: null,
-            d2: null,
-            d4: null,
-            d5: null,
-          };
-          const d3 = readinessForCounties(allAssessments, [county]);
-          const domains: (number | null)[] = pending
-            ? [0, 0, 0, 0, 0]
-            : [c.d1, c.d2, d3.avg, c.d4, c.d5];
-          const available = pending
-            ? []
-            : domains.filter(
-                (v): v is number => v !== null && !Number.isNaN(v),
-              );
-          const overall =
-            available.length > 0
-              ? available.reduce((a, b) => a + b, 0) / available.length
-              : 0;
-          return { name: county, domains, overall, d3Count: d3.count };
-        }),
-      },
-    ];
-  }, [partners, allAssessments, filter.partner, filter.county]);
+  // Scoped to the county selected in the filter bar so these charts drill
+  // with the filter.
+  const countyRows = useMemo(
+    () =>
+      scorePartners.map((p) => {
+        const pending = p.id === "nuru-ya-mtoto";
+        const scopeCounties = filter.county ? [filter.county] : p.counties;
+        return {
+          partner: p,
+          pending,
+          counties: scopeCounties.map((county) => {
+            const c = COUNTY_DOMAIN_SCORES[county] ?? {
+              d1: null,
+              d2: null,
+              d4: null,
+              d5: null,
+            };
+            const d3 = readinessForCounties(allAssessments, [county]);
+            const domains: (number | null)[] = pending
+              ? [0, 0, 0, 0, 0]
+              : [c.d1, c.d2, d3.avg, c.d4, c.d5];
+            const available = pending
+              ? []
+              : domains.filter(
+                  (v): v is number => v !== null && !Number.isNaN(v),
+                );
+            const overall =
+              available.length > 0
+                ? available.reduce((a, b) => a + b, 0) / available.length
+                : 0;
+            return { name: county, domains, overall, d3Count: d3.count };
+          }),
+        };
+      }),
+    [scorePartners, allAssessments, filter.county],
+  );
 
   // Scope axis for the per-partner VTP/Safe scoreboards — the current filter
-  // decides which bars are drawn: all the partner's counties, a single county,
-  // the roster facilities of one sub-county, or a single facility.
-  const vtpAxis = useMemo(() => {
-    const p = partners.find((x) => x.id === filter.partner) ?? partners[0];
-    if (!p) return { partner: null, units: [] as string[] };
-    if (filter.facility) return { partner: p, units: [filter.facility] };
-    if (filter.subCounty) {
-      const facs = (PARTNER_FACILITIES[p.id] ?? [])
-        .filter((f) => f.subCounty === filter.subCounty)
-        .slice(0, 12);
-      return { partner: p, units: facs.map((f) => f.name) };
-    }
-    if (filter.county) return { partner: p, units: [filter.county] };
-    return { partner: p, units: p.counties };
-  }, [
-    partners,
-    filter.partner,
-    filter.county,
-    filter.subCounty,
-    filter.facility,
-  ]);
+  // decides which bars are drawn per partner: all the partner's counties, a
+  // single county, the roster facilities of one sub-county, or a single
+  // facility. At National scope every implementing partner gets its own
+  // scoreboard, so no charts disappear when the filter bar is cleared.
+  const scoreScope = useMemo(
+    () =>
+      scorePartners.map((p) => {
+        if (filter.facility) return { partner: p, units: [filter.facility] };
+        if (filter.subCounty) {
+          const facs = (PARTNER_FACILITIES[p.id] ?? [])
+            .filter((f) => f.subCounty === filter.subCounty)
+            .slice(0, 12);
+          return { partner: p, units: facs.map((f) => f.name) };
+        }
+        if (filter.county) return { partner: p, units: [filter.county] };
+        return { partner: p, units: p.counties };
+      }),
+    [scorePartners, filter.county, filter.subCounty, filter.facility],
+  );
 
   // Which county a scoreboard unit belongs to (for scaling the baseline).
   const vtpUnitCounty = (p: Partner, unit: string): string => {
@@ -1525,102 +1534,115 @@ export function HomeTab({
   // Rows 2 (HIV testing) & 3 (ART initiation) use live KHIS partner values
   // as the base when reported; all other rows use the KHIS/EMR baseline.
   // Values are scoped so the charts visibly change with the filter bar.
-  const vtpByPartner = useMemo(() => {
-    const { partner: p, units } = vtpAxis;
-    if (!p) return [];
-    const l = liveByPartner[p.id] ?? {};
-    const pending = p.id === "nuru-ya-mtoto";
-    return [
-      {
-        partner: p,
-        pending,
-        rows: VTP_QOC.map((ind, idx) => {
-          const liveBase =
-            idx === 1 && l.testedPct != null
-              ? l.testedPct
-              : idx === 2 && l.artPct != null
-                ? l.artPct
-                : null;
-          return {
+  const vtpByPartner = useMemo(
+    () =>
+      scoreScope.map(({ partner: p, units }) => {
+        const l = liveByPartner[p.id] ?? {};
+        const pending = p.id === "nuru-ya-mtoto";
+        return {
+          partner: p,
+          pending,
+          units,
+          rows: VTP_QOC.map((ind, idx) => {
+            const liveBase =
+              idx === 1 && l.testedPct != null
+                ? l.testedPct
+                : idx === 2 && l.artPct != null
+                  ? l.artPct
+                  : null;
+            return {
+              label: ind.short,
+              full: ind.label,
+              target: ind.target,
+              values: units.map((unit) => {
+                const base = liveBase ?? ind.current;
+                let value: number;
+                if (pending) {
+                  value = 0;
+                } else if (filter.subCounty) {
+                  // Per-facility variation around the county baseline so each
+                  // facility bar differs while staying in range.
+                  value = Math.max(
+                    0,
+                    Math.min(
+                      100,
+                      Math.round(
+                        countyVtpValue(
+                          base,
+                          vtpUnitCounty(p, unit),
+                          p.id,
+                          idx,
+                        ) + seededJitter(`${unit}:v${idx}`, 5),
+                      ),
+                    ),
+                  );
+                } else {
+                  value = countyVtpValue(
+                    base,
+                    vtpUnitCounty(p, unit),
+                    p.id,
+                    idx,
+                  );
+                }
+                return { county: unit, value };
+              }),
+            };
+          }),
+        };
+      }),
+    [scoreScope, liveByPartner, filter.subCounty],
+  );
+
+  // §5.4 — Safe systems per partner, each enabler compared across the CURRENT
+  // filter scope. Values scale the baseline by the scope's readiness ratio.
+  const safeByPartner = useMemo(
+    () =>
+      scoreScope.map(({ partner: p, units }) => {
+        const pD3 = readinessByPartner[p.id].avg;
+        const pending = p.id === "nuru-ya-mtoto";
+        return {
+          partner: p,
+          pending,
+          units,
+          rows: SAFE_SYSTEMS.map((ind, idx) => ({
             label: ind.short,
             full: ind.label,
             target: ind.target,
             values: units.map((unit) => {
-              const base = liveBase ?? ind.current;
+              const county = vtpUnitCounty(p, unit);
+              const cD3 = readinessForCounties(allAssessments, [county]).avg;
               let value: number;
               if (pending) {
                 value = 0;
-              } else if (filter.subCounty) {
-                // Per-facility variation around the county baseline so each
-                // facility bar differs while staying in range.
+              } else if (pD3 !== null && cD3 !== null && pD3 > 0) {
                 value = Math.max(
                   0,
                   Math.min(
                     100,
                     Math.round(
-                      countyVtpValue(base, vtpUnitCounty(p, unit), p.id, idx) +
-                        seededJitter(`${unit}:v${idx}`, 5),
+                      ind.current * (cD3 / pD3) +
+                        seededJitter(`${unit}:s${idx}`, 6),
                     ),
                   ),
                 );
               } else {
-                value = countyVtpValue(base, vtpUnitCounty(p, unit), p.id, idx);
+                value = Math.max(
+                  0,
+                  Math.min(
+                    100,
+                    Math.round(
+                      ind.current + seededJitter(`${unit}:s${idx}`, 14),
+                    ),
+                  ),
+                );
               }
               return { county: unit, value };
             }),
-          };
-        }),
-      },
-    ];
-  }, [vtpAxis, liveByPartner, filter.subCounty]);
-
-  // §5.4 — Safe systems per partner, each enabler compared across the CURRENT
-  // filter scope. Values scale the baseline by the scope's readiness ratio.
-  const safeByPartner = useMemo(() => {
-    const { partner: p, units } = vtpAxis;
-    if (!p) return [];
-    const pD3 = readinessByPartner[p.id].avg;
-    const pending = p.id === "nuru-ya-mtoto";
-    return [
-      {
-        partner: p,
-        pending,
-        rows: SAFE_SYSTEMS.map((ind, idx) => ({
-          label: ind.short,
-          full: ind.label,
-          target: ind.target,
-          values: units.map((unit) => {
-            const county = vtpUnitCounty(p, unit);
-            const cD3 = readinessForCounties(allAssessments, [county]).avg;
-            let value: number;
-            if (pending) {
-              value = 0;
-            } else if (pD3 !== null && cD3 !== null && pD3 > 0) {
-              value = Math.max(
-                0,
-                Math.min(
-                  100,
-                  Math.round(
-                    ind.current * (cD3 / pD3) +
-                      seededJitter(`${unit}:s${idx}`, 6),
-                  ),
-                ),
-              );
-            } else {
-              value = Math.max(
-                0,
-                Math.min(
-                  100,
-                  Math.round(ind.current + seededJitter(`${unit}:s${idx}`, 14)),
-                ),
-              );
-            }
-            return { county: unit, value };
-          }),
-        })),
-      },
-    ];
-  }, [vtpAxis, readinessByPartner, allAssessments]);
+          })),
+        };
+      }),
+    [scoreScope, readinessByPartner, allAssessments],
+  );
 
   return (
     <div className="space-y-6">
@@ -2056,7 +2078,7 @@ export function HomeTab({
           </span>
         </div>
         <div className="px-6 pb-6 space-y-5">
-          {vtpByPartner.map(({ partner, rows, pending }) => (
+          {vtpByPartner.map(({ partner, rows, pending, units }) => (
             <PartnerIndicatorChart
               key={partner.id}
               title={partner.name}
@@ -2072,7 +2094,7 @@ export function HomeTab({
                         : `${partner.counties.length} counties · 9 VTP indicators vs ≥95% target`
               }
               rows={rows}
-              counties={vtpAxis.units}
+              counties={units}
             />
           ))}
         </div>
@@ -2097,7 +2119,7 @@ export function HomeTab({
           </span>
         </div>
         <div className="px-6 pb-6 space-y-5">
-          {safeByPartner.map(({ partner, rows, pending }) => (
+          {safeByPartner.map(({ partner, rows, pending, units }) => (
             <PartnerIndicatorChart
               key={partner.id}
               title={partner.name}
@@ -2113,7 +2135,7 @@ export function HomeTab({
                         : `${partner.counties.length} counties · 5 systemic enablers vs ≥60–100% targets`
               }
               rows={rows}
-              counties={vtpAxis.units}
+              counties={units}
             />
           ))}
         </div>
