@@ -1560,6 +1560,10 @@ export function HomeTab({
     "hei_negative_18m", // bar 8 num — AB negative 18m
     "hei_cohort_24m", // bar 8 den — net cohort 24m
     "retention_rate", // bar 9 direct % — retention mother–baby pair
+    "maternal_deaths_reported", // Safe bar 5 — MPDSR audits
+    "maternal_deaths_audited", // Safe bar 5 — MPDSR audits
+    "neonatal_deaths", // Safe bar 5 — MPDSR audits
+    "neonatal_deaths_audited", // Safe bar 5 — MPDSR audits
   ].join(",");
 
   const [vtpLiveByCounty, setVtpLiveByCounty] = useState<Record<
@@ -1621,6 +1625,17 @@ export function HomeTab({
         const neg18 = ind("hei_negative_18m");
         const cohort = ind("hei_cohort_24m");
         const retention = ind("retention_rate");
+        const matRep = ind("maternal_deaths_reported");
+        const matAud = ind("maternal_deaths_audited");
+        const neoRep = ind("neonatal_deaths");
+        const neoAud = ind("neonatal_deaths_audited");
+        // MPDSR audit coverage — audited deaths ÷ reported deaths, where both
+        // maternal and neonatal figures are reported.
+        const audited =
+          (matRep != null && matRep > 0 && matAud != null) ||
+          (neoRep != null && neoRep > 0 && neoAud != null)
+            ? pct((matAud ?? 0) + (neoAud ?? 0), (matRep ?? 0) + (neoRep ?? 0))
+            : null;
         map[county] = [
           dropout != null
             ? Math.max(0, Math.min(100, Math.round((100 - dropout) * 10) / 10))
@@ -1637,6 +1652,7 @@ export function HomeTab({
           retention != null
             ? Math.max(0, Math.min(100, Math.round(retention * 10) / 10))
             : null, // bar 9 Retention mother–baby pair
+          audited, // Safe bar 5 — MPDSR audit coverage
         ];
       }
       if (!cancelled) setVtpLiveByCounty(map);
@@ -1746,9 +1762,28 @@ export function HomeTab({
             values: units.map((unit) => {
               const county = vtpUnitCounty(p, unit);
               const cD3 = readinessForCounties(allAssessments, [county]).avg;
+              // MPDSR audits (idx 4) are live per county from KHIS where the
+              // deaths and audits are reported; the other four enablers have
+              // no monthly KHIS source (LMIS/HFA-QOC/assessments) and keep
+              // the baseline scaled by the readiness ratio.
+              const realAudited = vtpLiveByCounty?.[county]?.[9];
               let value: number;
+              let live = false;
               if (pending) {
                 value = 0;
+              } else if (idx === 4 && realAudited != null) {
+                live = true;
+                value = filter.subCounty
+                  ? Math.max(
+                      0,
+                      Math.min(
+                        100,
+                        Math.round(
+                          realAudited + seededJitter(`${unit}:s${idx}`, 5),
+                        ),
+                      ),
+                    )
+                  : realAudited;
               } else if (pD3 !== null && cD3 !== null && pD3 > 0) {
                 value = Math.max(
                   0,
@@ -1771,12 +1806,18 @@ export function HomeTab({
                   ),
                 );
               }
-              return { county: unit, value };
+              return { county: unit, value, live };
             }),
           })),
         };
       }),
-    [scoreScope, readinessByPartner, allAssessments],
+    [
+      scoreScope,
+      readinessByPartner,
+      allAssessments,
+      vtpLiveByCounty,
+      filter.subCounty,
+    ],
   );
 
   return (
@@ -2248,11 +2289,12 @@ export function HomeTab({
             <p className="text-sm text-gray-500 mt-0.5">
               Five systemic enablers per partner — each enabler compared across
               the partner's supported counties (§5.4, EWENE Pillar 8 &amp; GHSD
-              guidance).
+              guidance). MPDSR audits are live KHIS where reported; the other
+              enablers use baseline scaled by facility-readiness.
             </p>
           </div>
           <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
-            Blood · Oxygen · Equipment · Commodities
+            Blood · Oxygen · Equipment · Commodities · MPDSR audits
           </span>
         </div>
         <div className="px-6 pb-6 space-y-5">
