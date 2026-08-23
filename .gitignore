@@ -15,3 +15,8 @@ node_modules
 .DS_Store
 # Build artifacts
 *.tsbuildinfo
+
+# KHIS probe/verification scratch files (never commit)
+scripts/probe-*.mjs
+scripts/*-output.txt
+vtp_verify.png
