@@ -634,6 +634,7 @@ const VTP_QOC = [
     target: 95,
     op: ">",
     current: 94,
+    notReported: true,
   },
   {
     no: 5,
@@ -664,6 +665,7 @@ const VTP_QOC = [
     target: 90,
     op: ">",
     current: 92,
+    notReported: true,
   },
   {
     no: 8,
@@ -674,6 +676,7 @@ const VTP_QOC = [
     target: 95,
     op: ">",
     current: 96.6,
+    notReported: true,
   },
   {
     no: 9,
@@ -684,6 +687,7 @@ const VTP_QOC = [
     target: 95,
     op: ">",
     current: 91,
+    notReported: true,
   },
 ];
 
@@ -890,7 +894,12 @@ type IndicatorCountyRow = {
   label: string;
   full: string;
   target: number;
-  values: { county: string; value: number; live?: boolean }[];
+  values: {
+    county: string;
+    value: number;
+    live?: boolean;
+    notReported?: boolean;
+  }[];
 };
 
 /** Grouped bar chart: indicators on the X axis, one bar per county. */
@@ -949,12 +958,17 @@ function PartnerIndicatorChart({
               inputs: rows.flatMap((r) =>
                 r.values.map((v) => ({
                   label: `${r.full} · ${v.county}`,
-                  value: v.value,
-                  source: v.live ? ("live" as const) : ("demo" as const),
+                  value: v.notReported ? 0 : v.value,
+                  source: v.notReported
+                    ? ("n/r" as const)
+                    : v.live
+                      ? ("live" as const)
+                      : ("demo" as const),
                 })),
               ),
               notes: [
                 "Bars marked ● are real KHIS values for the selected month; others are baseline constants / entered assessments when KHIS did not report that indicator.",
+                "Gray stubs (n/r) are indicators NOT reported on KHIS for these counties this period — no value is shown rather than a fake baseline.",
                 "A blank bar means no value was entered for that county.",
               ],
             }}
@@ -988,17 +1002,22 @@ function PartnerIndicatorChart({
                 const r = rows.find(
                   (row) => row.label === item?.payload?.label,
                 );
-                const live = r?.values.find(
-                  (x) => x.county === String(name),
-                )?.live;
+                const entry = r?.values.find((x) => x.county === String(name));
+                if (entry?.notReported) {
+                  return ["Not reported on KHIS this period", String(name)];
+                }
                 return [
-                  `${Number(v).toFixed(1)}%${live ? " ● KHIS" : ""}`,
+                  `${Number(v).toFixed(1)}%${entry?.live ? " ● KHIS" : ""}`,
                   String(name),
                 ];
               }}
               labelFormatter={(label) => {
                 const r = rows.find((row) => row.label === label);
-                return r ? `${r.full} · target ≥ ${r.target}%` : String(label);
+                return r
+                  ? r.values.some((x) => x.notReported)
+                    ? `${r.full} · no monthly KHIS data`
+                    : `${r.full} · target ≥ ${r.target}%`
+                  : String(label);
               }}
             />
             {counties.map((c, i) => (
@@ -1009,7 +1028,24 @@ function PartnerIndicatorChart({
                 fill={COUNTY_COLORS[i % COUNTY_COLORS.length]}
                 radius={[3, 3, 0, 0]}
                 maxBarSize={32}
-              />
+                minPointSize={4}
+              >
+                {data.map((d) => {
+                  const entry = rows
+                    .find((row) => row.label === d.label)
+                    ?.values.find((x) => x.county === c);
+                  return (
+                    <Cell
+                      key={`${d.label}-${c}`}
+                      fill={
+                        entry?.notReported
+                          ? "rgba(148,163,184,0.35)"
+                          : undefined
+                      }
+                    />
+                  );
+                })}
+              </Bar>
             ))}
           </BarChart>
         </ResponsiveContainer>
@@ -1802,6 +1838,13 @@ export function HomeTab({
               values: units.map((unit) => {
                 const county = vtpUnitCounty(p, unit);
                 const real = vtpLiveByCounty?.[county]?.[idx];
+                // Indicators that KHIS does not report for these counties
+                // (VL, deliveries, HEI 18–24m, retention) render as a gray
+                // "not reported" stub — but a real KHIS value, when the
+                // county reports that month, still wins.
+                if (ind.notReported && real == null) {
+                  return { county: unit, value: 0, notReported: true };
+                }
                 const base = liveBase ?? ind.current;
                 let value: number;
                 let live = false;
@@ -2351,8 +2394,9 @@ export function HomeTab({
             <p className="text-sm text-gray-500 mt-0.5">
               The nine core PMTCT indicators per partner — each indicator
               compared across the partner's supported counties (§5.3). Real KHIS
-              values where reported for the selected month; baseline where a
-              county did not report.
+              values where reported for the selected month; gray bars (n/r) are
+              indicators not reported on KHIS for these counties — shown as
+              stubs instead of a fake baseline.
             </p>
           </div>
           <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-slate-100 text-slate-600 border border-slate-200">
