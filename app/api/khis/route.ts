@@ -79,7 +79,10 @@ export async function GET(req: NextRequest) {
 
   if (facility) {
     ouIds = [facility];
-    scopeLabel = `Facility ${facility}`;
+    const facName = (PARTNER_FACILITIES[partner] ?? []).find(
+      (f) => f.uid === facility,
+    )?.name;
+    scopeLabel = facName ? `${facName} (Facility)` : `Facility ${facility}`;
   } else if (subcounty) {
     // Sub-county scope: restrict to the roster facilities in that sub-county
     // (optionally also within a selected county).

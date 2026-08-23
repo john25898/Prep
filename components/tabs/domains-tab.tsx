@@ -457,8 +457,10 @@ function CoverageSection() {
   // Scope the county strip to the CURRENT partner — when a specific county /
   // sub-county / facility is selected in the filter bar, only that scope shows.
   const counties = useMemo(() => {
-    if (filter.subCounty) return [filter.subCounty];
+    // Facility is the deepest scope — it wins over sub-county when both are
+    // set (the filter bar keeps sub-county selected when a facility is picked).
     if (filter.facility) return [filter.facility];
+    if (filter.subCounty) return [filter.subCounty];
     const base =
       PARTNER_COUNTIES[filter.partner]?.length > 0
         ? PARTNER_COUNTIES[filter.partner]
@@ -482,16 +484,16 @@ function CoverageSection() {
     setCoverageLoading(true);
     Promise.all(
       counties.map((c) => {
-        const q = filter.subCounty
-          ? `subcounty=${encodeURIComponent(c)}&partner=${encodeURIComponent(
-              filter.partner,
-            )}`
-          : filter.facility
-            ? `facility=${
-                (PARTNER_FACILITIES[filter.partner] ?? []).find(
-                  (f) => f.name === c,
-                )?.uid ?? ""
-              }`
+        const q = filter.facility
+          ? `facility=${
+              (PARTNER_FACILITIES[filter.partner] ?? []).find(
+                (f) => f.name === c,
+              )?.uid ?? ""
+            }`
+          : filter.subCounty
+            ? `subcounty=${encodeURIComponent(c)}&partner=${encodeURIComponent(
+                filter.partner,
+              )}`
             : `county=${encodeURIComponent(c)}`;
         return fetch(
           `/api/khis?${q}&pe=${pe}&indicators=anc4_visits,anc1_4_dropout,sba_pct_live,pnc_48h_mother,pnc_48h_infant,kmc,chlorhexidine,stillbirths,mmr`,
@@ -1220,8 +1222,8 @@ function MpdsrSection({
   // county in the current partner scope (real-or-blank, no baseline
   // constants). Meetings % has no KHIS source and stays blank.
   const mCounties = useMemo(() => {
-    if (filter.subCounty) return [filter.subCounty];
     if (filter.facility) return [filter.facility];
+    if (filter.subCounty) return [filter.subCounty];
     const base =
       PARTNER_COUNTIES[partner]?.length > 0
         ? PARTNER_COUNTIES[partner]
@@ -1237,15 +1239,15 @@ function MpdsrSection({
     setCountyAudit(null);
     Promise.all(
       mCounties.map((c) => {
-        const q = filter.subCounty
-          ? `subcounty=${encodeURIComponent(c)}&partner=${encodeURIComponent(
-              partner,
-            )}`
-          : filter.facility
-            ? `facility=${
-                (PARTNER_FACILITIES[partner] ?? []).find((f) => f.name === c)
-                  ?.uid ?? ""
-              }`
+        const q = filter.facility
+          ? `facility=${
+              (PARTNER_FACILITIES[partner] ?? []).find((f) => f.name === c)
+                ?.uid ?? ""
+            }`
+          : filter.subCounty
+            ? `subcounty=${encodeURIComponent(c)}&partner=${encodeURIComponent(
+                partner,
+              )}`
             : `county=${encodeURIComponent(c)}`;
         return fetch(
           `/api/khis?${q}&pe=${pe}&indicators=maternal_deaths_reported,maternal_deaths_audited,neonatal_deaths,neonatal_deaths_audited`,
@@ -1673,8 +1675,8 @@ function MpdsrSection({
 function DataSystemsSection() {
   const { filter, pe, peLabel } = useGeoFilter();
   const dCounties = useMemo(() => {
-    if (filter.subCounty) return [filter.subCounty];
     if (filter.facility) return [filter.facility];
+    if (filter.subCounty) return [filter.subCounty];
     const base =
       PARTNER_COUNTIES[filter.partner]?.length > 0
         ? PARTNER_COUNTIES[filter.partner]
@@ -1697,16 +1699,16 @@ function DataSystemsSection() {
     setKhisByCounty(null);
     Promise.all(
       dCounties.map((c) => {
-        const q = filter.subCounty
-          ? `subcounty=${encodeURIComponent(c)}&partner=${encodeURIComponent(
-              filter.partner,
-            )}`
-          : filter.facility
-            ? `facility=${
-                (PARTNER_FACILITIES[filter.partner] ?? []).find(
-                  (f) => f.name === c,
-                )?.uid ?? ""
-              }`
+        const q = filter.facility
+          ? `facility=${
+              (PARTNER_FACILITIES[filter.partner] ?? []).find(
+                (f) => f.name === c,
+              )?.uid ?? ""
+            }`
+          : filter.subCounty
+            ? `subcounty=${encodeURIComponent(c)}&partner=${encodeURIComponent(
+                filter.partner,
+              )}`
             : `county=${encodeURIComponent(c)}`;
         return fetch(
           `/api/khis?${q}&pe=${pe}&indicators=pmtct_anc1_visits&reporting=1`,
