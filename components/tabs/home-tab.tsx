@@ -470,7 +470,13 @@ export function HomeTab({
         const d4 = countyAvg("d4");
         const domains: (number | null)[] = pending
           ? [0, 0, 0, 0, 0]
-          : [d1 ?? l.d1 ?? null, d2 ?? l.d2 ?? null, d3.avg, d4 ?? l.d4 ?? null, l.d5 ?? null];
+          : [
+              d1 ?? l.d1 ?? null,
+              d2 ?? l.d2 ?? null,
+              d3.avg,
+              d4 ?? l.d4 ?? null,
+              l.d5 ?? null,
+            ];
         const live: boolean[] = pending
           ? [false, false, false, false, false]
           : [d1 != null, d2 != null, false, d4 != null, l.d5 != null];
