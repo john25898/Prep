@@ -12,7 +12,8 @@ import {
   Trash2,
 } from "lucide-react";
 import type { ChartInsight } from "@/components/ai-assistant";
-import { HomeTab, DomainsTab } from "@/components/tabs/home-tab";
+import { HomeTab } from "@/components/tabs/home-tab";
+import { DomainsTab } from "@/components/tabs/domains-tab";
 import { ShaTab } from "@/components/tabs/sha-tab";
 import { PrepTab } from "@/components/tabs/prep-tab";
 import { AssessmentDialog } from "@/components/assessment-dialog";
