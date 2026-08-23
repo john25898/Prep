@@ -42,11 +42,9 @@ import {
   BAR_SERIES,
   CADENCE,
   CORE_IMPACT,
-  COUNTY_DOMAIN_SCORES,
   DOMAIN_COLUMNS,
   EXPECTED_OUTCOMES,
   JT_COVERAGE_COUNTIES,
-  PARTNER_DOMAIN_SCORES,
   PILLARS,
   REVIEW_PLATFORMS,
   SAFE_SYSTEMS,
@@ -317,8 +315,8 @@ export function HomeTab({
 
   // -----------------------------------------------------------------------
   // Live KHIS domain scores per partner (pe = 202505, roster/county scope).
-  // Domains 1, 2, 4 & 5 are derived from KHIS where the data is reported and
-  // fall back to the baseline constants below when a value is null.
+  // Domains 1, 2, 4 & 5 are derived from KHIS where the data is reported;
+  // domains with no KHIS value this period show blank (no baseline constants).
   // Domain 3 (Readiness) is always computed from entered assessments.
   // -----------------------------------------------------------------------
   const KHIS_DOMAIN_DX =
@@ -428,86 +426,14 @@ export function HomeTab({
     };
   }, [partners, pe]);
 
-  // Per-county KHIS domain scores (d1/d2/d4). The partner-scope fetch above
-  // sums percentage data elements across the roster, which is meaningless for
-  // % indicators (e.g. PNC 48h) — so each county is fetched on its own (every
-  // county value is a genuine 0–100 %) and averaged in the rows memo below.
-  // This is the same per-county pattern used by the pillar and VTP fetches.
-  // d5 stays partner-scope (share of roster facilities reporting MOH 731).
-  const [domainByCounty, setDomainByCounty] = useState<Record<
+  // Per-county KHIS domain scores (d1/d2/d4) — derived from the SAME
+  // per-county VTP fetch below (countyDomains is populated in that effect), so
+  // there is exactly ONE county-level KHIS request per county. d5 stays
+  // partner-scope (share of roster facilities reporting MOH 731).
+  const [countyDomains, setCountyDomains] = useState<Record<
     string,
     LiveDomainScores
   > | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-    const counties = Array.from(new Set(partners.flatMap((p) => p.counties)));
-    if (counties.length === 0) {
-      setDomainByCounty(null);
-      return;
-    }
-    const DX =
-      "pmtct_anc1_visits,pmtct_initial_test,pmtct_need,pmtct_art,pnc_48h_mother,maternal_deaths_reported,maternal_deaths_audited,neonatal_deaths,neonatal_deaths_audited";
-    Promise.all(
-      counties.map((county) =>
-        fetch(
-          `/api/khis?county=${encodeURIComponent(
-            county,
-          )}&pe=${pe}&indicators=${DX}`,
-        )
-          .then((r) => (r.ok ? r.json() : null))
-          .catch(() => null)
-          .then((res) => ({ county, res })),
-      ),
-    ).then((results) => {
-      if (cancelled) return;
-      const map: Record<string, LiveDomainScores> = {};
-      const clampPct = (v: number) => Math.max(0, Math.min(100, v));
-      const pct = (num: number | null, den: number | null): number | null =>
-        num == null || den == null || den <= 0
-          ? null
-          : clampPct((num / den) * 100);
-      for (const { county, res } of results) {
-        if (!res?.indicators) continue;
-        const ind = (key: string): number | null => {
-          const found = res.indicators.find(
-            (x: { id: string; value: number | null }) => x.id === key,
-          );
-          return found?.value ?? null;
-        };
-        const anc1 = ind("pmtct_anc1_visits");
-        const tested = ind("pmtct_initial_test");
-        const need = ind("pmtct_need");
-        const art = ind("pmtct_art");
-        const pncM = ind("pnc_48h_mother");
-        const matRep = ind("maternal_deaths_reported");
-        const matAud = ind("maternal_deaths_audited");
-        const neoRep = ind("neonatal_deaths");
-        const neoAud = ind("neonatal_deaths_audited");
-        const testedPct = pct(tested, anc1);
-        const artPct = pct(art, need);
-        const d1Parts = [testedPct, artPct].filter(
-          (v): v is number => v != null,
-        );
-        const audited: number[] = [];
-        if (matRep != null && matRep > 0 && matAud != null)
-          audited.push(clampPct((matAud / matRep) * 100));
-        if (neoRep != null && neoRep > 0 && neoAud != null)
-          audited.push(clampPct((neoAud / neoRep) * 100));
-        const s: LiveDomainScores = {};
-        if (d1Parts.length > 0)
-          s.d1 = d1Parts.reduce((a, b) => a + b, 0) / d1Parts.length;
-        if (pncM != null && pncM >= 0) s.d2 = Math.min(100, pncM); // KHIS >100% → clamp (double-counted)
-        if (audited.length > 0)
-          s.d4 = audited.reduce((a, b) => a + b, 0) / audited.length;
-        map[county] = s;
-      }
-      if (!cancelled) setDomainByCounty(map);
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [partners, pe]);
 
   // Domain 3 readiness per partner — computed live from entered assessments
   // scoped to the partner's counties.
@@ -522,15 +448,13 @@ export function HomeTab({
   const rows = useMemo(
     () =>
       partners.map((p) => {
-        const s = PARTNER_DOMAIN_SCORES[p.id];
         const l = liveByPartner[p.id] ?? {};
         const d3 = readinessByPartner[p.id];
-        // Per-county KHIS averages (same pattern as the pillar/VTP fetches)
-        // are preferred; the roster-scope live value is the fallback, then the
-        // baseline constant.
+        // Per-county KHIS averages (same per-county VTP fetch) are preferred;
+        // the roster-scope live value is the fallback. No baseline constants.
         const countyAvg = (key: "d1" | "d2" | "d4"): number | null => {
           const vals = p.counties
-            .map((c) => domainByCounty?.[c]?.[key])
+            .map((c) => countyDomains?.[c]?.[key])
             .filter((v): v is number => v != null);
           return vals.length > 0
             ? vals.reduce((a, b) => a + b, 0) / vals.length
@@ -546,13 +470,7 @@ export function HomeTab({
         const d4 = countyAvg("d4");
         const domains: (number | null)[] = pending
           ? [0, 0, 0, 0, 0]
-          : [
-              d1 ?? l.d1 ?? s.d1,
-              d2 ?? l.d2 ?? s.d2,
-              d3.avg,
-              d4 ?? l.d4 ?? s.d4,
-              l.d5 ?? s.d5,
-            ];
+          : [d1 ?? l.d1 ?? null, d2 ?? l.d2 ?? null, d3.avg, d4 ?? l.d4 ?? null, l.d5 ?? null];
         const live: boolean[] = pending
           ? [false, false, false, false, false]
           : [d1 != null, d2 != null, false, d4 != null, l.d5 != null];
@@ -562,7 +480,7 @@ export function HomeTab({
         const overall =
           available.length > 0
             ? available.reduce((a, b) => a + b, 0) / available.length
-            : 0;
+            : null;
         return {
           partner: p,
           domains,
@@ -572,7 +490,7 @@ export function HomeTab({
           pending,
         };
       }),
-    [partners, readinessByPartner, liveByPartner, domainByCounty],
+    [partners, readinessByPartner, liveByPartner, countyDomains],
   );
 
   const columnAverages = useMemo(
@@ -593,7 +511,7 @@ export function HomeTab({
     () =>
       rows.map((r) => ({
         name: r.partner.shortName,
-        overall: r.overall === null ? 0 : Math.round(r.overall),
+        overall: r.overall == null ? null : Math.round(r.overall),
       })),
     [rows],
   );
@@ -611,10 +529,10 @@ export function HomeTab({
 
   // County distribution: per partner, each supported county with its
   // 5-domain scores (d3 computed live from county-scoped assessments;
-  // d1/d2/d4 live per-county KHIS where reported, else illustrative
-  // constant; d5 has no county-scope KHIS source → illustrative constant).
-  // Scoped to the county selected in the filter bar so these charts drill
-  // with the filter.
+  // d1/d2/d4 live per-county KHIS where reported, else blank — no
+  // illustrative constants anywhere; d5 has no county-scope KHIS source →
+  // blank). Scoped to the county selected in the filter bar so these charts
+  // drill with the filter.
   const countyRows = useMemo(
     () =>
       scorePartners.map((p) => {
@@ -624,22 +542,16 @@ export function HomeTab({
           partner: p,
           pending,
           counties: scopeCounties.map((county) => {
-            const c = COUNTY_DOMAIN_SCORES[county] ?? {
-              d1: null,
-              d2: null,
-              d4: null,
-              d5: null,
-            };
-            const live = domainByCounty?.[county] ?? {};
+            const live = countyDomains?.[county] ?? {};
             const d3 = readinessForCounties(allAssessments, [county]);
             const domains: (number | null)[] = pending
               ? [0, 0, 0, 0, 0]
               : [
-                  live.d1 ?? c.d1,
-                  live.d2 ?? c.d2,
+                  live.d1 ?? null,
+                  live.d2 ?? null,
                   d3.avg,
-                  live.d4 ?? c.d4,
-                  c.d5,
+                  live.d4 ?? null,
+                  null,
                 ];
             const available = pending
               ? []
@@ -649,12 +561,12 @@ export function HomeTab({
             const overall =
               available.length > 0
                 ? available.reduce((a, b) => a + b, 0) / available.length
-                : 0;
+                : null;
             return { name: county, domains, overall, d3Count: d3.count };
           }),
         };
       }),
-    [scorePartners, allAssessments, filter.county, domainByCounty],
+    [scorePartners, allAssessments, filter.county, countyDomains],
   );
 
   // Scope axis for the per-partner VTP/Safe scoreboards — the current filter
@@ -715,6 +627,7 @@ export function HomeTab({
     "maternal_deaths_audited", // Safe bar 5 — MPDSR audits
     "neonatal_deaths", // Safe bar 5 — MPDSR audits
     "neonatal_deaths_audited", // Safe bar 5 — MPDSR audits
+    "pnc_48h_mother", // domain d2 — PNC within 48h (county %)
   ].join(",");
 
   const [vtpLiveByCounty, setVtpLiveByCounty] = useState<Record<
@@ -749,6 +662,7 @@ export function HomeTab({
     ).then((results) => {
       if (cancelled) return;
       const map: Record<string, (number | null)[]> = {};
+      const domMap: Record<string, LiveDomainScores> = {};
       const pct = (num: number | null, den: number | null): number | null => {
         if (num == null || den == null || den <= 0) return null;
         return Math.max(0, Math.min(100, Math.round((num / den) * 1000) / 10));
@@ -787,6 +701,30 @@ export function HomeTab({
           (neoRep != null && neoRep > 0 && neoAud != null)
             ? pct((matAud ?? 0) + (neoAud ?? 0), (matRep ?? 0) + (neoRep ?? 0))
             : null;
+        // County-level domain scores (d1/d2/d4) derived from this same fetch —
+        // feeds the domain matrix + county comparison with real KHIS only.
+        const testedPct = pct(tested, anc1);
+        const artPct = pct(art, need);
+        const matA =
+          matRep != null && matRep > 0 && matAud != null
+            ? pct(matAud, matRep)
+            : null;
+        const neoA =
+          neoRep != null && neoRep > 0 && neoAud != null
+            ? pct(neoAud, neoRep)
+            : null;
+        const d1Parts = [testedPct, artPct].filter(
+          (v): v is number => v != null,
+        );
+        const d4Parts = [matA, neoA].filter((v): v is number => v != null);
+        const pncM = ind("pnc_48h_mother");
+        const dm: LiveDomainScores = {};
+        if (d1Parts.length > 0)
+          dm.d1 = d1Parts.reduce((a, b) => a + b, 0) / d1Parts.length;
+        if (pncM != null && pncM >= 0) dm.d2 = Math.min(100, pncM); // KHIS >100% → clamp (double-counted)
+        if (d4Parts.length > 0)
+          dm.d4 = d4Parts.reduce((a, b) => a + b, 0) / d4Parts.length;
+        domMap[county] = dm;
         map[county] = [
           dropout != null
             ? Math.max(0, Math.min(100, Math.round((100 - dropout) * 10) / 10))
@@ -806,7 +744,10 @@ export function HomeTab({
           audited, // Safe bar 5 — MPDSR audit coverage
         ];
       }
-      if (!cancelled) setVtpLiveByCounty(map);
+      if (!cancelled) {
+        setVtpLiveByCounty(map);
+        setCountyDomains(domMap);
+      }
     });
     return () => {
       cancelled = true;
@@ -1620,10 +1561,10 @@ export function HomeTab({
         <div className="px-6 pb-5 pt-2 text-xs text-gray-500">
           <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5 align-middle" />
           live from national KHIS ({peLabel}) where reported — per-county values
-          averaged for % indicators (PNC, testing, ART, MPDSR audits); falls
-          back to the KHIS/EMR baseline constant when a domain has no KHIS
-          value. Domain 3 (Readiness) is computed live from entered facility
-          assessments (N/A excluded) and is never sourced from KHIS.
+          averaged for % indicators (PNC, testing, ART, MPDSR audits). Domains
+          with no KHIS value this period show blank (—) — no baseline constants
+          are displayed. Domain 3 (Readiness) is computed live from entered
+          facility assessments (N/A excluded) and is never sourced from KHIS.
           {!liveLoaded && " Loading live KHIS domain scores…"} Nuru Ya Mtoto is{" "}
           <span className="font-semibold text-amber-600">pending</span> — no
           facility list is loaded yet, so its scores default to 0 until the
@@ -1682,7 +1623,7 @@ export function HomeTab({
                 <ViewDataButton
                   title={`${group.partner.name} — Domain Scores by County`}
                   data={data}
-                  note="% per domain per county (— = no data). Domains 1, 2 & 4 are live KHIS where reported; Domain 3 is live from entered assessments; Domain 5 uses the baseline constant (no county-scope KHIS source)."
+                  note="% per domain per county (— = no data). Domains 1, 2 & 4 are live KHIS where reported; Domain 3 is live from entered assessments; Domain 5 has no county-scope KHIS source — shown blank."
                 />
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
@@ -1772,7 +1713,7 @@ export function HomeTab({
               formula:
                 "overall % = mean of the five domain scores (domains with no data are excluded from the average)",
               notes: [
-                "Domains 1, 2, 4 & 5 fall back to KHIS/EMR baseline constants when KHIS has no value this period.",
+                "Domains with no KHIS value this period show no bar — no baseline constants are displayed.",
                 "Domain 3 (Readiness) is always computed live from entered facility assessments (N/A excluded) — never from KHIS.",
               ],
             }}
@@ -1811,11 +1752,13 @@ export function HomeTab({
                 <Cell
                   key={`cell-${idx}`}
                   fill={
-                    entry.overall >= 80
-                      ? "#10b981"
-                      : entry.overall >= 60
-                        ? "#f59e0b"
-                        : "#ef4444"
+                    entry.overall == null
+                      ? "#e2e8f0"
+                      : entry.overall >= 80
+                        ? "#10b981"
+                        : entry.overall >= 60
+                          ? "#f59e0b"
+                          : "#ef4444"
                   }
                 />
               ))}
