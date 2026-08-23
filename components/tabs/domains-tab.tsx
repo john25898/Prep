@@ -812,7 +812,7 @@ function CoverageSection() {
             <IndicatorBar
               key={ind.code}
               indicator={ind}
-              current={liveCurrent[ind.code] ?? 0}
+              current={liveCurrent[ind.code] ?? null}
             />
           ))}
         </div>
