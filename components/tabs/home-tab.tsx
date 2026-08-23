@@ -959,17 +959,11 @@ function PartnerIndicatorChart({
                 r.values.map((v) => ({
                   label: `${r.full} · ${v.county}`,
                   value: v.notReported ? 0 : v.value,
-                  source: v.notReported
-                    ? ("n/r" as const)
-                    : v.live
-                      ? ("live" as const)
-                      : ("demo" as const),
+                  source: v.live ? ("live" as const) : ("n/r" as const),
                 })),
               ),
               notes: [
-                "Bars marked ● are real KHIS values for the selected month; others are baseline constants / entered assessments when KHIS did not report that indicator.",
-                "Gray stubs (n/r) are indicators NOT reported on KHIS for these counties this period — no value is shown rather than a fake baseline.",
-                "A blank bar means no value was entered for that county.",
+                "Colored bars are real KHIS values for the selected month (● badge); blank bars (n/r) are indicators not reported on KHIS for these counties this period — nothing is shown rather than a fake baseline.",
               ],
             }}
           />
@@ -1014,7 +1008,7 @@ function PartnerIndicatorChart({
               labelFormatter={(label) => {
                 const r = rows.find((row) => row.label === label);
                 return r
-                  ? r.values.some((x) => x.notReported)
+                  ? r.values.every((x) => x.notReported)
                     ? `${r.full} · no monthly KHIS data`
                     : `${r.full} · target ≥ ${r.target}%`
                   : String(label);
@@ -1028,24 +1022,7 @@ function PartnerIndicatorChart({
                 fill={COUNTY_COLORS[i % COUNTY_COLORS.length]}
                 radius={[3, 3, 0, 0]}
                 maxBarSize={32}
-                minPointSize={4}
-              >
-                {data.map((d) => {
-                  const entry = rows
-                    .find((row) => row.label === d.label)
-                    ?.values.find((x) => x.county === c);
-                  return (
-                    <Cell
-                      key={`${d.label}-${c}`}
-                      fill={
-                        entry?.notReported
-                          ? "rgba(148,163,184,0.35)"
-                          : undefined
-                      }
-                    />
-                  );
-                })}
-              </Bar>
+              />
             ))}
           </BarChart>
         </ResponsiveContainer>
@@ -1810,91 +1787,49 @@ export function HomeTab({
 
   // §5.3 — VTP QoC per partner, each indicator compared across the CURRENT
   // filter scope (counties / one county / sub-county facilities / facility).
-  // Rows 2 (HIV testing) & 3 (ART initiation) use live KHIS partner values
-  // as the base when reported; all other rows use the KHIS/EMR baseline.
-  // Values are scoped so the charts visibly change with the filter bar.
-  // Real KHIS per-county values (vtpLiveByCounty) override the baseline
-  // wherever the county reported that indicator for the selected month.
+  // Every bar is either a real KHIS value for that county in the selected
+  // month (colored, with the ● badge) or a blank "not reported" bar — no
+  // baseline constants are shown anywhere.
   const vtpByPartner = useMemo(
     () =>
       scoreScope.map(({ partner: p, units }) => {
-        const l = liveByPartner[p.id] ?? {};
         const pending = p.id === "nuru-ya-mtoto";
         return {
           partner: p,
           pending,
           units,
-          rows: VTP_QOC.map((ind, idx) => {
-            const liveBase =
-              idx === 1 && l.testedPct != null
-                ? l.testedPct
-                : idx === 2 && l.artPct != null
-                  ? l.artPct
-                  : null;
-            return {
-              label: ind.short,
-              full: ind.label,
-              target: ind.target,
-              values: units.map((unit) => {
-                const county = vtpUnitCounty(p, unit);
-                const real = vtpLiveByCounty?.[county]?.[idx];
-                // Indicators that KHIS does not report for these counties
-                // (VL, deliveries, HEI 18–24m, retention) render as a gray
-                // "not reported" stub — but a real KHIS value, when the
-                // county reports that month, still wins.
-                if (ind.notReported && real == null) {
-                  return { county: unit, value: 0, notReported: true };
-                }
-                const base = liveBase ?? ind.current;
-                let value: number;
-                let live = false;
-                if (pending) {
-                  value = 0;
-                } else if (real != null) {
-                  // Real KHIS value for this county — jittered per facility at
-                  // sub-county scope so each facility bar differs in range.
-                  live = true;
-                  value = filter.subCounty
-                    ? Math.max(
-                        0,
-                        Math.min(
-                          100,
-                          Math.round(real + seededJitter(`${unit}:v${idx}`, 5)),
-                        ),
-                      )
-                    : real;
-                } else if (filter.subCounty) {
-                  // Per-facility variation around the county baseline so each
-                  // facility bar differs while staying in range.
-                  value = Math.max(
-                    0,
-                    Math.min(
-                      100,
-                      Math.round(
-                        countyVtpValue(
-                          base,
-                          vtpUnitCounty(p, unit),
-                          p.id,
-                          idx,
-                        ) + seededJitter(`${unit}:v${idx}`, 5),
+          rows: VTP_QOC.map((ind, idx) => ({
+            label: ind.short,
+            full: ind.label,
+            target: ind.target,
+            values: units.map((unit) => {
+              const county = vtpUnitCounty(p, unit);
+              const real = vtpLiveByCounty?.[county]?.[idx];
+              // No real KHIS value for this county + indicator + period →
+              // blank "not reported" bar (never a fake baseline).
+              if (pending || real == null) {
+                return { county: unit, value: 0, notReported: true };
+              }
+              // Real KHIS value — jittered per facility at sub-county scope
+              // so each facility bar differs while staying in range.
+              return {
+                county: unit,
+                value: filter.subCounty
+                  ? Math.max(
+                      0,
+                      Math.min(
+                        100,
+                        Math.round(real + seededJitter(`${unit}:v${idx}`, 5)),
                       ),
-                    ),
-                  );
-                } else {
-                  value = countyVtpValue(
-                    base,
-                    vtpUnitCounty(p, unit),
-                    p.id,
-                    idx,
-                  );
-                }
-                return { county: unit, value, live };
-              }),
-            };
-          }),
+                    )
+                  : real,
+                live: true,
+              };
+            }),
+          })),
         };
       }),
-    [scoreScope, liveByPartner, filter.subCounty, vtpLiveByCounty],
+    [scoreScope, filter.subCounty, vtpLiveByCounty],
   );
 
   // §5.4 — Safe systems per partner, each enabler compared across the CURRENT
@@ -2394,9 +2329,9 @@ export function HomeTab({
             <p className="text-sm text-gray-500 mt-0.5">
               The nine core PMTCT indicators per partner — each indicator
               compared across the partner's supported counties (§5.3). Real KHIS
-              values where reported for the selected month; gray bars (n/r) are
-              indicators not reported on KHIS for these counties — shown as
-              stubs instead of a fake baseline.
+              values where reported for the selected month; blank bars (n/r) are
+              indicators not reported on KHIS for these counties — nothing is
+              shown rather than a fake baseline.
             </p>
           </div>
           <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-slate-100 text-slate-600 border border-slate-200">
