@@ -53,6 +53,10 @@ export async function GET(req: NextRequest) {
   // breakdown for the scoped org units). With several dx, per-facility values
   // are summed across all of them (e.g. PrEP population-group elements).
   const byFacility = params.get("byFacility") === "1";
+  // byFacilityDetail=1 — return EVERY facility with data, each with its
+  // per-dx values (NOT summed across dx). Used to show which facilities
+  // reported HEI/EID indicators so the user can tick them in KHIS.
+  const byFacilityDetail = params.get("byFacilityDetail") === "1";
   const byCounty = params.get("byCounty") === "1";
   const byPeriod = params.get("byPeriod") === "1";
   const withReporting = params.get("reporting") === "1";
@@ -216,6 +220,33 @@ export async function GET(req: NextRequest) {
         .slice(0, topN);
     }
 
+    // Optional per-facility detail: every facility with a non-null value for
+    // ANY requested dx, with its per-dx values keyed by dx (kept separate so
+    // the client can show e.g. HEI/EID numbers per facility without summing
+    // unrelated indicators). Sorted by name for a stable list.
+    let facilityDetail:
+      | { name: string; values: Record<string, number> }[]
+      | undefined;
+    if (byFacilityDetail) {
+      const detailMap = new Map<
+        string,
+        { name: string; values: Record<string, number> }
+      >();
+      for (const row of analytics.rows) {
+        if (row.value == null) continue;
+        const key = row.ou;
+        let entry = detailMap.get(key);
+        if (!entry) {
+          entry = { name: row.ouName || row.ou, values: {} };
+          detailMap.set(key, entry);
+        }
+        entry.values[row.dx] = row.value;
+      }
+      facilityDetail = [...detailMap.values()]
+        .filter((d) => Object.keys(d.values).length > 0)
+        .sort((a, b) => a.name.localeCompare(b.name));
+    }
+
     // Optional per-county breakdown: sums grouped by county name. Requires a
     // single dx. Resolves county from the roster when present (roster county
     // is a KHIS OU UID → name via ou-county-map.json), otherwise from the
@@ -264,6 +295,7 @@ export async function GET(req: NextRequest) {
       asOf: new Date().toISOString(),
       indicators,
       facilities,
+      facilityDetail,
       counties,
       periods,
       reporting,

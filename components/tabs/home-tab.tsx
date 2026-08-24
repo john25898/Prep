@@ -685,6 +685,15 @@ export function HomeTab({
     (number | null)[]
   > | null>(null);
 
+  // Per county: which roster facilities reported HEI/EID data for the
+  // selected month, with their per-indicator values. Rides the same VTP
+  // fetch (byFacilityDetail=1) — no extra KHIS round-trip. Lets the user
+  // see exactly which facilities to tick in KHIS when validating bars
+  // 5 (EID ≤8wk), 6 (PCR+ ART) and 8 (HEI 18–24m).
+  const [heiFacilitiesByCounty, setHeiFacilitiesByCounty] = useState<
+    Record<string, { name: string; values: Record<string, number> }[]>
+  >({});
+
   useEffect(() => {
     let cancelled = false;
     // Per county, the partner whose roster owns it (counties are disjoint
@@ -706,7 +715,7 @@ export function HomeTab({
         fetch(
           `/api/khis?county=${encodeURIComponent(
             county,
-          )}&partner=${encodeURIComponent(pid)}&roster=1&pe=${pe}&indicators=${VTP_KHIS_DX}`,
+          )}&partner=${encodeURIComponent(pid)}&roster=1&pe=${pe}&indicators=${VTP_KHIS_DX}&byFacilityDetail=1`,
         )
           .then((r) => (r.ok ? r.json() : null))
           .catch(() => null)
@@ -716,6 +725,10 @@ export function HomeTab({
       if (cancelled) return;
       const map: Record<string, (number | null)[]> = {};
       const domMap: Record<string, LiveDomainScores> = {};
+      const heiMap: Record<
+        string,
+        { name: string; values: Record<string, number> }[]
+      > = {};
       const pct = (num: number | null, den: number | null): number | null => {
         if (num == null || den == null || den <= 0) return null;
         return Math.max(0, Math.min(100, Math.round((num / den) * 1000) / 10));
@@ -810,10 +823,44 @@ export function HomeTab({
               : null, // bar 9 Retention mother–baby pair
           audited, // Safe bar 5 — MPDSR audit coverage
         ];
+        // Which facilities reported HEI/EID data this month — for bars
+        // 5 (EID), 6 (PCR+ ART), 8 (HEI 18–24m). Values are keyed by dx on
+        // the wire; map to indicator ids so the UI can use friendly labels.
+        const HEI_DX = new Set([
+          "hkhajO6SfQO", // hei_eid_pct
+          "tYL0A1JspLB", // hei_pcr_pos_6_8wks
+          "q8kmDg03bi3", // hei_art_linkage
+          "uM0kppDX04I", // hei_negative_18m
+          "xHufJhG2OJx", // hei_cohort_24m
+        ]);
+        const dxToId = new Map<string, string>();
+        for (const ind of res.indicators ?? []) dxToId.set(ind.dx, ind.id);
+        heiMap[county] = (res.facilityDetail ?? [])
+          .map(
+            (f: {
+              name: string;
+              values: Record<string, number>;
+            }): {
+              name: string;
+              values: Record<string, number>;
+            } => ({
+              name: f.name,
+              values: Object.fromEntries(
+                Object.entries(f.values)
+                  .filter(([dx]) => HEI_DX.has(dx))
+                  .map(([dx, v]) => [dxToId.get(dx) ?? dx, v]),
+              ) as Record<string, number>,
+            }),
+          )
+          .filter(
+            (f: { name: string; values: Record<string, number> }) =>
+              Object.keys(f.values).length > 0,
+          );
       }
       if (!cancelled) {
         setVtpLiveByCounty(map);
         setCountyDomains(domMap);
+        setHeiFacilitiesByCounty(heiMap);
       }
     });
     return () => {
@@ -1304,8 +1351,7 @@ export function HomeTab({
             // facility-level % across a roster is meaningless. Show "—" there
             // instead of falling back to a static baseline constant, which
             // would look like live KHIS data during validation.
-            const current =
-              liveVal ?? (livePillars.anyLive ? null : p.current);
+            const current = liveVal ?? (livePillars.anyLive ? null : p.current);
             const tone =
               current == null
                 ? {
@@ -1399,23 +1445,95 @@ export function HomeTab({
         </div>
         <div className="px-6 pb-6 space-y-5">
           {vtpByPartner.map(({ partner, rows, pending, units }) => (
-            <PartnerIndicatorChart
-              key={partner.id}
-              title={partner.name}
-              subtitle={
-                pending
-                  ? "facility list not yet loaded — VTP scores default to 0"
-                  : filter.facility
-                    ? `${filter.facility} · 9 VTP indicators vs ≥95% target`
-                    : filter.subCounty
-                      ? `${filter.subCounty} · ${rows[0]?.values.length ?? 0} facilities · 9 VTP indicators vs ≥95% target`
-                      : filter.county
-                        ? `${filter.county} County · 9 VTP indicators vs ≥95% target`
-                        : `${partner.counties.length} counties · 9 VTP indicators vs ≥95% target`
-              }
-              rows={rows}
-              counties={units}
-            />
+            <div key={partner.id} className="space-y-3">
+              <PartnerIndicatorChart
+                title={partner.name}
+                subtitle={
+                  pending
+                    ? "facility list not yet loaded — VTP scores default to 0"
+                    : filter.facility
+                      ? `${filter.facility} · 9 VTP indicators vs ≥95% target`
+                      : filter.subCounty
+                        ? `${filter.subCounty} · ${rows[0]?.values.length ?? 0} facilities · 9 VTP indicators vs ≥95% target`
+                        : filter.county
+                          ? `${filter.county} County · 9 VTP indicators vs ≥95% target`
+                          : `${partner.counties.length} counties · 9 VTP indicators vs ≥95% target`
+                }
+                rows={rows}
+                counties={units}
+              />
+              {/* HEI/EID reporting facilities — which roster facilities
+                  submitted EID / PCR+ / linkage / 18m outcome / 24m cohort
+                  data for the selected month. Tick exactly these in KHIS to
+                  validate bars 5 · 6 · 8. */}
+              {(() => {
+                const counties = Array.from(
+                  new Set(units.map((u) => vtpUnitCounty(partner, u))),
+                );
+                const withData = counties
+                  .map((c) => ({
+                    county: c,
+                    facs: heiFacilitiesByCounty[c] ?? [],
+                  }))
+                  .filter((x) => x.facs.length > 0);
+                if (withData.length === 0) return null;
+                const HEI_FMT: {
+                  key: string;
+                  label: string;
+                  pct?: boolean;
+                }[] = [
+                  { key: "hei_eid_pct", label: "EID", pct: true },
+                  { key: "hei_pcr_pos_6_8wks", label: "PCR+" },
+                  { key: "hei_art_linkage", label: "Linked" },
+                  { key: "hei_negative_18m", label: "AB−18m" },
+                  { key: "hei_cohort_24m", label: "Cohort 24m" },
+                ];
+                return (
+                  <details className="rounded-lg border border-rose-100 bg-rose-50/40 px-4 py-2.5">
+                    <summary className="cursor-pointer text-xs font-semibold text-rose-700 flex items-center gap-2">
+                      <Stethoscope className="w-3.5 h-3.5" />
+                      HEI/EID reporting facilities — tick these in KHIS for bars
+                      5 · 6 · 8
+                    </summary>
+                    <div className="mt-2.5 space-y-3">
+                      {withData.map(({ county, facs }) => (
+                        <div key={county}>
+                          <p className="text-[11px] font-semibold text-gray-700 uppercase tracking-wide">
+                            {county} — {facs.length} facilities
+                          </p>
+                          <ul className="mt-1 space-y-0.5">
+                            {facs.map((f) => (
+                              <li
+                                key={f.name}
+                                className="text-[11px] text-gray-600"
+                              >
+                                <span className="font-medium text-gray-800">
+                                  {f.name}
+                                </span>
+                                {" — "}
+                                {HEI_FMT.filter(
+                                  (x) => f.values[x.key] != null,
+                                ).map((x, i) => (
+                                  <span key={x.key}>
+                                    {i > 0 && " · "}
+                                    <span className="font-medium">
+                                      {x.label}
+                                    </span>{" "}
+                                    {x.pct
+                                      ? `${Number(f.values[x.key]).toFixed(1)}%`
+                                      : f.values[x.key]}
+                                  </span>
+                                ))}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      ))}
+                    </div>
+                  </details>
+                );
+              })()}
+            </div>
           ))}
         </div>
       </div>
