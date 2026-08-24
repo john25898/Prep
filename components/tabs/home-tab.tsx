@@ -298,7 +298,16 @@ export function HomeTab({
     const lb = sum("lb");
     const nd = sum("nd");
     const sb = sum("sb");
-    const md = sum("md");
+    // MMR: restrict to counties that reported maternal deaths. KHIS's "Total"
+    // row for a ratio indicator only aggregates org units with a value — a
+    // county with live births but no deaths reported must not dilute the
+    // denominator (this is why the app showed 78.8 vs KHIS Total 107.87).
+    const mdRows = rows.filter((r) => r.md != null);
+    const md = mdRows.reduce((a, r) => a + (r.md as number), 0);
+    const lbMd = mdRows
+      .map((r) => r.lb)
+      .filter((v): v is number => v != null)
+      .reduce((a, b) => a + b, 0);
     const nmr =
       lb > 0 && nd > 0 ? Math.round((nd / lb) * 1000 * 10) / 10 : undefined;
     const sbr =
@@ -306,11 +315,12 @@ export function HomeTab({
         ? Math.round((sb / (lb + sb)) * 1000 * 10) / 10
         : undefined;
     // MMR at multi-county scope: maternal deaths ÷ live births × 100,000
-    // (summed counts) so the partner view matches KHIS's aggregated Total.
-    // Single-county / facility scope keeps the KHIS indicator (exact there).
+    // (summed counts, deaths-reporting counties only) so the partner view
+    // matches KHIS's aggregated Total. Single-county / facility scope keeps
+    // the KHIS indicator (exact there).
     const mmr =
-      rows.length > 1 && lb > 0 && md > 0
-        ? Math.round((md / lb) * 100000 * 10) / 10
+      rows.length > 1 && lbMd > 0 && md > 0
+        ? Math.round((md / lbMd) * 100000 * 10) / 10
         : avg("mmr");
     const res = {
       anc: avg("anc"),
