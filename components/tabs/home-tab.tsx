@@ -1299,9 +1299,24 @@ export function HomeTab({
                   : p.label === "Early PNC"
                     ? livePillars.pncM
                     : livePillars.pncI;
-            const current = liveVal ?? p.current;
-            const tone = targetTone(current / p.target);
-            const pct = Math.min(100, (current / p.target) * 100);
+            // At roster scope (county/partner fetching partner facilities
+            // only), % indicators are intentionally nulled — summing
+            // facility-level % across a roster is meaningless. Show "—" there
+            // instead of falling back to a static baseline constant, which
+            // would look like live KHIS data during validation.
+            const current =
+              liveVal ?? (livePillars.anyLive ? null : p.current);
+            const tone =
+              current == null
+                ? {
+                    dot: "bg-slate-300",
+                    text: "text-slate-500",
+                    label: "Not reported",
+                    bar: "bg-slate-300",
+                  }
+                : targetTone(current / p.target);
+            const pct =
+              current == null ? 0 : Math.min(100, (current / p.target) * 100);
             return (
               <div
                 key={p.label}
@@ -1314,8 +1329,10 @@ export function HomeTab({
                 <p className="text-xs text-gray-500 mt-0.5">{p.indicator}</p>
                 <div className="flex items-end gap-1.5 mt-3">
                   <p className="text-3xl font-extrabold text-gray-900">
-                    {current > 100 ? 100 : current}%
-                    {current > 100 && (
+                    {current == null
+                      ? "—"
+                      : `${current > 100 ? 100 : current}%`}
+                    {current != null && current > 100 && (
                       <span className="text-sm font-bold text-amber-600">
                         *
                       </span>
@@ -1337,7 +1354,7 @@ export function HomeTab({
                   <span className={`w-1.5 h-1.5 rounded-full ${tone.dot}`} />
                   {tone.label}
                 </p>
-                {current > 100 && (
+                {current != null && current > 100 && (
                   <p className="text-[10px] mt-1 text-amber-600">
                     * KHIS reports &gt;100% — likely double-counted visits
                     (clamped to 100)
