@@ -100,15 +100,37 @@ export async function GET(req: NextRequest) {
     ouIds = scUids;
     scopeLabel = `${partner} · ${subcounty} (${ouIds.length} facilities)`;
   } else if (county) {
-    const ou = COUNTY_OUS[county];
-    if (!ou) {
-      return NextResponse.json(
-        { error: `Unknown county: ${county}` },
-        { status: 400 },
-      );
+    // roster=1 (home tab): restrict to the partner's roster facilities in
+    // this county — partner-only values. Falls back to the county rollup
+    // when the partner has no roster yet (e.g. nuru-ya-mtoto).
+    const rosterMode = params.get("roster") === "1";
+    if (rosterMode && hasFacilityRoster(partner)) {
+      const rosterUids = partnerFacilityOUsFor(partner, county);
+      if (rosterUids.length > 0) {
+        ouIds = rosterUids;
+        scopeLabel = `${county} County · ${partner} (${ouIds.length} facilities)`;
+      } else {
+        const ou = COUNTY_OUS[county];
+        if (!ou) {
+          return NextResponse.json(
+            { error: `Unknown county: ${county}` },
+            { status: 400 },
+          );
+        }
+        ouIds = [ou];
+        scopeLabel = `${county} County`;
+      }
+    } else {
+      const ou = COUNTY_OUS[county];
+      if (!ou) {
+        return NextResponse.json(
+          { error: `Unknown county: ${county}` },
+          { status: 400 },
+        );
+      }
+      ouIds = [ou];
+      scopeLabel = `${county} County`;
     }
-    ouIds = [ou];
-    scopeLabel = `${county} County`;
   } else if (hasFacilityRoster(partner)) {
     // Facility-level precision: ONLY the partner's facilities.
     ouIds = partnerFacilityOUs(partner);

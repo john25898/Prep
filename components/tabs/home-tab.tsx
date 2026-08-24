@@ -36,7 +36,11 @@ import { useKhis } from "@/lib/use-khis";
 import { useGeoFilter } from "@/lib/geo-filter-context";
 import { AIAssistant, type ChartInsight } from "@/components/ai-assistant";
 import { PARTNERS, getPartner, type Partner } from "@/lib/geo";
-import { PARTNER_COUNTIES, PARTNER_FACILITIES } from "@/lib/partners";
+import {
+  PARTNER_COUNTIES,
+  PARTNER_FACILITIES,
+  hasFacilityRoster,
+} from "@/lib/partners";
 import { ViewDataButton, type ViewInput } from "@/components/view-data";
 import {
   BAR_SERIES,
@@ -77,10 +81,11 @@ export function HomeTab({
 
   // -----------------------------------------------------------------------
   // Live 90:90:80:80 pillars at the CURRENT filter scope. Computed from
-  // per-county KHIS fetches (averaged across the partner's counties) because
-  // % indicators (SBA, PNC, dropout) are only meaningful at county level —
-  // summing them across a facility roster yields values > 100%. At
-  // sub-county/facility scopes the roster facilities are fetched directly.
+  // per-county KHIS fetches scoped to the partner's roster facilities
+  // (roster=1) — partner-only. % indicators (SBA, PNC, dropout) are DHIS2
+  // indicators that would be summed per facility → garbage, so they are
+  // nulled at roster scopes; ANC uses the count-based anc4/anc1 ratio and
+  // MMR/NMR/SBR use raw counts.
   // -----------------------------------------------------------------------
   const pillarScopes = useMemo(() => {
     if (filter.facility) {
@@ -162,7 +167,9 @@ export function HomeTab({
       pillarScopes.map((s) => {
         const q =
           s.kind === "county"
-            ? `county=${encodeURIComponent(s.label)}`
+            ? `county=${encodeURIComponent(
+                s.label,
+              )}&partner=${encodeURIComponent(filter.partner)}&roster=1`
             : s.kind === "subcounty"
               ? `subcounty=${encodeURIComponent(
                   s.label,
@@ -207,7 +214,11 @@ export function HomeTab({
           "pnc_48h_mother",
           "pnc_48h_infant",
         ]);
-        const isMultiOu = scope.kind === "subcounty";
+        // Roster scopes (county-with-roster=1 and sub-county) sum per-facility
+        // indicator values → garbage for % elements; only raw counts are
+        // summed. Single-facility scope keeps the facility's own values.
+        const isMultiOu =
+          scope.kind !== "facility" && hasFacilityRoster(filter.partner);
         const ind = (key: string): number | null => {
           const found = res.indicators.find(
             (x: { id: string; value: number | null }) => x.id === key,
@@ -676,27 +687,30 @@ export function HomeTab({
 
   useEffect(() => {
     let cancelled = false;
-    const counties = Array.from(
-      new Set(
+    // Per county, the partner whose roster owns it (counties are disjoint
+    // across partners) — so the county fetch scopes to that partner's
+    // facilities (roster=1).
+    const countyPairs = Array.from(
+      new Map(
         scoreScope.flatMap(({ partner, units }) =>
-          units.map((u) => vtpUnitCounty(partner, u)),
+          units.map((u) => [vtpUnitCounty(partner, u), partner.id] as const),
         ),
-      ),
+      ).entries(),
     );
-    if (counties.length === 0) {
+    if (countyPairs.length === 0) {
       setVtpLiveByCounty(null);
       return;
     }
     Promise.all(
-      counties.map((county) =>
+      countyPairs.map(([county, pid]) =>
         fetch(
           `/api/khis?county=${encodeURIComponent(
             county,
-          )}&pe=${pe}&indicators=${VTP_KHIS_DX}`,
+          )}&partner=${encodeURIComponent(pid)}&roster=1&pe=${pe}&indicators=${VTP_KHIS_DX}`,
         )
           .then((r) => (r.ok ? r.json() : null))
           .catch(() => null)
-          .then((res) => ({ county, res })),
+          .then((res) => ({ county, pid, res })),
       ),
     ).then((results) => {
       if (cancelled) return;
@@ -706,7 +720,7 @@ export function HomeTab({
         if (num == null || den == null || den <= 0) return null;
         return Math.max(0, Math.min(100, Math.round((num / den) * 1000) / 10));
       };
-      for (const { county, res } of results) {
+      for (const { county, pid, res } of results) {
         if (!res?.indicators) continue;
         const ind = (key: string): number | null => {
           const found = res.indicators.find(
@@ -714,6 +728,10 @@ export function HomeTab({
           );
           return found?.value ?? null;
         };
+        // Roster scope sums per-facility indicator values → % elements are
+        // garbage (only raw counts are summed). Bars whose numerator/
+        // denominator are counts (1,2,4,6,7,8,10) stay live.
+        const roster = hasFacilityRoster(pid);
         const anc1 = ind("pmtct_anc1_visits");
         const tested = ind("pmtct_initial_test");
         const need = ind("pmtct_need");
@@ -743,7 +761,7 @@ export function HomeTab({
         // County-level domain scores (d1/d2/d4) derived from this same fetch —
         // feeds the domain matrix + county comparison with real KHIS only.
         const testedPct = pct(tested, anc1);
-        const artPct = pct(art, need);
+        const artPct = roster ? null : pct(art, need);
         const matA =
           matRep != null && matRep > 0 && matAud != null
             ? pct(matAud, matRep)
@@ -760,26 +778,36 @@ export function HomeTab({
         const dm: LiveDomainScores = {};
         if (d1Parts.length > 0)
           dm.d1 = d1Parts.reduce((a, b) => a + b, 0) / d1Parts.length;
-        if (pncM != null && pncM >= 0) dm.d2 = Math.min(100, pncM); // KHIS >100% → clamp (double-counted)
+        if (!roster && pncM != null && pncM >= 0) dm.d2 = Math.min(100, pncM); // KHIS >100% → clamp (double-counted)
         if (d4Parts.length > 0)
           dm.d4 = d4Parts.reduce((a, b) => a + b, 0) / d4Parts.length;
         domMap[county] = dm;
         map[county] = [
-          dropout != null
-            ? Math.max(0, Math.min(100, Math.round((100 - dropout) * 10) / 10))
-            : pct(anc4, anc1), // bar 1 ANC coverage
+          // bar 1 ANC coverage — count-based (anc4/anc1) at roster scope
+          roster
+            ? pct(anc4, anc1)
+            : dropout != null
+              ? Math.max(
+                  0,
+                  Math.min(100, Math.round((100 - dropout) * 10) / 10),
+                )
+              : pct(anc4, anc1),
           pct(tested, anc1), // bar 2 Testing for PBFW
-          pct(art, need), // bar 3 ART initiation for PBFW
+          roster ? null : pct(art, need), // bar 3 ART initiation for PBFW
           pct(vlLt, vlRes), // bar 4 VL suppression
-          eidPct != null
-            ? Math.max(0, Math.min(100, Math.round(eidPct * 10) / 10))
-            : null, // bar 5 EID ≤ 8wk
+          roster
+            ? null
+            : eidPct != null
+              ? Math.max(0, Math.min(100, Math.round(eidPct * 10) / 10))
+              : null, // bar 5 EID ≤ 8wk
           pct(link, pcrPos), // bar 6 Timely ART for PCR+ infants
           pct(hivDel, need), // bar 7 Delivery among HIV+ mothers
           pct(neg18, cohort), // bar 8 HEI final outcome 18–24m
-          retention != null
-            ? Math.max(0, Math.min(100, Math.round(retention * 10) / 10))
-            : null, // bar 9 Retention mother–baby pair
+          roster
+            ? null
+            : retention != null
+              ? Math.max(0, Math.min(100, Math.round(retention * 10) / 10))
+              : null, // bar 9 Retention mother–baby pair
           audited, // Safe bar 5 — MPDSR audit coverage
         ];
       }
@@ -1011,7 +1039,7 @@ export function HomeTab({
               note={`live from KHIS ${peLabel} where reported · targets EWENE 2026–2028`}
               detail={{
                 formula:
-                  "MMR = maternal deaths ÷ live births × 100,000 (KHIS indicator at county/facility scope; at partner & sub-county scope computed from summed counts so it matches KHIS Total) · NMR = neonatal deaths ÷ live births × 1,000 · SBR = stillbirths ÷ (live births + stillbirths) × 1,000",
+                  "MMR = maternal deaths ÷ live births × 100,000 (KHIS indicator at single-county/facility scope; at partner & sub-county scope computed from partner-roster summed counts) · NMR = neonatal deaths ÷ live births × 1,000 · SBR = stillbirths ÷ (live births + stillbirths) × 1,000",
                 inputs: pillarScopeLabels.flatMap<ViewInput>((c) => {
                   const r = pillarByCounty?.[c];
                   if (!r)
