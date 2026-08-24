@@ -244,12 +244,21 @@ export function HomeTab({
           lb != null && lb > 0 && sb != null
             ? Math.round((sb / (lb + sb)) * 1000 * 10) / 10
             : undefined;
+        // MMR at sub-county scope (multi-facility roster): the KHIS ratio
+        // indicator summed across facilities is garbage — compute it from raw
+        // counts instead (same method as partner scope), so the card shows a
+        // real partner-only value rather than blank.
+        const mmrLive = isMultiOu
+          ? lb != null && lb > 0 && md != null && md > 0
+            ? Math.round((md / lb) * 100000 * 10) / 10
+            : undefined
+          : r1(ind("mmr"));
         map[name] = {
           anc: anc != null ? Math.round(anc * 10) / 10 : undefined,
           sba: r1(ind("sba_pct_live")),
           pncM: r1(ind("pnc_48h_mother")),
           pncI: r1(ind("pnc_48h_infant")),
-          mmr: r1(ind("mmr")),
+          mmr: mmrLive,
           nmr,
           sbr,
           lb: lb ?? undefined,
@@ -1002,7 +1011,7 @@ export function HomeTab({
               note={`live from KHIS ${peLabel} where reported · targets EWENE 2026–2028`}
               detail={{
                 formula:
-                  "MMR = maternal deaths ÷ live births × 100,000 (KHIS indicator; at multi-county scope summed counts so it matches KHIS Total) · NMR = neonatal deaths ÷ live births × 1,000 · SBR = stillbirths ÷ (live births + stillbirths) × 1,000",
+                  "MMR = maternal deaths ÷ live births × 100,000 (KHIS indicator at county/facility scope; at partner & sub-county scope computed from summed counts so it matches KHIS Total) · NMR = neonatal deaths ÷ live births × 1,000 · SBR = stillbirths ÷ (live births + stillbirths) × 1,000",
                 inputs: pillarScopeLabels.flatMap<ViewInput>((c) => {
                   const r = pillarByCounty?.[c];
                   if (!r)
