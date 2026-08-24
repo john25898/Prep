@@ -148,18 +148,20 @@ function resolveSubCountyName(value?: string): string {
 }
 
 /**
- * Facilities for a partner's roster, each with its COUNTY NAME and
- * SUB-COUNTY NAME resolved from the KHIS parent org-units
+ * Facilities for a partner's roster, each with its COUNTY NAME,
+ * SUB-COUNTY NAME and WARD resolved from the KHIS parent org-units
  * (ou-county-map.json / ou-subcounty-map.json). Used by filter dropdowns so
  * the Facility select lists the partner's real facilities and cascades with
  * the County select. Roster entries whose `county`/`subCounty` fields are
  * already names (e.g. the original Jamii Tekelezi roster) are used as-is.
+ * `wardName` is a UI-only filter — it never affects KHIS queries.
  */
 export function partnerFacilities(
   partnerId: string,
   countyName?: string,
   subCountyName?: string,
-): { name: string; county: string; subCounty: string }[] {
+  wardName?: string,
+): { name: string; county: string; subCounty: string; ward: string }[] {
   const roster = PARTNER_FACILITIES[partnerId] ?? [];
   return roster
     .map((f) => ({
@@ -169,15 +171,33 @@ export function partnerFacilities(
           ? (OU_COUNTY_MAP[f.county] ?? "")
           : (f.county ?? ""),
       subCounty: resolveSubCountyName(f.subCounty),
+      // Some extracted rosters copy the facility UID into the ward column
+      // (an extraction artifact) — keep only real ward names.
+      ward: f.ward && /^[A-Za-z0-9]{11}$/.test(f.ward) ? "" : (f.ward ?? ""),
     }))
     .filter((f) => !countyName || f.county === countyName)
-    .filter((f) => !subCountyName || f.subCounty === subCountyName);
+    .filter((f) => !subCountyName || f.subCounty === subCountyName)
+    .filter((f) => !wardName || f.ward === wardName);
 }
 
 /**
- * Unique sub-county names present in a partner's roster, optionally scoped to
- * one county. Used by the Sub-County filter dropdown (roster-driven).
+ * Unique ward names present in a partner's roster, optionally scoped to one
+ * county/sub-county. Used by the Ward filter dropdown — a UI-only helper so
+ * the user knows exactly which facilities to tick in KHIS; it never affects
+ * data queries. Rosters whose ward column holds facility UIDs (extraction
+ * artifact) yield no options.
  */
+export function partnerWards(
+  partnerId: string,
+  countyName?: string,
+  subCountyName?: string,
+): string[] {
+  const seen = new Set<string>();
+  for (const f of partnerFacilities(partnerId, countyName, subCountyName)) {
+    if (f.ward) seen.add(f.ward);
+  }
+  return Array.from(seen).sort((a, b) => a.localeCompare(b));
+}
 export function partnerSubCounties(
   partnerId: string,
   countyName?: string,

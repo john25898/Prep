@@ -17,6 +17,7 @@ import {
   hasFacilityRoster,
   partnerFacilities,
   partnerSubCounties,
+  partnerWards,
 } from "@/lib/partners";
 
 const selectClass =
@@ -49,6 +50,19 @@ export function GeoFilterBar() {
     return [];
   }, [filter.partner, filter.county]);
 
+  // UI-only: narrows the Facility dropdown so the user knows exactly which
+  // facilities to tick in KHIS. Never sent to /api/khis.
+  const wards = useMemo(() => {
+    if (hasFacilityRoster(filter.partner)) {
+      return partnerWards(
+        filter.partner,
+        filter.county || undefined,
+        filter.subCounty || undefined,
+      );
+    }
+    return [];
+  }, [filter.partner, filter.county, filter.subCounty]);
+
   const facilities = useMemo(() => {
     // Partners with a facility roster (Excel) list their REAL facilities;
     // partners without one fall back to facilities from entered assessments.
@@ -58,6 +72,7 @@ export function GeoFilterBar() {
         filter.partner,
         filter.county || undefined,
         filter.subCounty || undefined,
+        filter.ward || undefined,
       )
         .filter((f) => {
           const key = f.name.trim().toLowerCase();
@@ -70,10 +85,14 @@ export function GeoFilterBar() {
           mfl: "—",
           county: f.county,
           subCounty: f.subCounty,
+          ward: f.ward,
         }))
         .sort((a, b) => a.name.localeCompare(b.name));
     }
-    return facilityOptions(assessments, filter);
+    return facilityOptions(assessments, filter).map((f) => ({
+      ...f,
+      ward: "",
+    }));
   }, [assessments, filter]);
 
   const inScope = useMemo(
@@ -102,6 +121,7 @@ export function GeoFilterBar() {
               partner: e.target.value,
               county: "",
               subCounty: "",
+              ward: "",
               facility: "",
             })
           }
@@ -125,6 +145,7 @@ export function GeoFilterBar() {
             setFilter({
               county: e.target.value,
               subCounty: "",
+              ward: "",
               facility: "",
             })
           }
@@ -148,6 +169,7 @@ export function GeoFilterBar() {
           onChange={(e) =>
             setFilter({
               subCounty: e.target.value,
+              ward: "",
               facility: "",
             })
           }
@@ -162,6 +184,30 @@ export function GeoFilterBar() {
             </option>
           ))}
         </select>
+      </div>
+
+      <div className="w-52">
+        <label className="block text-xs font-medium text-gray-500 mb-1">
+          Ward
+        </label>
+        <select
+          className={selectClass}
+          value={filter.ward}
+          onChange={(e) => setFilter({ ward: e.target.value, facility: "" })}
+          disabled={wards.length === 0}
+        >
+          <option value="">
+            {wards.length === 0 ? "All Wards" : "All Wards"}
+          </option>
+          {wards.map((w) => (
+            <option key={w} value={w}>
+              {w}
+            </option>
+          ))}
+        </select>
+        <p className="mt-0.5 text-[10px] text-gray-400">
+          UI only — for picking KHIS facilities, not a data filter
+        </p>
       </div>
 
       <div className="w-56">
@@ -182,6 +228,7 @@ export function GeoFilterBar() {
           {facilities.map((f) => (
             <option key={f.name} value={f.name}>
               {f.name}
+              {f.ward ? ` — ${f.ward}` : ""}
               {f.mfl !== "—" ? ` (${f.mfl})` : ""}
             </option>
           ))}

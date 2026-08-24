@@ -107,6 +107,12 @@ export interface GeoFilter {
   county: string;
   /** "" = all sub-counties in the county (roster-driven). */
   subCounty: string;
+  /**
+   * "" = all wards in the county/sub-county (roster-driven).
+   * UI-ONLY: narrows the Facility dropdown so the user knows exactly which
+   * facilities to tick in KHIS. Never sent to /api/khis.
+   */
+  ward: string;
   /** "" = all facilities in the county/sub-county. */
   facility: string;
   /** "month" = a single reporting month, "range" = a multi-month range. */
@@ -123,6 +129,7 @@ export const DEFAULT_GEO_FILTER: GeoFilter = {
   partner: "jamii-tekelezi",
   county: "",
   subCounty: "",
+  ward: "",
   facility: "",
   // Default period = May 2025 (the reporting month every chart was pinned to).
   periodMode: "month",
