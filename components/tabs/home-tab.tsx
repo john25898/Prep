@@ -151,6 +151,7 @@ export function HomeTab({
       lb?: number;
       nd?: number;
       sb?: number;
+      md?: number;
     }
   > | null>(null);
 
@@ -168,7 +169,7 @@ export function HomeTab({
                 )}&partner=${encodeURIComponent(filter.partner)}`
               : `facility=${s.uid}`;
         return fetch(
-          `/api/khis?${q}&pe=${pe}&indicators=pmtct_anc1_visits,anc4_visits,anc1_4_dropout,sba_pct_live,pnc_48h_mother,pnc_48h_infant,mmr,moh711_live_births,neonatal_deaths,stillbirths`,
+          `/api/khis?${q}&pe=${pe}&indicators=pmtct_anc1_visits,anc4_visits,anc1_4_dropout,sba_pct_live,pnc_48h_mother,pnc_48h_infant,mmr,maternal_deaths_reported,moh711_live_births,neonatal_deaths,stillbirths`,
         )
           .then((r) => (r.ok ? r.json() : null))
           .catch(() => null);
@@ -188,6 +189,7 @@ export function HomeTab({
           lb?: number;
           nd?: number;
           sb?: number;
+          md?: number;
         }
       > = {};
       results.forEach((res, i) => {
@@ -228,9 +230,12 @@ export function HomeTab({
         }
         // NMR = neonatal deaths ÷ live births × 1,000.
         // SBR = stillbirths ÷ (live births + stillbirths) × 1,000.
+        // MMR = maternal deaths ÷ live births × 100,000 (count-based, so
+        // multi-county scopes match KHIS's aggregated Total).
         const lb = ind("moh711_live_births");
         const nd = ind("neonatal_deaths");
         const sb = ind("stillbirths");
+        const md = ind("maternal_deaths_reported");
         const nmr =
           lb != null && lb > 0 && nd != null
             ? Math.round((nd / lb) * 1000 * 10) / 10
@@ -250,6 +255,7 @@ export function HomeTab({
           lb: lb ?? undefined,
           nd: nd ?? undefined,
           sb: sb ?? undefined,
+          md: md ?? undefined,
         };
       });
       if (!cancelled) setPillarByCounty(map);
@@ -284,7 +290,7 @@ export function HomeTab({
     };
     // Rates from summed counts across the reported counties — statistically
     // more honest than averaging the per-county ratios.
-    const sum = (key: "lb" | "nd" | "sb") =>
+    const sum = (key: "lb" | "nd" | "sb" | "md") =>
       rows
         .map((r) => r[key])
         .filter((v): v is number => v != null)
@@ -292,18 +298,26 @@ export function HomeTab({
     const lb = sum("lb");
     const nd = sum("nd");
     const sb = sum("sb");
+    const md = sum("md");
     const nmr =
       lb > 0 && nd > 0 ? Math.round((nd / lb) * 1000 * 10) / 10 : undefined;
     const sbr =
       lb > 0 && sb > 0
         ? Math.round((sb / (lb + sb)) * 1000 * 10) / 10
         : undefined;
+    // MMR at multi-county scope: maternal deaths ÷ live births × 100,000
+    // (summed counts) so the partner view matches KHIS's aggregated Total.
+    // Single-county / facility scope keeps the KHIS indicator (exact there).
+    const mmr =
+      rows.length > 1 && lb > 0 && md > 0
+        ? Math.round((md / lb) * 100000 * 10) / 10
+        : avg("mmr");
     const res = {
       anc: avg("anc"),
       sba: avg("sba"),
       pncM: avg("pncM"),
       pncI: avg("pncI"),
-      mmr: avg("mmr"),
+      mmr,
       nmr,
       sbr,
     };
@@ -978,7 +992,7 @@ export function HomeTab({
               note={`live from KHIS ${peLabel} where reported · targets EWENE 2026–2028`}
               detail={{
                 formula:
-                  "MMR = maternal deaths ÷ live births × 100,000 (KHIS indicator) · NMR = neonatal deaths ÷ live births × 1,000 · SBR = stillbirths ÷ (live births + stillbirths) × 1,000",
+                  "MMR = maternal deaths ÷ live births × 100,000 (KHIS indicator; at multi-county scope summed counts so it matches KHIS Total) · NMR = neonatal deaths ÷ live births × 1,000 · SBR = stillbirths ÷ (live births + stillbirths) × 1,000",
                 inputs: pillarScopeLabels.flatMap<ViewInput>((c) => {
                   const r = pillarByCounty?.[c];
                   if (!r)
