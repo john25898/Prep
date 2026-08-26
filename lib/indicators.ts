@@ -376,6 +376,22 @@ export const KHIS_INDICATORS: KhisIndicator[] = [
     domain: "2",
   },
   {
+    id: "pmtct_anc1_tested",
+    label: "1st ANC HIV Tested (MOH 711 ANC)",
+    dx: "geC2CBzyQme",
+    isIndicator: false,
+    khisName: "1st ANC tested",
+    domain: "1",
+  },
+  {
+    id: "anc8_visits",
+    label: "Pregnant women completing 8 ANC visits (TGF)",
+    dx: "l1YsxImndzW",
+    isIndicator: false,
+    khisName: "TGF_ANC_Completing_ANC8",
+    domain: "2",
+  },
+  {
     id: "sba_pct_live",
     label: "Deliveries by Skilled Birth Attendants (%, RRI 2026)",
     dx: "sAWX6GB722p",

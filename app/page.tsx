@@ -10,6 +10,8 @@ import {
   Grip,
   Wand2,
   Trash2,
+  Syringe,
+  Baby,
 } from "lucide-react";
 import type { ChartInsight } from "@/components/ai-assistant";
 import { HomeTab } from "@/components/tabs/home-tab";
@@ -17,6 +19,8 @@ import { DomainsTab } from "@/components/tabs/domains-tab";
 import { ShaTab } from "@/components/tabs/sha-tab";
 import { PrepTab } from "@/components/tabs/prep-tab";
 import { AssessmentDialog } from "@/components/assessment-dialog";
+import { VtpEidHeiDialog } from "@/components/vtp-eid-hei-dialog";
+import { HeiOutcomeDialog } from "@/components/hei-outcome-dialog";
 import { GeoFilterBar } from "@/components/geo-filter-bar";
 import { GeoFilterProvider } from "@/lib/geo-filter-context";
 
@@ -104,6 +108,8 @@ export default function Dashboard() {
   const [savedCharts, setSavedCharts] = useState<ChartInsight[]>([]);
   const [showGripMenu, setShowGripMenu] = useState(false);
   const [showAssessmentDialog, setShowAssessmentDialog] = useState(false);
+  const [showVtpEidHeiDialog, setShowVtpEidHeiDialog] = useState(false);
+  const [showHeiOutcomeDialog, setShowHeiOutcomeDialog] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const toastTimer = useRef<number | null>(null);
 
@@ -183,7 +189,7 @@ export default function Dashboard() {
               </button>
 
               {showGripMenu && (
-                <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-slate-200 p-4 z-50">
+                <div className="absolute right-0 mt-2 w-72 bg-white rounded-lg shadow-lg border border-slate-200 p-4 z-50 space-y-2">
                   <button
                     onClick={() => {
                       setShowAssessmentDialog(true);
@@ -193,6 +199,26 @@ export default function Dashboard() {
                   >
                     <CheckSquare className="w-5 h-5 text-emerald-600" />
                     Facility Assessment Entry
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowVtpEidHeiDialog(true);
+                      setShowGripMenu(false);
+                    }}
+                    className="w-full flex items-center gap-3 px-4 py-3 hover:bg-slate-100 rounded-lg transition-colors font-medium text-gray-900 border border-rose-300 bg-rose-50/40"
+                  >
+                    <Syringe className="w-5 h-5 text-rose-600" />
+                    VTP Monthly Entry — EID / HEI
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowHeiOutcomeDialog(true);
+                      setShowGripMenu(false);
+                    }}
+                    className="w-full flex items-center gap-3 px-4 py-3 hover:bg-slate-100 rounded-lg transition-colors font-medium text-gray-900 border border-violet-300 bg-violet-50/40"
+                  >
+                    <Baby className="w-5 h-5 text-violet-600" />
+                    HEI 18–24 Outcome Entry (HCA)
                   </button>
                 </div>
               )}
@@ -234,6 +260,12 @@ export default function Dashboard() {
         {/* Assessment Dialog Modal */}
         {showAssessmentDialog && (
           <AssessmentDialog onClose={() => setShowAssessmentDialog(false)} />
+        )}
+        {showVtpEidHeiDialog && (
+          <VtpEidHeiDialog onClose={() => setShowVtpEidHeiDialog(false)} />
+        )}
+        {showHeiOutcomeDialog && (
+          <HeiOutcomeDialog onClose={() => setShowHeiOutcomeDialog(false)} />
         )}
 
         {/* Content */}

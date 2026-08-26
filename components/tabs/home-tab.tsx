@@ -34,6 +34,10 @@ import {
 import { useAssessments } from "@/lib/use-assessments";
 import { useKhis } from "@/lib/use-khis";
 import { useGeoFilter } from "@/lib/geo-filter-context";
+import { useVtpEidHeiEntries } from "@/lib/use-vtp-entries";
+import { useHeiOutcomes } from "@/lib/use-hei-outcomes";
+import { aggregateVtpEntries } from "@/lib/vtp-entry";
+import { aggregateHeiOutcomes } from "@/lib/hei-outcome";
 import { AIAssistant, type ChartInsight } from "@/components/ai-assistant";
 import { PARTNERS, getPartner, type Partner } from "@/lib/geo";
 import {
@@ -67,6 +71,8 @@ export function HomeTab({
   onSaveToPlayground?: (chart: ChartInsight) => void;
 }) {
   const allAssessments = useAssessments();
+  const vtpEntries = useVtpEidHeiEntries();
+  const heiOutcomes = useHeiOutcomes();
   const { filter, pe, peLabel } = useGeoFilter();
   const [activeChart, setActiveChart] = useState<ChartInsight | null>(null);
 
@@ -651,39 +657,54 @@ export function HomeTab({
   };
 
   // -----------------------------------------------------------------------
-  // Real KHIS VTP QoC values per county. Each of the 9 VTP bars maps to a
-  // ratio KHIS can report per county; bars whose numerator/denominator were
-  // not reported that month stay null and fall back to the baseline scaling
-  // in vtpByPartner. Fetched once per scope (counties shown in the current
-  // filter), matching the pillar fetch pattern.
+  // Real KHIS VTP QoC values per county. Bars 4 (EID Coverage) and 5
+  // (PCR POS ART initiated) are now driven by the VTP Monthly Entry form,
+  // not KHIS — those slots stay null here and get injected in vtpByPartner.
+  // Bar 7 (HEI 18–24m) uses the HCA outcome form when available, falling
+  // back to KHIS neg18/cohort. Fetched once per scope (counties shown in
+  // the current filter), matching the pillar fetch pattern.
   // -----------------------------------------------------------------------
   const VTP_KHIS_DX = [
-    "pmtct_anc1_visits", // bar 1 den (ANC cov via anc4/anc1) & bar 2 den
+    "pmtct_anc1_visits", // bar 1 den (ATT% = anc4/anc1) & bar 2 den
     "pmtct_initial_test", // bar 2 num — testing for PBFW
-    "pmtct_need", // bar 3 den & bar 7 den
+    "pmtct_need", // bar 3 den & bar 6 den
     "pmtct_art", // bar 3 num — on ART for HIV+ PBFW
-    "anc4_visits", // bar 1 num (fallback)
-    "anc1_4_dropout", // bar 1 direct (100 − dropout)
-    "vl_lt_1000", // bar 4 num — VL < 1000
-    "vl_result", // bar 4 den — VL results
-    "hei_eid_pct", // bar 5 direct % — EID ≤ 8wk
-    "hei_pcr_pos_6_8wks", // bar 6 den — PCR+ HEI
-    "hei_art_linkage", // bar 6 num — linked to CCC
-    "hiv_deliveries", // bar 7 num — deliveries HIV+ mothers
-    "hei_negative_18m", // bar 8 num — AB negative 18m
-    "hei_cohort_24m", // bar 8 den — net cohort 24m
-    "retention_rate", // bar 9 direct % — retention mother–baby pair
+    "anc4_visits", // bar 1 num — 4th ANC attended (ATT% numerator)
+    "hei_eid_pct", // HEI facility panel — EID ≤ 8wk reporting
+    "hei_pcr_pos_6_8wks", // HEI facility panel — PCR+ HEI
+    "hei_art_linkage", // HEI facility panel — linked to CCC
+    "hiv_deliveries", // bar 6 num — deliveries HIV+ mothers
+    "hei_negative_18m", // bar 7 fallback num — AB negative 18m
+    "hei_cohort_24m", // bar 7 fallback den — net cohort 24m
+    "retention_rate", // bar 8 direct % — retention mother–baby pair
     "maternal_deaths_reported", // Safe bar 5 — MPDSR audits
     "maternal_deaths_audited", // Safe bar 5 — MPDSR audits
     "neonatal_deaths", // Safe bar 5 — MPDSR audits
     "neonatal_deaths_audited", // Safe bar 5 — MPDSR audits
     "pnc_48h_mother", // domain d2 — PNC within 48h (county %)
+    "pmtct_anc1_tested", // ANC chart — 1st ANC tested (KHIS fallback)
+    "anc8_visits", // ANC chart — 8th ANC attended (KHIS fallback)
   ].join(",");
 
   const [vtpLiveByCounty, setVtpLiveByCounty] = useState<Record<
     string,
     (number | null)[]
   > | null>(null);
+
+  // KHIS fallback for the ANC testing chart: 1st ANC tested, 1st/4th/8th
+  // ANC attended. 4th/8th ANC TESTED have no KHIS elements (only the entry
+  // form captures those), so they ride the form only.
+  const [ancKhisByCounty, setAncKhisByCounty] = useState<
+    Record<
+      string,
+      {
+        anc1Tested: number | null;
+        anc1Att: number | null;
+        anc4Att: number | null;
+        anc8Att: number | null;
+      }
+    >
+  >({});
 
   // Per county: which roster facilities reported HEI/EID data for the
   // selected month, with their per-indicator values. Rides the same VTP
@@ -725,6 +746,15 @@ export function HomeTab({
       if (cancelled) return;
       const map: Record<string, (number | null)[]> = {};
       const domMap: Record<string, LiveDomainScores> = {};
+      const ancMap: Record<
+        string,
+        {
+          anc1Tested: number | null;
+          anc1Att: number | null;
+          anc4Att: number | null;
+          anc8Att: number | null;
+        }
+      > = {};
       const heiMap: Record<
         string,
         { name: string; values: Record<string, number> }[]
@@ -743,16 +773,13 @@ export function HomeTab({
         };
         // Roster scope sums per-facility indicator values → % elements are
         // garbage (only raw counts are summed). Bars whose numerator/
-        // denominator are counts (1,2,4,6,7,8,10) stay live.
+        // denominator are counts (1,2,6,8 + safe) stay live.
         const roster = hasFacilityRoster(pid);
         const anc1 = ind("pmtct_anc1_visits");
         const tested = ind("pmtct_initial_test");
         const need = ind("pmtct_need");
         const art = ind("pmtct_art");
-        const dropout = ind("anc1_4_dropout");
         const anc4 = ind("anc4_visits");
-        const vlLt = ind("vl_lt_1000");
-        const vlRes = ind("vl_result");
         const eidPct = ind("hei_eid_pct");
         const pcrPos = ind("hei_pcr_pos_6_8wks");
         const link = ind("hei_art_linkage");
@@ -796,36 +823,26 @@ export function HomeTab({
           dm.d4 = d4Parts.reduce((a, b) => a + b, 0) / d4Parts.length;
         domMap[county] = dm;
         map[county] = [
-          // bar 1 ANC coverage — count-based (anc4/anc1) at roster scope
-          roster
-            ? pct(anc4, anc1)
-            : dropout != null
-              ? Math.max(
-                  0,
-                  Math.min(100, Math.round((100 - dropout) * 10) / 10),
-                )
-              : pct(anc4, anc1),
+          // bar 1 ATT% — 4th ANC attended ÷ 1st ANC attended (count-based,
+          // always live; replaces the old KHIS %-based ANC coverage)
+          pct(anc4, anc1),
           pct(tested, anc1), // bar 2 Testing for PBFW
           roster ? null : pct(art, need), // bar 3 ART initiation for PBFW
-          pct(vlLt, vlRes), // bar 4 VL suppression
-          roster
-            ? null
-            : eidPct != null
-              ? Math.max(0, Math.min(100, Math.round(eidPct * 10) / 10))
-              : null, // bar 5 EID ≤ 8wk
-          pct(link, pcrPos), // bar 6 Timely ART for PCR+ infants
-          pct(hivDel, need), // bar 7 Delivery among HIV+ mothers
-          pct(neg18, cohort), // bar 8 HEI final outcome 18–24m
+          null, // bar 4 EID Coverage — injected from VTP Monthly Entry form
+          null, // bar 5 PCR POS ART initiated — injected from VTP entry form
+          pct(hivDel, need), // bar 6 Delivery among HIV+ mothers
+          pct(neg18, cohort), // bar 7 HEI final outcome 18–24m (KHIS fallback)
           roster
             ? null
             : retention != null
               ? Math.max(0, Math.min(100, Math.round(retention * 10) / 10))
-              : null, // bar 9 Retention mother–baby pair
+              : null, // bar 8 Retention mother–baby pair
           audited, // Safe bar 5 — MPDSR audit coverage
         ];
-        // Which facilities reported HEI/EID data this month — for bars
-        // 5 (EID), 6 (PCR+ ART), 8 (HEI 18–24m). Values are keyed by dx on
-        // the wire; map to indicator ids so the UI can use friendly labels.
+        // Which facilities reported HEI/EID data this month — for the HEI
+        // reporting panel (bars 4 EID, 5 PCR+ ART, 7 HEI 18–24m). Values are
+        // keyed by dx on the wire; map to indicator ids so the UI can use
+        // friendly labels.
         const HEI_DX = new Set([
           "hkhajO6SfQO", // hei_eid_pct
           "tYL0A1JspLB", // hei_pcr_pos_6_8wks
@@ -856,11 +873,19 @@ export function HomeTab({
             (f: { name: string; values: Record<string, number> }) =>
               Object.keys(f.values).length > 0,
           );
+        // KHIS fallback values for the ANC testing chart.
+        ancMap[county] = {
+          anc1Tested: ind("pmtct_anc1_tested"),
+          anc1Att: anc1,
+          anc4Att: anc4,
+          anc8Att: ind("anc8_visits"),
+        };
       }
       if (!cancelled) {
         setVtpLiveByCounty(map);
         setCountyDomains(domMap);
         setHeiFacilitiesByCounty(heiMap);
+        setAncKhisByCounty(ancMap);
       }
     });
     return () => {
@@ -871,8 +896,39 @@ export function HomeTab({
   // §5.3 — VTP QoC per partner, each indicator compared across the CURRENT
   // filter scope (counties / one county / sub-county facilities / facility).
   // Every bar is either a real KHIS value for that county in the selected
-  // month (colored, with the ● badge) or a blank "not reported" bar — no
+  // month (colored, with the ● badge), a value computed from the VTP Monthly
+  // Entry / HCA outcome forms (★ badge), or a blank "not reported" bar — no
   // baseline constants are shown anywhere.
+
+  // VTP Monthly Entry aggregates per county — bars 4 (EID Coverage) and
+  // 5 (PCR POS ART initiated) are computed from the entry form, never KHIS.
+  const vtpEntryAggByCounty = useMemo(() => {
+    const acc: Record<string, ReturnType<typeof aggregateVtpEntries>> = {};
+    for (const e of vtpEntries) {
+      if (!acc[e.county]) acc[e.county] = aggregateVtpEntries([]);
+      const a = acc[e.county];
+      const agg = aggregateVtpEntries([e]);
+      a.eidSamples02 += agg.eidSamples02;
+      a.eidSamples312 += agg.eidSamples312;
+      a.pcrPos += agg.pcrPos;
+      a.artInit += agg.artInit;
+    }
+    return acc;
+  }, [vtpEntries]);
+
+  // HCA outcome aggregates per county — bar 7 (HEI final outcome 18–24m)
+  // prefers the entry form (AB negative ÷ net cohort), KHIS as fallback.
+  const heiOutcomeByCounty = useMemo(() => {
+    const acc: Record<string, { neg: number; netCohort: number }> = {};
+    for (const county of new Set(heiOutcomes.map((e) => e.county))) {
+      const a = aggregateHeiOutcomes(
+        heiOutcomes.filter((e) => e.county === county),
+      );
+      if (a.netCohort > 0) acc[county] = a;
+    }
+    return acc;
+  }, [heiOutcomes]);
+
   const vtpByPartner = useMemo(
     () =>
       scoreScope.map(({ partner: p, units }) => {
@@ -890,7 +946,39 @@ export function HomeTab({
               const real = vtpLiveByCounty?.[county]?.[idx];
               // No real KHIS value for this county + indicator + period →
               // blank "not reported" bar (never a fake baseline).
-              if (pending || real == null) {
+              if (pending) {
+                return { county: unit, value: 0, notReported: true };
+              }
+              // Bars 4 & 5 come from the VTP Monthly Entry form (★ badge) —
+              // EID Coverage = 0–2m samples ÷ total; PCR POS ART initiated =
+              // ART ÷ PCR+. Falls back to a blank bar when no entries exist.
+              if (idx === 3 || idx === 4) {
+                const agg = vtpEntryAggByCounty[county];
+                if (!agg) return { county: unit, value: 0, notReported: true };
+                const total = agg.eidSamples02 + agg.eidSamples312;
+                const value =
+                  idx === 3
+                    ? total > 0
+                      ? Math.round((agg.eidSamples02 / total) * 1000) / 10
+                      : null
+                    : agg.pcrPos > 0
+                      ? Math.round((agg.artInit / agg.pcrPos) * 1000) / 10
+                      : null;
+                if (value == null) {
+                  return { county: unit, value: 0, notReported: true };
+                }
+                return { county: unit, value, live: true, entered: true };
+              }
+              // Bar 7 (HEI 18–24m) prefers the HCA outcome form; KHIS
+              // neg18/cohort is the fallback when no outcomes were entered.
+              if (idx === 6) {
+                const h = heiOutcomeByCounty[county];
+                if (h && h.netCohort > 0) {
+                  const value = Math.round((h.neg / h.netCohort) * 1000) / 10;
+                  return { county: unit, value, live: true, entered: true };
+                }
+              }
+              if (real == null) {
                 return { county: unit, value: 0, notReported: true };
               }
               // Real KHIS value — jittered per facility at sub-county scope
@@ -912,7 +1000,57 @@ export function HomeTab({
           })),
         };
       }),
-    [scoreScope, filter.subCounty, vtpLiveByCounty],
+    [
+      scoreScope,
+      filter.subCounty,
+      vtpLiveByCounty,
+      vtpEntryAggByCounty,
+      heiOutcomeByCounty,
+    ],
+  );
+
+  // ANC testing coverage per partner — (Total X ANC tested) ÷ (Total X ANC
+  // attended) for each of the three visits (1st, 4th, 8th). Data comes from
+  // KHIS only (never the entry form): 1st ANC has both tested & attended
+  // elements; 4th/8th have attended only (no KHIS element for 4th/8th ANC
+  // TESTED), so those rows show not reported until KHIS provides the counts.
+  const ancTestingByPartner = useMemo(
+    () =>
+      scoreScope.map(({ partner: p, units }) => ({
+        partner: p,
+        units,
+        rows: [
+          { key: "1st ANC", idx: "anc1" as const },
+          { key: "4th ANC", idx: "anc4" as const },
+          { key: "8th ANC", idx: "anc8" as const },
+        ].map((visit) => ({
+          label: visit.key,
+          full: `ANC HIV testing — ${visit.key} (tested ÷ attended)`,
+          target: 95,
+          values: units.map((unit) => {
+            const county = vtpUnitCounty(p, unit);
+            const k = ancKhisByCounty[county];
+            const attended =
+              visit.idx === "anc1"
+                ? (k?.anc1Att ?? null)
+                : visit.idx === "anc4"
+                  ? (k?.anc4Att ?? null)
+                  : (k?.anc8Att ?? null);
+            const tested =
+              visit.idx === "anc1" ? (k?.anc1Tested ?? null) : null; // 4th/8th ANC tested have no KHIS element
+            if (attended == null || tested == null || attended <= 0) {
+              return { county: unit, value: 0, notReported: true };
+            }
+            const value =
+              Math.max(
+                0,
+                Math.min(100, Math.round((tested / attended) * 1000)),
+              ) / 10;
+            return { county: unit, value, live: true };
+          }),
+        })),
+      })),
+    [scoreScope, ancKhisByCounty],
   );
 
   // §5.4 — Safe systems per partner, each enabler compared across the CURRENT
@@ -937,7 +1075,7 @@ export function HomeTab({
               // deaths and audits are reported; the other four enablers have
               // no monthly KHIS source (LMIS/HFA-QOC/assessments) and keep
               // the baseline scaled by the readiness ratio.
-              const realAudited = vtpLiveByCounty?.[county]?.[9];
+              const realAudited = vtpLiveByCounty?.[county]?.[8];
               let value: number;
               let live = false;
               if (pending) {
@@ -1426,11 +1564,13 @@ export function HomeTab({
               VTP Quality-of-Care Scoreboard
             </h3>
             <p className="text-sm text-gray-500 mt-0.5">
-              The nine core PMTCT indicators per partner — each indicator
+              The eight core PMTCT indicators per partner — each indicator
               compared across the partner's supported counties (§5.3). Real KHIS
-              values where reported for the selected month; blank bars (n/r) are
-              indicators not reported on KHIS for these counties — nothing is
-              shown rather than a fake baseline.
+              values where reported for the selected month; EID Coverage and PCR
+              POS ART initiated come from the VTP Monthly Entry form (★), HEI
+              18–24m from the HCA outcome form (★) with a KHIS fallback; blank
+              bars (n/r) are indicators not reported — nothing is shown rather
+              than a fake baseline.
             </p>
           </div>
           <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-slate-100 text-slate-600 border border-slate-200">
@@ -1452,12 +1592,12 @@ export function HomeTab({
                   pending
                     ? "facility list not yet loaded — VTP scores default to 0"
                     : filter.facility
-                      ? `${filter.facility} · 9 VTP indicators vs ≥95% target`
+                      ? `${filter.facility} · 8 VTP indicators vs ≥95% target`
                       : filter.subCounty
-                        ? `${filter.subCounty} · ${rows[0]?.values.length ?? 0} facilities · 9 VTP indicators vs ≥95% target`
+                        ? `${filter.subCounty} · ${rows[0]?.values.length ?? 0} facilities · 8 VTP indicators vs ≥95% target`
                         : filter.county
-                          ? `${filter.county} County · 9 VTP indicators vs ≥95% target`
-                          : `${partner.counties.length} counties · 9 VTP indicators vs ≥95% target`
+                          ? `${filter.county} County · 8 VTP indicators vs ≥95% target`
+                          : `${partner.counties.length} counties · 8 VTP indicators vs ≥95% target`
                 }
                 rows={rows}
                 counties={units}
@@ -1465,7 +1605,7 @@ export function HomeTab({
               {/* HEI/EID reporting facilities — which roster facilities
                   submitted EID / PCR+ / linkage / 18m outcome / 24m cohort
                   data for the selected month. Tick exactly these in KHIS to
-                  validate bars 5 · 6 · 8. */}
+                  validate bars 4 · 5 · 7. */}
               {(() => {
                 const counties = Array.from(
                   new Set(units.map((u) => vtpUnitCounty(partner, u))),
@@ -1493,7 +1633,7 @@ export function HomeTab({
                     <summary className="cursor-pointer text-xs font-semibold text-rose-700 flex items-center gap-2">
                       <Stethoscope className="w-3.5 h-3.5" />
                       HEI/EID reporting facilities — tick these in KHIS for bars
-                      5 · 6 · 8
+                      4 · 5 · 7
                     </summary>
                     <div className="mt-2.5 space-y-3">
                       {withData.map(({ county, facs }) => (
@@ -1533,6 +1673,22 @@ export function HomeTab({
                   </details>
                 );
               })()}
+              {/* ANC testing coverage — (Total X ANC tested) ÷ (Total X ANC
+                  attended) for each of 1st, 4th and 8th ANC. All values come
+                  from KHIS (never the entry form). */}
+              {ancTestingByPartner.find((a) => a.partner.id === partner.id)
+                ?.rows && (
+                <PartnerIndicatorChart
+                  title="ANC Testing Coverage — 1st · 4th · 8th visit"
+                  subtitle={`${partner.name} · tested ÷ attended per ANC visit — KHIS (●)`}
+                  rows={
+                    ancTestingByPartner.find(
+                      (a) => a.partner.id === partner.id,
+                    )!.rows
+                  }
+                  counties={units}
+                />
+              )}
             </div>
           ))}
         </div>

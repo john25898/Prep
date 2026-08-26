@@ -21,6 +21,7 @@ type IndicatorCountyRow = {
     county: string;
     value: number;
     live?: boolean;
+    entered?: boolean;
     notReported?: boolean;
   }[];
 };
@@ -124,7 +125,9 @@ export function PartnerIndicatorChart({
                   return ["Not reported on KHIS this period", String(name)];
                 }
                 return [
-                  `${Number(v).toFixed(1)}%${entry?.live ? " ● KHIS" : ""}`,
+                  `${Number(v).toFixed(1)}%${
+                    entry?.entered ? " ★ Entry" : entry?.live ? " ● KHIS" : ""
+                  }`,
                   String(name),
                 ];
               }}

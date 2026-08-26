@@ -248,13 +248,16 @@ export const PILLARS = [
   },
 ];
 
-// §5.3 — VTP Quality-of-Care scoreboard (nine core PMTCT indicators)
+// §5.3 — VTP Quality-of-Care scoreboard (eight core PMTCT indicators)
+// Bar 1 is ATT% (ANC attendance) = 4th ANC attended ÷ 1st ANC attendance.
+// Bars 4 (EID coverage) & 5 (ART among PCR+ infants) are computed from the
+// monthly VTP data-entry form (0–2m ÷ total samples; ART ÷ PCR+ results).
 export const VTP_QOC = [
   {
     no: 1,
-    label: "ANC coverage",
-    short: "ANC cov.",
-    code: "PMTCT_STAT_D",
+    label: "ANC attendance (ATT%) — 4th ANC attended ÷ 1st ANC attended",
+    short: "ATT%",
+    code: "ATT",
     source: "KHIS",
     target: 95,
     op: ">",
@@ -282,37 +285,26 @@ export const VTP_QOC = [
   },
   {
     no: 4,
-    label: "Viral load uptake & suppression",
-    short: "VL sup.",
-    code: "PMTCT_PVLS",
-    source: "NDW/EMR",
-    target: 95,
-    op: ">",
-    current: 94,
-    notReported: true,
-  },
-  {
-    no: 5,
-    label: "Early infant diagnosis ≤ 8 weeks",
-    short: "EID ≤8wk",
-    code: "PMTCT_EID",
-    source: "KHIS/NASCOP",
+    label: "EID coverage — 0–2m samples ÷ total (0–12m) samples",
+    short: "EID cov.",
+    code: "EID_COV",
+    source: "VTP entry form",
     target: 98,
     op: ">",
     current: 88,
   },
   {
-    no: 6,
-    label: "Timely ART for PCR+ infants",
+    no: 5,
+    label: "ART initiated among PCR+ infants — ART ÷ PCR+ results",
     short: "PCR+ ART",
     code: "PMTCT_HEI_ART",
-    source: "NASCOP/EMR",
+    source: "VTP entry form",
     target: 100,
     op: "=",
     current: 92.3,
   },
   {
-    no: 7,
+    no: 6,
     label: "Delivery among HIV+ mothers",
     short: "Delivery",
     code: "Deliveries",
@@ -323,18 +315,18 @@ export const VTP_QOC = [
     notReported: true,
   },
   {
-    no: 8,
+    no: 7,
     label: "HEI final outcome 18–24 months",
     short: "HEI 18–24m",
     code: "PMTCT_FO",
-    source: "EMR",
+    source: "HCA entry form",
     target: 95,
     op: ">",
     current: 96.6,
     notReported: true,
   },
   {
-    no: 9,
+    no: 8,
     label: "Retention of the mother–baby pair",
     short: "MBP ret.",
     code: "MBP retention",
