@@ -1020,12 +1020,12 @@ export function HomeTab({
         partner: p,
         units,
         rows: [
-          { key: "1st ANC", idx: "anc1" as const },
-          { key: "4th ANC", idx: "anc4" as const },
-          { key: "8th ANC", idx: "anc8" as const },
+          { key: "% 1 ANC testing", idx: "anc1" as const },
+          { key: "% 4th ANC testing", idx: "anc4" as const },
+          { key: "% 8th ANC testing", idx: "anc8" as const },
         ].map((visit) => ({
           label: visit.key,
-          full: `ANC HIV testing — ${visit.key} (tested ÷ attended)`,
+          full: `${visit.key} (tested ÷ attended)`,
           target: 95,
           values: units.map((unit) => {
             const county = vtpUnitCounty(p, unit);
@@ -1679,7 +1679,7 @@ export function HomeTab({
               {ancTestingByPartner.find((a) => a.partner.id === partner.id)
                 ?.rows && (
                 <PartnerIndicatorChart
-                  title="ANC Testing Coverage — 1st · 4th · 8th visit"
+                  title="ANC Testing Coverage — % 1 · 4 · 8 ANC tested"
                   subtitle={`${partner.name} · tested ÷ attended per ANC visit — KHIS (●)`}
                   rows={
                     ancTestingByPartner.find(
