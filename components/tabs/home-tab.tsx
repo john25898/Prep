@@ -48,6 +48,7 @@ import {
 import {
   ViewDataButton,
   type DataRow,
+  type ViewDetail,
   type ViewInput,
 } from "@/components/view-data";
 import { assessmentScore } from "@/lib/assessment";
@@ -582,302 +583,6 @@ export function HomeTab({
     [rows],
   );
 
-  // -----------------------------------------------------------------------
-  // View Data payloads for the 5 aggregate domain cards and the Partner ×
-  // Domain matrix: the individual tallies behind each average, per facility
-  // where KHIS returned them (pmtct_initial_test, pmtct_anc1_visits, …),
-  // otherwise per partner / per assessment. Nothing fabricated — values are
-  // the same ones feeding the scores on screen.
-  // -----------------------------------------------------------------------
-  const domainViewData = useMemo(() => {
-    const pct = (
-      num: number | null | undefined,
-      den: number | null | undefined,
-    ): number | null => {
-      if (num == null || den == null || den <= 0) return null;
-      return Math.round((num / den) * 1000) / 10;
-    };
-    const activePartners = rows.filter((r) => !r.pending);
-    const lv = (id: string) => liveByPartner[id] ?? {};
-
-    // d1 — PMTCT/VTP QoC: per-facility testing & ART tallies.
-    const d1Rows: DataRow[] = Object.entries(domainFacilitiesByCounty)
-      .sort(([a], [b]) => a.localeCompare(b))
-      .flatMap(([county, facs]) =>
-        [...facs]
-          .sort((a, b) => a.name.localeCompare(b.name))
-          .map((f) => {
-            const anc1 = f.values["pmtct_anc1_visits"] ?? null;
-            const tested = f.values["pmtct_initial_test"] ?? null;
-            const need = f.values["pmtct_need"] ?? null;
-            const art = f.values["pmtct_art"] ?? null;
-            return {
-              County: county,
-              Facility: f.name,
-              "1st ANC visits": anc1,
-              "Tested at 1st ANC": tested,
-              "Tested %": pct(tested, anc1),
-              "PMTCT need": need,
-              "On ART": art,
-              "ART %": pct(art, need),
-            };
-          }),
-      );
-    const d1Inputs: ViewInput[] = activePartners.flatMap((r) => {
-      const l = lv(r.partner.id);
-      const out: ViewInput[] = [];
-      if (l.testedPct != null)
-        out.push({
-          label: `${r.partner.name} — testing coverage (tested ÷ 1st ANC)`,
-          value: `${l.testedPct}%`,
-          source: "live",
-        });
-      if (l.artPct != null)
-        out.push({
-          label: `${r.partner.name} — ART initiation (ART ÷ need)`,
-          value: `${l.artPct}%`,
-          source: "live",
-        });
-      if (r.domains[0] != null)
-        out.push({
-          label: `${r.partner.name} — d1 score (average of the two)`,
-          value: `${r.domains[0].toFixed(1)}%`,
-          source: "live",
-        });
-      return out;
-    });
-
-    // d2 — Coverage: per-facility PNC within 48h (mother %).
-    const d2Rows: DataRow[] = Object.entries(domainFacilitiesByCounty)
-      .sort(([a], [b]) => a.localeCompare(b))
-      .flatMap(([county, facs]) =>
-        [...facs]
-          .sort((a, b) => a.name.localeCompare(b.name))
-          .map((f) => ({
-            County: county,
-            Facility: f.name,
-            "PNC within 48h — mother %": f.values["pnc_48h_mother"] ?? null,
-          })),
-      )
-      .filter((r) => r["PNC within 48h — mother %"] != null);
-    const d2Inputs: ViewInput[] = activePartners.flatMap((r) => {
-      const l = lv(r.partner.id);
-      const out: ViewInput[] = [];
-      if (l.d2 != null)
-        out.push({
-          label: `${r.partner.name} — d2 score (PNC 48h %)`,
-          value: `${l.d2.toFixed(1)}%`,
-          source: "live",
-        });
-      return out;
-    });
-
-    // d3 — Readiness: every entered assessment (score + scope).
-    const d3Rows: DataRow[] = [...allAssessments]
-      .sort(
-        (a, b) =>
-          a.county.localeCompare(b.county) ||
-          a.facilityName.localeCompare(b.facilityName),
-      )
-      .map((a) => {
-        const s = assessmentScore(a);
-        return {
-          County: a.county,
-          Facility: a.facilityName,
-          "Assessment date": a.date,
-          Type: a.assessmentType,
-          "Items answered": s.answered,
-          "Readiness %": Math.round(s.percentage * 10) / 10,
-        };
-      });
-    const d3Inputs: ViewInput[] = activePartners.flatMap((r) => {
-      const d3 = readinessByPartner[r.partner.id];
-      if (d3.avg == null) return [];
-      return [
-        {
-          label: `${r.partner.name} — readiness (${d3.count} assessment${d3.count === 1 ? "" : "s"})`,
-          value: `${d3.avg.toFixed(1)}%`,
-          source: "registry",
-        },
-      ];
-    });
-
-    // d4 — MPDSR: per-facility deaths reported & audited.
-    const d4Rows: DataRow[] = Object.entries(domainFacilitiesByCounty)
-      .sort(([a], [b]) => a.localeCompare(b))
-      .flatMap(([county, facs]) =>
-        [...facs]
-          .sort((a, b) => a.name.localeCompare(b.name))
-          .map((f) => {
-            const matRep = f.values["maternal_deaths_reported"] ?? null;
-            const matAud = f.values["maternal_deaths_audited"] ?? null;
-            const neoRep = f.values["neonatal_deaths"] ?? null;
-            const neoAud = f.values["neonatal_deaths_audited"] ?? null;
-            return {
-              County: county,
-              Facility: f.name,
-              "Maternal deaths reported": matRep,
-              "Maternal deaths audited": matAud,
-              "Neonatal deaths reported": neoRep,
-              "Neonatal deaths audited": neoAud,
-              "Audit %": pct(
-                (matAud ?? 0) + (neoAud ?? 0),
-                (matRep ?? 0) + (neoRep ?? 0),
-              ),
-            };
-          }),
-      )
-      .filter(
-        (r) =>
-          r["Maternal deaths reported"] != null ||
-          r["Neonatal deaths reported"] != null,
-      );
-    const d4Inputs: ViewInput[] = activePartners.flatMap((r) => {
-      const l = lv(r.partner.id);
-      const out: ViewInput[] = [];
-      if (l.d4 != null)
-        out.push({
-          label: `${r.partner.name} — d4 score (avg audit %)`,
-          value: `${l.d4.toFixed(1)}%`,
-          source: "live",
-        });
-      return out;
-    });
-
-    // d5 — Data systems: per partner, facilities reporting ÷ in scope.
-    const d5Rows: DataRow[] = activePartners.map((r) => {
-      const raw = lv(r.partner.id).d5Raw;
-      return {
-        Partner: r.partner.name,
-        "Facilities reporting (MOH 731)": raw?.reporting ?? null,
-        "Facilities in scope": raw?.ouCount ?? null,
-        "Reporting %":
-          raw && raw.ouCount > 0
-            ? Math.round((raw.reporting / raw.ouCount) * 1000) / 10
-            : null,
-      };
-    });
-    const d5Inputs: ViewInput[] = activePartners.flatMap((r) => {
-      const raw = lv(r.partner.id).d5Raw;
-      if (!raw || raw.ouCount <= 0) return [];
-      return [
-        {
-          label: `${r.partner.name} — reporting (${raw.reporting} ÷ ${raw.ouCount} facilities)`,
-          value: `${Math.round((raw.reporting / raw.ouCount) * 1000) / 10}%`,
-          source: "live",
-        },
-      ];
-    });
-
-    return [
-      {
-        title: "PMTCT/VTP Quality of Care (d1) — tallied data",
-        note: "per facility — testing & ART tallies behind the card",
-        data: d1Rows,
-        detail: {
-          formula:
-            "Tested % = pmtct_initial_test ÷ pmtct_anc1_visits × 100; ART % = pmtct_art ÷ pmtct_need × 100; d1 = average of both (each clamped 0–100)",
-          inputs: d1Inputs,
-          notes: [
-            "Facility rows come from the per-county KHIS fetch (byFacilityDetail) — no extra requests.",
-            "Blank cells mean that facility reported no value for the indicator this period.",
-          ],
-        },
-      },
-      {
-        title: "Coverage 90:90:80:80 (d2) — tallied data",
-        note: "per facility — PNC within 48h (mother %)",
-        data: d2Rows,
-        detail: {
-          formula:
-            "d2 = PNC within 48h coverage (KHIS %) — trusted only when the scoped rollup is a genuine 0–100 value",
-          inputs: d2Inputs,
-          notes: [
-            "Only facilities reporting a PNC-within-48h value are listed.",
-            "Roster-scope sums of per-facility % are meaningless — the score uses county-level values.",
-          ],
-        },
-      },
-      {
-        title: "Readiness & Safe Systems (d3) — tallied data",
-        note: "per entered facility assessment",
-        data: d3Rows,
-        detail: {
-          formula:
-            "per assessment: Yes = 2 pts, Partial = 1, No = 0, N/A excluded; % = points ÷ (2 × answered). d3 = mean across the partner's assessments",
-          inputs: d3Inputs,
-          notes: [
-            "Readiness is computed live from entered assessments — never from KHIS.",
-            "Assessments outside the current scope are excluded from the average but listed here for reference.",
-          ],
-        },
-      },
-      {
-        title: "MPDSR & Accountability (d4) — tallied data",
-        note: "per facility — deaths reported & audited",
-        data: d4Rows,
-        detail: {
-          formula:
-            "Audit % = (maternal audited + neonatal audited) ÷ (reported + reported) × 100; d4 = average of maternal & neonatal audit %",
-          inputs: d4Inputs,
-          notes: [
-            "Only facilities reporting any death this period are listed.",
-            "d4 uses county-level values when available; the partner roster value is the fallback.",
-          ],
-        },
-      },
-      {
-        title: "Data Systems (d5) — tallied data",
-        note: "per partner — facilities reporting ÷ in scope",
-        data: d5Rows,
-        detail: {
-          formula:
-            "d5 = facilities reporting MOH 731 (pmtct_anc1_visits) ÷ roster facilities × 100",
-          inputs: d5Inputs,
-          notes: [
-            "Roster facilities = the partner's facility list in scope for the selected period.",
-            "No KHIS reporting row this period → blank (not reported), never a fake baseline.",
-          ],
-        },
-      },
-    ];
-  }, [
-    rows,
-    allAssessments,
-    readinessByPartner,
-    liveByPartner,
-    domainFacilitiesByCounty,
-  ]);
-
-  // Partner × Domain matrix — same tallies, one row per partner.
-  const matrixViewData = useMemo(() => {
-    const data: DataRow[] = rows.map((r) => {
-      const row: DataRow = { Partner: r.partner.name };
-      DOMAIN_COLUMNS.forEach((col, idx) => {
-        const v = r.pending ? 0 : r.domains[idx];
-        row[col.label] =
-          v === null || v === undefined ? null : `${Math.round(v * 10) / 10}%`;
-      });
-      row["Overall"] =
-        r.overall == null ? null : `${Math.round(r.overall * 10) / 10}%`;
-      return row;
-    });
-    return {
-      title: "Partner Scores by Domain — tallied data",
-      note: "one row per partner — the matrix as shown",
-      data,
-      detail: {
-        formula:
-          "d1 = avg(testing %, ART %) · d2 = PNC 48h · d3 = readiness mean · d4 = avg audit % · d5 = reporting %. Overall = mean of available domains.",
-        inputs: domainViewData.flatMap((d) => d.detail.inputs),
-        notes: [
-          "Nuru Ya Mtoto shows 0.0% — no facility list loaded yet (pending).",
-          "Domains with no KHIS value this period show blank (—); no baseline constants are displayed.",
-        ],
-      },
-    };
-  }, [rows, domainViewData]);
-
   const overallChartData = useMemo(
     () =>
       rows.map((r) => ({
@@ -970,6 +675,358 @@ export function HomeTab({
     }
     return unit;
   };
+
+  // -----------------------------------------------------------------------
+  // View Data payloads — the individual tallies behind each domain score.
+  // Always scoped to the CURRENT filter (partner + counties): facility rows
+  // only for in-scope counties, inputs only for in-scope partners. This keeps
+  // the modals in sync when the partner changes — no stale data from the
+  // previous partner's fetch. Nothing fabricated; values are the same ones
+  // feeding the scores on screen.
+  // -----------------------------------------------------------------------
+  type DomainCardView = {
+    title: string;
+    note: string;
+    data: DataRow[];
+    detail: ViewDetail;
+  };
+
+  const buildDomainViewData = useCallback(
+    (
+      scopeCounties: Set<string>,
+      scopePartners: Partner[],
+      titlePrefix = "",
+    ): DomainCardView[] => {
+      const pct = (
+        num: number | null | undefined,
+        den: number | null | undefined,
+      ): number | null => {
+        if (num == null || den == null || den <= 0) return null;
+        return Math.round((num / den) * 1000) / 10;
+      };
+      const activePartners = scopePartners.filter(
+        (p) => p.id !== "nuru-ya-mtoto",
+      );
+      const lv = (id: string) => liveByPartner[id] ?? {};
+      const inScope = (county: string) => scopeCounties.has(county);
+      const facsOf = (county: string) =>
+        [...(domainFacilitiesByCounty[county] ?? [])].sort((a, b) =>
+          a.name.localeCompare(b.name),
+        );
+
+      // d1 — PMTCT/VTP QoC: per-facility testing & ART tallies.
+      const d1Rows: DataRow[] = Object.keys(domainFacilitiesByCounty)
+        .filter(inScope)
+        .sort((a, b) => a.localeCompare(b))
+        .flatMap((county) =>
+          facsOf(county).map((f) => {
+            const anc1 = f.values["pmtct_anc1_visits"] ?? null;
+            const tested = f.values["pmtct_initial_test"] ?? null;
+            const need = f.values["pmtct_need"] ?? null;
+            const art = f.values["pmtct_art"] ?? null;
+            return {
+              County: county,
+              Facility: f.name,
+              "1st ANC visits": anc1,
+              "Tested at 1st ANC": tested,
+              "Tested %": pct(tested, anc1),
+              "PMTCT need": need,
+              "On ART": art,
+              "ART %": pct(art, need),
+            };
+          }),
+        );
+      const d1Inputs: ViewInput[] = activePartners.flatMap((p) => {
+        const l = lv(p.id);
+        const out: ViewInput[] = [];
+        if (l.testedPct != null)
+          out.push({
+            label: `${p.name} — testing coverage (tested ÷ 1st ANC)`,
+            value: `${l.testedPct}%`,
+            source: "live",
+          });
+        if (l.artPct != null)
+          out.push({
+            label: `${p.name} — ART initiation (ART ÷ need)`,
+            value: `${l.artPct}%`,
+            source: "live",
+          });
+        if (l.d1 != null)
+          out.push({
+            label: `${p.name} — d1 score (average of the two)`,
+            value: `${l.d1.toFixed(1)}%`,
+            source: "live",
+          });
+        return out;
+      });
+
+      // d2 — Coverage: per-facility PNC within 48h (mother %).
+      const d2Rows: DataRow[] = Object.keys(domainFacilitiesByCounty)
+        .filter(inScope)
+        .sort((a, b) => a.localeCompare(b))
+        .flatMap((county) =>
+          facsOf(county).map((f) => ({
+            County: county,
+            Facility: f.name,
+            "PNC within 48h — mother %": f.values["pnc_48h_mother"] ?? null,
+          })),
+        )
+        .filter((r) => r["PNC within 48h — mother %"] != null);
+      const d2Inputs: ViewInput[] = activePartners.flatMap((p) => {
+        const l = lv(p.id);
+        const out: ViewInput[] = [];
+        if (l.d2 != null)
+          out.push({
+            label: `${p.name} — d2 score (PNC 48h %)`,
+            value: `${l.d2.toFixed(1)}%`,
+            source: "live",
+          });
+        return out;
+      });
+
+      // d3 — Readiness: entered assessments scoped to the current counties.
+      const d3Rows: DataRow[] = [...allAssessments]
+        .filter((a) => inScope(a.county))
+        .sort(
+          (a, b) =>
+            a.county.localeCompare(b.county) ||
+            a.facilityName.localeCompare(b.facilityName),
+        )
+        .map((a) => {
+          const s = assessmentScore(a);
+          return {
+            County: a.county,
+            Facility: a.facilityName,
+            "Assessment date": a.date,
+            Type: a.assessmentType,
+            "Items answered": s.answered,
+            "Readiness %": Math.round(s.percentage * 10) / 10,
+          };
+        });
+      const d3Inputs: ViewInput[] = activePartners.flatMap((p) => {
+        // Scoped to the counties actually in scope (narrows when a county /
+        // sub-county is selected in the filter bar).
+        const inScopeCounties = p.counties.filter((c) => scopeCounties.has(c));
+        const counties =
+          inScopeCounties.length > 0 ? inScopeCounties : p.counties;
+        const d3 = readinessForCounties(allAssessments, counties);
+        if (d3.avg == null) return [];
+        return [
+          {
+            label: `${p.name} — readiness (${d3.count} assessment${d3.count === 1 ? "" : "s"}${counties.length < p.counties.length ? ` · ${counties.join(", ")}` : ""})`,
+            value: `${d3.avg.toFixed(1)}%`,
+            source: "registry",
+          },
+        ];
+      });
+
+      // d4 — MPDSR: per-facility deaths reported & audited.
+      const d4Rows: DataRow[] = Object.keys(domainFacilitiesByCounty)
+        .filter(inScope)
+        .sort((a, b) => a.localeCompare(b))
+        .flatMap((county) =>
+          facsOf(county).map((f) => {
+            const matRep = f.values["maternal_deaths_reported"] ?? null;
+            const matAud = f.values["maternal_deaths_audited"] ?? null;
+            const neoRep = f.values["neonatal_deaths"] ?? null;
+            const neoAud = f.values["neonatal_deaths_audited"] ?? null;
+            return {
+              County: county,
+              Facility: f.name,
+              "Maternal deaths reported": matRep,
+              "Maternal deaths audited": matAud,
+              "Neonatal deaths reported": neoRep,
+              "Neonatal deaths audited": neoAud,
+              "Audit %": pct(
+                (matAud ?? 0) + (neoAud ?? 0),
+                (matRep ?? 0) + (neoRep ?? 0),
+              ),
+            };
+          }),
+        )
+        .filter(
+          (r) =>
+            r["Maternal deaths reported"] != null ||
+            r["Neonatal deaths reported"] != null,
+        );
+      const d4Inputs: ViewInput[] = activePartners.flatMap((p) => {
+        const l = lv(p.id);
+        const out: ViewInput[] = [];
+        if (l.d4 != null)
+          out.push({
+            label: `${p.name} — d4 score (avg audit %)`,
+            value: `${l.d4.toFixed(1)}%`,
+            source: "live",
+          });
+        return out;
+      });
+
+      // d5 — Data systems: per in-scope partner, facilities reporting ÷ scope.
+      const d5Rows: DataRow[] = activePartners.map((p) => {
+        const raw = lv(p.id).d5Raw;
+        return {
+          Partner: p.name,
+          "Facilities reporting (MOH 731)": raw?.reporting ?? null,
+          "Facilities in scope": raw?.ouCount ?? null,
+          "Reporting %":
+            raw && raw.ouCount > 0
+              ? Math.round((raw.reporting / raw.ouCount) * 1000) / 10
+              : null,
+        };
+      });
+      const d5Inputs: ViewInput[] = activePartners.flatMap((p) => {
+        const raw = lv(p.id).d5Raw;
+        if (!raw || raw.ouCount <= 0) return [];
+        return [
+          {
+            label: `${p.name} — reporting (${raw.reporting} ÷ ${raw.ouCount} facilities)`,
+            value: `${Math.round((raw.reporting / raw.ouCount) * 1000) / 10}%`,
+            source: "live",
+          },
+        ];
+      });
+
+      return [
+        {
+          title: `${titlePrefix}PMTCT/VTP Quality of Care (d1) — tallied data`,
+          note: "per facility — testing & ART tallies behind the score",
+          data: d1Rows,
+          detail: {
+            formula:
+              "Tested % = pmtct_initial_test ÷ pmtct_anc1_visits × 100; ART % = pmtct_art ÷ pmtct_need × 100; d1 = average of both (each clamped 0–100)",
+            inputs: d1Inputs,
+            notes: [
+              "Facility rows come from the per-county KHIS fetch (byFacilityDetail) — no extra requests.",
+              "Blank cells mean that facility reported no value for the indicator this period.",
+            ],
+          },
+        },
+        {
+          title: `${titlePrefix}Coverage 90:90:80:80 (d2) — tallied data`,
+          note: "per facility — PNC within 48h (mother %)",
+          data: d2Rows,
+          detail: {
+            formula:
+              "d2 = PNC within 48h coverage (KHIS %) — trusted only when the scoped rollup is a genuine 0–100 value",
+            inputs: d2Inputs,
+            notes: [
+              "Only facilities reporting a PNC-within-48h value are listed.",
+              "Roster-scope sums of per-facility % are meaningless — the score uses county-level values.",
+            ],
+          },
+        },
+        {
+          title: `${titlePrefix}Readiness & Safe Systems (d3) — tallied data`,
+          note: "per entered facility assessment",
+          data: d3Rows,
+          detail: {
+            formula:
+              "per assessment: Yes = 2 pts, Partial = 1, No = 0, N/A excluded; % = points ÷ (2 × answered). d3 = mean across the scoped assessments",
+            inputs: d3Inputs,
+            notes: [
+              "Readiness is computed live from entered assessments — never from KHIS.",
+              "Only assessments in the current scope (partner/county) are listed.",
+            ],
+          },
+        },
+        {
+          title: `${titlePrefix}MPDSR & Accountability (d4) — tallied data`,
+          note: "per facility — deaths reported & audited",
+          data: d4Rows,
+          detail: {
+            formula:
+              "Audit % = (maternal audited + neonatal audited) ÷ (reported + reported) × 100; d4 = average of maternal & neonatal audit %",
+            inputs: d4Inputs,
+            notes: [
+              "Only facilities reporting any death this period are listed.",
+              "d4 uses county-level values when available; the partner roster value is the fallback.",
+            ],
+          },
+        },
+        {
+          title: `${titlePrefix}Data Systems (d5) — tallied data`,
+          note: "per partner — facilities reporting ÷ in scope",
+          data: d5Rows,
+          detail: {
+            formula:
+              "d5 = facilities reporting MOH 731 (pmtct_anc1_visits) ÷ roster facilities × 100",
+            inputs: d5Inputs,
+            notes: [
+              "Roster facilities = the partner's facility list in scope for the selected period.",
+              "No KHIS reporting row this period → blank (not reported), never a fake baseline.",
+            ],
+          },
+        },
+      ];
+    },
+    [allAssessments, liveByPartner, domainFacilitiesByCounty],
+  );
+
+  // Counties in the CURRENT filter scope — the card modals never show data
+  // from outside it (e.g. a previously selected partner's counties while the
+  // new fetch is in flight).
+  const scopeCounties = useMemo(() => {
+    const set = new Set<string>();
+    for (const { partner, units } of scoreScope) {
+      for (const u of units) set.add(vtpUnitCounty(partner, u));
+    }
+    return set;
+  }, [scoreScope]);
+
+  // The 5 aggregate domain cards — scoped to the current partner/counties so
+  // changing the partner updates the View Data instantly (no stale data from
+  // the previous partner's fetch).
+  const domainViewData = useMemo(
+    () => buildDomainViewData(scopeCounties, scorePartners),
+    [buildDomainViewData, scopeCounties, scorePartners],
+  );
+
+  // County comparison — per partner, the same 5 tallied payloads scoped to
+  // that partner's displayed counties, one per domain chart.
+  const countyViewDataByPartner = useMemo(() => {
+    const map: Record<string, DomainCardView[]> = {};
+    for (const group of countyRows) {
+      const counties = new Set(group.counties.map((c) => c.name));
+      map[group.partner.id] = buildDomainViewData(
+        counties,
+        [group.partner],
+        `${group.partner.name} — `,
+      );
+    }
+    return map;
+  }, [countyRows, buildDomainViewData]);
+
+  // Partner × Domain matrix — one row per partner, inputs for every partner
+  // (the matrix always shows all partners regardless of the filter).
+  const matrixViewData = useMemo(() => {
+    const data: DataRow[] = rows.map((r) => {
+      const row: DataRow = { Partner: r.partner.name };
+      DOMAIN_COLUMNS.forEach((col, idx) => {
+        const v = r.pending ? 0 : r.domains[idx];
+        row[col.label] =
+          v === null || v === undefined ? null : `${Math.round(v * 10) / 10}%`;
+      });
+      row["Overall"] =
+        r.overall == null ? null : `${Math.round(r.overall * 10) / 10}%`;
+      return row;
+    });
+    const allCounties = new Set(partners.flatMap((p) => p.counties));
+    const allViews = buildDomainViewData(allCounties, partners);
+    return {
+      title: "Partner Scores by Domain — tallied data",
+      note: "one row per partner — the matrix as shown",
+      data,
+      detail: {
+        formula:
+          "d1 = avg(testing %, ART %) · d2 = PNC 48h · d3 = readiness mean · d4 = avg audit % · d5 = reporting %. Overall = mean of available domains.",
+        inputs: allViews.flatMap((d) => d.detail.inputs ?? []),
+        notes: [
+          "Nuru Ya Mtoto shows 0.0% — no facility list loaded yet (pending).",
+          "Domains with no KHIS value this period show blank (—); no baseline constants are displayed.",
+        ],
+      },
+    };
+  }, [rows, partners, buildDomainViewData]);
 
   // -----------------------------------------------------------------------
   // Real KHIS VTP QoC values per county. Bars 4 (EID Coverage) and 5
@@ -2358,67 +2415,84 @@ export function HomeTab({
                 />
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
-                {BAR_SERIES.map((s) => (
-                  <div
-                    key={s.key}
-                    className="rounded-lg border border-slate-200 p-4"
-                  >
-                    <div className="flex items-center gap-2 mb-3">
-                      <span
-                        className="w-3 h-3 rounded-sm"
-                        style={{ backgroundColor: s.color }}
-                      />
-                      <p className="text-sm font-semibold text-gray-700">
-                        {s.name}
-                      </p>
-                    </div>
-                    <ResponsiveContainer width="100%" height={190}>
-                      <BarChart
-                        data={data}
-                        margin={{ top: 20, right: 8, left: 0, bottom: 4 }}
-                      >
-                        <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                        <XAxis
-                          dataKey="name"
-                          interval={0}
-                          tick={{ fontSize: 10 }}
-                          tickLine={false}
+                {BAR_SERIES.map((s, sIdx) => {
+                  const view =
+                    countyViewDataByPartner[group.partner.id]?.[sIdx];
+                  return (
+                    <div
+                      key={s.key}
+                      className="rounded-lg border border-slate-200 p-4"
+                    >
+                      <div className="flex items-center gap-2 mb-3">
+                        <span
+                          className="w-3 h-3 rounded-sm"
+                          style={{ backgroundColor: s.color }}
                         />
-                        <YAxis
-                          domain={[0, 100]}
-                          width={34}
-                          tick={{ fontSize: 10 }}
-                          tickLine={false}
-                          axisLine={false}
-                        />
-                        <Tooltip
-                          cursor={{ fill: "rgba(148,163,184,0.12)" }}
-                          formatter={(v, name) =>
-                            v == null
-                              ? ["No data", name]
-                              : [`${Number(v).toFixed(1)}%`, name]
-                          }
-                        />
-                        <Bar
-                          dataKey={s.key}
-                          name={s.name}
-                          fill={s.color}
-                          radius={[4, 4, 0, 0]}
-                          maxBarSize={44}
+                        <p className="text-sm font-semibold text-gray-700">
+                          {s.name}
+                        </p>
+                        {view && (
+                          <span className="ml-auto">
+                            <ViewDataButton
+                              title={view.title}
+                              data={view.data}
+                              note={view.note}
+                              detail={view.detail}
+                            />
+                          </span>
+                        )}
+                      </div>
+                      <ResponsiveContainer width="100%" height={190}>
+                        <BarChart
+                          data={data}
+                          margin={{ top: 20, right: 8, left: 0, bottom: 4 }}
                         >
-                          <LabelList
-                            dataKey={s.key}
-                            position="top"
-                            formatter={(v) =>
-                              v == null ? "" : `${Number(v).toFixed(0)}%`
-                            }
-                            style={{ fontSize: 10, fill: "#475569" }}
+                          <CartesianGrid
+                            strokeDasharray="3 3"
+                            vertical={false}
                           />
-                        </Bar>
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </div>
-                ))}
+                          <XAxis
+                            dataKey="name"
+                            interval={0}
+                            tick={{ fontSize: 10 }}
+                            tickLine={false}
+                          />
+                          <YAxis
+                            domain={[0, 100]}
+                            width={34}
+                            tick={{ fontSize: 10 }}
+                            tickLine={false}
+                            axisLine={false}
+                          />
+                          <Tooltip
+                            cursor={{ fill: "rgba(148,163,184,0.12)" }}
+                            formatter={(v, name) =>
+                              v == null
+                                ? ["No data", name]
+                                : [`${Number(v).toFixed(1)}%`, name]
+                            }
+                          />
+                          <Bar
+                            dataKey={s.key}
+                            name={s.name}
+                            fill={s.color}
+                            radius={[4, 4, 0, 0]}
+                            maxBarSize={44}
+                          >
+                            <LabelList
+                              dataKey={s.key}
+                              position="top"
+                              formatter={(v) =>
+                                v == null ? "" : `${Number(v).toFixed(0)}%`
+                              }
+                              style={{ fontSize: 10, fill: "#475569" }}
+                            />
+                          </Bar>
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           );
