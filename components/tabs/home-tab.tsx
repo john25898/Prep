@@ -376,7 +376,7 @@ export function HomeTab({
   // Domain 3 (Readiness) is always computed from entered assessments.
   // -----------------------------------------------------------------------
   const KHIS_DOMAIN_DX =
-    "pmtct_anc1_visits,pmtct_initial_test,pmtct_need,pmtct_art,pnc_48h_coverage,maternal_deaths_reported,maternal_deaths_audited,neonatal_deaths,neonatal_deaths_audited";
+    "pmtct_anc1_visits,pmtct_initial_test,pmtct_anc1_known_pos,pmtct_new_positive,pmtct_anc1_on_haart,pmtct_start_haart_anc,pnc_48h_coverage,maternal_deaths_reported,maternal_deaths_audited,neonatal_deaths,neonatal_deaths_audited";
 
   interface LiveDomainScores {
     d1?: number; // PMTCT/VTP QoC — blend of testing coverage & ART initiation
@@ -420,8 +420,19 @@ export function HomeTab({
         };
         const anc1 = ind("pmtct_anc1_visits");
         const tested = ind("pmtct_initial_test");
-        const need = ind("pmtct_need");
-        const art = ind("pmtct_art");
+        // Need for PMTCT = Known Positive at 1st ANC + Newly HIV+ at ANC
+        // (MOH 731-2 reports the two components, not a combined "need").
+        const kp = ind("pmtct_anc1_known_pos");
+        const newPos = ind("pmtct_new_positive");
+        const need =
+          kp != null || newPos != null ? (kp ?? 0) + (newPos ?? 0) : null;
+        // On ART = On HAART at 1st ANC + Started HAART at ANC (MOH 731-2).
+        const onHaart = ind("pmtct_anc1_on_haart");
+        const startHaart = ind("pmtct_start_haart_anc");
+        const art =
+          onHaart != null || startHaart != null
+            ? (onHaart ?? 0) + (startHaart ?? 0)
+            : null;
         const pnc = ind("pnc_48h_coverage");
         const matRep = ind("maternal_deaths_reported");
         const matAud = ind("maternal_deaths_audited");
@@ -722,14 +733,24 @@ export function HomeTab({
           facsOf(county).map((f) => {
             const anc1 = f.values["pmtct_anc1_visits"] ?? null;
             const tested = f.values["pmtct_initial_test"] ?? null;
-            const need = f.values["pmtct_need"] ?? null;
-            const art = f.values["pmtct_art"] ?? null;
+            const retest = f.values["pmtct_anc_retest"] ?? null;
+            const kp = f.values["pmtct_anc1_known_pos"] ?? null;
+            const newPos = f.values["pmtct_new_positive"] ?? null;
+            const need =
+              kp != null || newPos != null ? (kp ?? 0) + (newPos ?? 0) : null;
+            const onHaart = f.values["pmtct_anc1_on_haart"] ?? null;
+            const startHaart = f.values["pmtct_start_haart_anc"] ?? null;
+            const art =
+              onHaart != null || startHaart != null
+                ? (onHaart ?? 0) + (startHaart ?? 0)
+                : null;
             return {
               County: county,
               Facility: f.name,
               "1st ANC visits": anc1,
               "Tested at 1st ANC": tested,
               "Tested %": pct(tested, anc1),
+              "Retested at ANC": retest,
               "PMTCT need": need,
               "On ART": art,
               "ART %": pct(art, need),
@@ -893,7 +914,7 @@ export function HomeTab({
           data: d1Rows,
           detail: {
             formula:
-              "Tested % = pmtct_initial_test ÷ pmtct_anc1_visits × 100; ART % = pmtct_art ÷ pmtct_need × 100; d1 = average of both (each clamped 0–100)",
+              "Tested % = pmtct_initial_test ÷ pmtct_anc1_visits × 100; ART % = (on HAART at 1st ANC + started HAART at ANC) ÷ (KP at 1st ANC + newly HIV+ at ANC) × 100; d1 = average of both (each clamped 0–100). Testing/ART elements are MOH 731-2 EMTCT Rev 2023 (HV02-02, HV02-10, HV02-14, HV02-15).",
             inputs: d1Inputs,
             notes: [
               "Facility rows come from the per-county KHIS fetch (byFacilityDetail) — no extra requests.",
@@ -1038,14 +1059,17 @@ export function HomeTab({
   // -----------------------------------------------------------------------
   const VTP_KHIS_DX = [
     "pmtct_anc1_visits", // bar 1 den (ATT% = anc4/anc1) & bar 2 den
-    "pmtct_initial_test", // bar 2 num — testing for PBFW
-    "pmtct_need", // bar 3 den & bar 6 den
-    "pmtct_art", // bar 3 num — on ART for HIV+ PBFW
+    "pmtct_initial_test", // bar 2 num — ANC initial test for PBFW
+    "pmtct_anc_retest", // ANC retest (MOH 731-2 HV02-03)
+    "pmtct_anc1_known_pos", // need component — KP at 1st ANC
+    "pmtct_new_positive", // need component — newly HIV+ at ANC
+    "pmtct_anc1_on_haart", // ART component — on HAART at 1st ANC
+    "pmtct_start_haart_anc", // ART component — started HAART at ANC
     "anc4_visits", // bar 1 num — 4th ANC attended (ATT% numerator)
     "hei_eid_pct", // HEI facility panel — EID ≤ 8wk reporting
     "hei_pcr_pos_6_8wks", // HEI facility panel — PCR+ HEI
     "hei_art_linkage", // HEI facility panel — linked to CCC
-    "hiv_deliveries", // bar 6 num — deliveries HIV+ mothers
+    "hiv_deliveries", // bar 6 num — HIV+ at delivery (L&D positive results)
     "hei_negative_18m", // bar 7 fallback num — AB negative 18m
     "hei_cohort_24m", // bar 7 fallback den — net cohort 24m
     "retention_rate", // bar 8 direct % — retention mother–baby pair
@@ -1165,8 +1189,19 @@ export function HomeTab({
         const roster = hasFacilityRoster(pid);
         const anc1 = ind("pmtct_anc1_visits");
         const tested = ind("pmtct_initial_test");
-        const need = ind("pmtct_need");
-        const art = ind("pmtct_art");
+        // Need for PMTCT = Known Positive at 1st ANC + Newly HIV+ at ANC
+        // (MOH 731-2 reports the two components, not a combined "need").
+        const kp = ind("pmtct_anc1_known_pos");
+        const newPos = ind("pmtct_new_positive");
+        const need =
+          kp != null || newPos != null ? (kp ?? 0) + (newPos ?? 0) : null;
+        // On ART = On HAART at 1st ANC + Started HAART at ANC (MOH 731-2).
+        const onHaart = ind("pmtct_anc1_on_haart");
+        const startHaart = ind("pmtct_start_haart_anc");
+        const art =
+          onHaart != null || startHaart != null
+            ? (onHaart ?? 0) + (startHaart ?? 0)
+            : null;
         const anc4 = ind("anc4_visits");
         const eidPct = ind("hei_eid_pct");
         const pcrPos = ind("hei_pcr_pos_6_8wks");
@@ -1189,7 +1224,7 @@ export function HomeTab({
         // County-level domain scores (d1/d2/d4) derived from this same fetch —
         // feeds the domain matrix + county comparison with real KHIS only.
         const testedPct = pct(tested, anc1);
-        const artPct = roster ? null : pct(art, need);
+        const artPct = pct(art, need);
         const matA =
           matRep != null && matRep > 0 && matAud != null
             ? pct(matAud, matRep)
@@ -1215,7 +1250,7 @@ export function HomeTab({
           // always live; replaces the old KHIS %-based ANC coverage)
           pct(anc4, anc1),
           pct(tested, anc1), // bar 2 Testing for PBFW
-          roster ? null : pct(art, need), // bar 3 ART initiation for PBFW
+          pct(art, need), // bar 3 ART initiation for PBFW (on HAART + started HAART ÷ KP + new NP)
           null, // bar 4 EID Coverage — injected from VTP Monthly Entry form
           null, // bar 5 PCR POS ART initiated — injected from VTP entry form
           pct(hivDel, need), // bar 6 Delivery among HIV+ mothers
@@ -1274,9 +1309,12 @@ export function HomeTab({
         // for PMTCT/VTP QoC). Keyed by indicator id for friendly labels.
         const DOMAIN_DX = new Set([
           "f9vesk5d4IY", // pmtct_anc1_visits (MOH 711 New ANC clients)
-          "ETX9cUWF43c", // pmtct_initial_test
-          "XBaEY6d5bzt", // pmtct_need
-          "FGATEY1l3k4", // pmtct_art
+          "JNjdyMxJbrR", // pmtct_initial_test (MOH 731-2 HV02-02)
+          "mA13hGdhvJg", // pmtct_anc_retest (MOH 731-2 HV02-03)
+          "e9YgXAmC0qf", // pmtct_anc1_known_pos (need comp, HV02-01)
+          "gmaBILMqfJ8", // pmtct_new_positive (need comp, HV02-10)
+          "O9Wyf1FMHcM", // pmtct_anc1_on_haart (ART comp, HV02-14)
+          "diGK4TSNrR5", // pmtct_start_haart_anc (ART comp, HV02-15)
           "KXOpQO6bxoU", // pnc_48h_mother
           "RIvynmrUFRZ", // maternal_deaths_reported
           "sEmbbCR882p", // maternal_deaths_audited
@@ -1311,11 +1349,14 @@ export function HomeTab({
         // bar, exactly like the domain cards do.
         const VTP_DX = new Set([
           "f9vesk5d4IY", // pmtct_anc1_visits — bar 1 den / bar 2 den
-          "ETX9cUWF43c", // pmtct_initial_test — bar 2 num
-          "XBaEY6d5bzt", // pmtct_need — bar 3/6 den
-          "FGATEY1l3k4", // pmtct_art — bar 3 num
+          "JNjdyMxJbrR", // pmtct_initial_test — bar 2 num (HV02-02)
+          "mA13hGdhvJg", // pmtct_anc_retest — ANC retest (HV02-03)
+          "e9YgXAmC0qf", // pmtct_anc1_known_pos — need comp (HV02-01)
+          "gmaBILMqfJ8", // pmtct_new_positive — need comp (HV02-10)
+          "O9Wyf1FMHcM", // pmtct_anc1_on_haart — ART comp (HV02-14)
+          "diGK4TSNrR5", // pmtct_start_haart_anc — ART comp (HV02-15)
           "Fz0LzxMT1vV", // anc4_visits — bar 1 num
-          "C8xdcRWT9d2", // hiv_deliveries — bar 6 num
+          "vk1y3YRXzBO", // hiv_deliveries — bar 6 num (L&D positive results)
           "hkhajO6SfQO", // hei_eid_pct — bar 4 fallback
           "tYL0A1JspLB", // hei_pcr_pos_6_8wks — bar 5 fallback
           "q8kmDg03bi3", // hei_art_linkage — bar 5/6 linkage
@@ -1546,8 +1587,17 @@ export function HomeTab({
               const v = f.values;
               const anc1 = v["pmtct_anc1_visits"] ?? null;
               const tested = v["pmtct_initial_test"] ?? null;
-              const need = v["pmtct_need"] ?? null;
-              const art = v["pmtct_art"] ?? null;
+              const retest = v["pmtct_anc_retest"] ?? null;
+              const kp = v["pmtct_anc1_known_pos"] ?? null;
+              const newPos = v["pmtct_new_positive"] ?? null;
+              const need =
+                kp != null || newPos != null ? (kp ?? 0) + (newPos ?? 0) : null;
+              const onHaart = v["pmtct_anc1_on_haart"] ?? null;
+              const startHaart = v["pmtct_start_haart_anc"] ?? null;
+              const art =
+                onHaart != null || startHaart != null
+                  ? (onHaart ?? 0) + (startHaart ?? 0)
+                  : null;
               const anc4 = v["anc4_visits"] ?? null;
               const anc8 = v["anc8_visits"] ?? null;
               const hivDel = v["hiv_deliveries"] ?? null;
@@ -1559,6 +1609,7 @@ export function HomeTab({
                 "1st ANC visits": anc1,
                 "Tested at 1st ANC": tested,
                 "Tested %": pct(tested, anc1),
+                "Retested at ANC": retest,
                 "4th ANC visits": anc4,
                 "8th ANC contacts": anc8,
                 "PMTCT need": need,
@@ -1604,6 +1655,7 @@ export function HomeTab({
             notes: [
               "Only facilities that reported at least one of these elements appear — a facility missing from a column simply didn't report that element this month.",
               "Tested % = tested at 1st ANC ÷ 1st ANC visits · ART % = on ART ÷ PMTCT need · Outcome 18–24m % = HEI AB−18m ÷ cohort 24m.",
+              "Testing & ART elements are MOH 731-2 EMTCT Rev 2023 (HV02-01..15): KP at 1st ANC, ANC initial/retest test, newly HIV+ at ANC, on HAART at 1st ANC, started HAART at ANC.",
               "1st ANC visits now use the MOH 711 'New ANC clients' element; 8th ANC contacts use the MOH 711 Rev 2020 element — both match the facility's ANC register tallies.",
             ],
           },

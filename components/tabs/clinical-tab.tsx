@@ -172,7 +172,7 @@ const Subtab2A = ({
     indicators: [
       "pmtct_anc1_visits",
       "pmtct_initial_test",
-      "pmtct_need",
+      "pmtct_new_positive",
       "pmtct_anc1_known_pos",
     ],
   });
@@ -196,13 +196,13 @@ const Subtab2A = ({
     indicators: ["pmtct_initial_test"],
     byCounty: true,
   });
-  const needByCounty = useKhis({
+  const newPosByCounty = useKhis({
     partner,
     pe,
     county: countyScope,
     subCounty: subCountyScope,
     facility: facilityUid,
-    indicators: ["pmtct_need"],
+    indicators: ["pmtct_new_positive"],
     byCounty: true,
   });
   const kpByCounty = useKhis({
@@ -216,15 +216,19 @@ const Subtab2A = ({
   });
 
   // Live values (null when KHIS has no value for this scope/period).
-  const live = useMemo(
-    () => ({
+  // Need for PMTCT = KP at 1st ANC + Newly HIV+ at ANC (MOH 731-2 reports
+  // the two components, HV02-01 + HV02-10, not a combined "need").
+  const live = useMemo(() => {
+    const kp = value("pmtct_anc1_known_pos");
+    const newPos = value("pmtct_new_positive");
+    return {
       anc1: value("pmtct_anc1_visits"),
       tested: value("pmtct_initial_test"),
-      need: value("pmtct_need"),
-      kp: value("pmtct_anc1_known_pos"),
-    }),
-    [data, value],
-  );
+      need: kp != null || newPos != null ? (kp ?? 0) + (newPos ?? 0) : null,
+      kp,
+      newPos,
+    };
+  }, [data, value]);
   const isLive = Object.values(live).some((x): x is number => x != null);
 
   // KHIS answered but reported ZERO values for this period/scope — never show
@@ -279,11 +283,12 @@ const Subtab2A = ({
     [testedPct],
   );
 
-  // NP = need − KP (KHIS reports the combined "need" and the KP split).
+  // NP vs KP per county — MOH 731-2 reports newly HIV+ (Positive Results
+  // ANC, HV02-10) and known positive (HV02-01) directly.
   const npKpData = useMemo(() => {
-    const need = needByCounty.data?.counties ?? [];
+    const np = newPosByCounty.data?.counties ?? [];
     const kp = kpByCounty.data?.counties ?? [];
-    if (need.length === 0 && kp.length === 0)
+    if (np.length === 0 && kp.length === 0)
       return [
         {
           name: filter.county || "No data",
@@ -292,19 +297,19 @@ const Subtab2A = ({
         },
       ];
     const names = new Set<string>([
-      ...need.map((c) => c.name),
+      ...np.map((c) => c.name),
       ...kp.map((c) => c.name),
     ]);
     return [...names].map((name) => {
-      const n = need.find((c) => c.name === name)?.value ?? 0;
+      const n = np.find((c) => c.name === name)?.value ?? 0;
       const k = kp.find((c) => c.name === name)?.value ?? 0;
       return {
         name,
-        "Newly HIV+ (NP)": Math.max(n - k, 0),
+        "Newly HIV+ (NP)": n,
         "Known HIV+ (KP)": k,
       };
     });
-  }, [needByCounty.data, kpByCounty.data, filter.county]);
+  }, [newPosByCounty.data, kpByCounty.data, filter.county]);
 
   const p = useMemo(
     () => ({
@@ -312,10 +317,11 @@ const Subtab2A = ({
       tested: live.tested ?? 0,
       need: live.need ?? 0,
       kp: live.kp ?? 0,
+      newPos: live.newPos ?? 0,
     }),
     [live],
   );
-  const np = Math.max(p.need - p.kp, 0);
+  const np = p.newPos;
 
   const sourceBadge = loading ? (
     <span className="px-2 py-1 rounded-md bg-amber-50 text-amber-700 text-xs font-bold">
@@ -367,7 +373,7 @@ const Subtab2A = ({
             value={live.anc1 != null ? p.anc1.toLocaleString() : "0"}
             sub={
               live.anc1 != null
-                ? "1st ANC visits (MOH 731 HV02-01)"
+                ? "1st ANC visits (MOH 711 New ANC clients)"
                 : "not reported on KHIS this period"
             }
             tone="on"
@@ -599,7 +605,7 @@ const Subtab2A = ({
             </h3>
             <div className="flex items-center gap-2 flex-wrap">
               <span className="px-2 py-1 rounded-md bg-blue-50 text-blue-800 text-xs font-bold">
-                Denominator for ART initiation (PMTCT_ART)
+                Denominator for ART initiation (need = KP + new NP, MOH 731-2)
               </span>
               <ViewDataButton
                 title="HIV+ PBFW identified at Intake — NP vs KP"
@@ -848,7 +854,7 @@ const Subtab2B = ({
   const countyScope = filter.county || undefined;
   const subCountyScope = filter.subCounty || undefined;
 
-  // Live PMTCT cascade values for this period (MOH 731 HV02 rows).
+  // Live PMTCT cascade values for this period (MOH 731-2 EMTCT Rev 2023).
   const { data, loading, error, value } = useKhis({
     partner,
     pe,
@@ -858,9 +864,10 @@ const Subtab2B = ({
     indicators: [
       "pmtct_anc1_visits",
       "pmtct_initial_test",
-      "pmtct_need",
+      "pmtct_new_positive",
       "pmtct_anc1_known_pos",
-      "pmtct_art",
+      "pmtct_anc1_on_haart",
+      "pmtct_start_haart_anc",
       "hiv_deliveries",
       "eid_2_8_weeks",
       "pcr_positive_hei",
@@ -875,13 +882,23 @@ const Subtab2B = ({
     ],
   });
 
-  const live = useMemo(
-    () => ({
+  // Need = KP at 1st ANC + Newly HIV+ at ANC (HV02-01 + HV02-10); ART =
+  // On HAART at 1st ANC + Started HAART at ANC (HV02-14 + HV02-15).
+  const live = useMemo(() => {
+    const kp = value("pmtct_anc1_known_pos");
+    const newPos = value("pmtct_new_positive");
+    const onHaart = value("pmtct_anc1_on_haart");
+    const startHaart = value("pmtct_start_haart_anc");
+    return {
       anc1: value("pmtct_anc1_visits"),
       tested: value("pmtct_initial_test"),
-      need: value("pmtct_need"),
-      kp: value("pmtct_anc1_known_pos"),
-      art: value("pmtct_art"),
+      need: kp != null || newPos != null ? (kp ?? 0) + (newPos ?? 0) : null,
+      kp,
+      newPos,
+      art:
+        onHaart != null || startHaart != null
+          ? (onHaart ?? 0) + (startHaart ?? 0)
+          : null,
       deliveries: value("hiv_deliveries"),
       eid: value("eid_2_8_weeks"),
       pcrPos: value("pcr_positive_hei"),
@@ -893,9 +910,8 @@ const Subtab2B = ({
       heiLinkage: value("hei_art_linkage"),
       haartTotal: value("maternal_haart_total"),
       haartStartAnc: value("maternal_haart_start_anc"),
-    }),
-    [data, value],
-  );
+    };
+  }, [data, value]);
   const liveCount = Object.values(live).filter(
     (x): x is number => x != null,
   ).length;
@@ -949,8 +965,8 @@ const Subtab2B = ({
       cohortEnrolled: liveHeiPair ? (live.cohort24m as number) : 0, // KHIS HV02-50 net cohort
       cohortNegative: liveHeiPair ? (live.neg18m as number) : 0, // KHIS HEI AB− 18m
       pairsPct: 0, // 18-24m pair % not on KHIS monthly — not reported
-      haartTotal: live.haartTotal, // MOH 731 HV02-20
-      haartStartAnc: live.haartStartAnc, // MOH 731 HV02-17
+      haartTotal: live.haartTotal, // MOH 731-2 On HAART at 1st ANC HV02-14
+      haartStartAnc: live.haartStartAnc, // MOH 731-2 Start HAART ANC HV02-15
     }),
     [live, liveHeiPair],
   );
@@ -980,7 +996,9 @@ const Subtab2B = ({
         ];
   const vlCenterPct = vlSuppPct ?? 0;
 
-  const np = Math.max(p.need - p.kp, 0);
+  // NP reported directly by MOH 731-2 (Positive Results ANC, HV02-10);
+  // need − KP would give the same figure, keep the direct value.
+  const np = p.need > 0 ? p.need - p.kp : 0;
   const testedPct = livePct(live.tested, live.anc1);
   const artPct = livePct(live.art, live.need);
   const pbfwInitiatedPct = artPct != null ? artPct.toFixed(1) : null;
@@ -1588,7 +1606,7 @@ const Subtab2B = ({
           />
           <IndicatorRow
             code="PMTCT_ART"
-            label="Number of PBFW initiated on ART (New + Known — KHIS total)"
+            label="Number of PBFW on ART (on HAART at 1st ANC + started HAART at ANC — MOH 731-2)"
             value={nrOf(live.art) ? "n/r" : p.art}
             pct={pbfwInitiatedPct != null ? pbfwInitiatedPct : undefined}
           />
@@ -1600,8 +1618,8 @@ const Subtab2B = ({
           />
           {p.haartTotal != null && (
             <IndicatorRow
-              code="HV02-20"
-              label="On maternal HAART — Total (KHIS MOH 731)"
+              code="HV02-14"
+              label="On HAART at 1st ANC (MOH 731-2 Rev 2023)"
               value={p.haartTotal}
               pct={
                 p.need != null && p.need > 0
@@ -1612,14 +1630,14 @@ const Subtab2B = ({
           )}
           {p.haartStartAnc != null && (
             <IndicatorRow
-              code="HV02-17"
-              label="Started HAART at ANC (KHIS MOH 731)"
+              code="HV02-15"
+              label="Started HAART at ANC (MOH 731-2 Rev 2023)"
               value={p.haartStartAnc}
             />
           )}
           {p.haartTotal == null && p.haartStartAnc == null && (
             <p className="text-xs text-gray-400 pt-1">
-              Maternal HAART totals (MOH 731 HV02-17/20) not reported by
+              Maternal HAART totals (MOH 731-2 HV02-14/15) not reported by
               supported facilities this period — available nationally in KHIS.
             </p>
           )}
