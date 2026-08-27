@@ -298,10 +298,11 @@ export const KHIS_INDICATORS: KhisIndicator[] = [
   // ---- PMTCT / VTP QoC (Domain 1) --------------------------------------
   {
     id: "pmtct_anc1_visits",
-    label: "1st ANC Visits (MOH 731 HV02-01)",
-    dx: "uSxBUWnagGg",
+    label: "1st ANC Visits (MOH 711 New ANC clients)",
+    dx: "f9vesk5d4IY",
     isIndicator: false,
-    khisName: "MOH 731 1st ANC Visits HV02-01",
+    khisName: "MOH 711 New ANC clients",
+    verified: true,
     domain: "1",
   },
   {
@@ -377,18 +378,20 @@ export const KHIS_INDICATORS: KhisIndicator[] = [
   },
   {
     id: "pmtct_anc1_tested",
-    label: "1st ANC HIV Tested (MOH 711 ANC)",
-    dx: "geC2CBzyQme",
+    label: "1st ANC HIV Tested (MOH 731 Initial test at ANC)",
+    dx: "ETX9cUWF43c",
     isIndicator: false,
-    khisName: "1st ANC tested",
+    khisName: "MOH 731 Initial test at ANC HV02-04",
+    verified: true,
     domain: "1",
   },
   {
     id: "anc8_visits",
-    label: "Pregnant women completing 8 ANC visits (TGF)",
-    dx: "l1YsxImndzW",
+    label: "Pregnant women completing 8 ANC visits (MOH 711)",
+    dx: "cKr5133RFuN",
     isIndicator: false,
-    khisName: "TGF_ANC_Completing_ANC8",
+    khisName: "MOH 711 Rev 2020 No. of clients completed 8th ANC Contact",
+    verified: true,
     domain: "2",
   },
   {

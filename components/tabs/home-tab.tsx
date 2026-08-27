@@ -1087,6 +1087,14 @@ export function HomeTab({
     Record<string, { name: string; values: Record<string, number> }[]>
   >({});
 
+  // Per county: every roster facility's raw values for the VTP bar inputs
+  // (1st/4th/8th ANC, tested, need, ART, HIV+ deliveries, HEI 18–24m cohort,
+  // retention, PNC 48h). Same byFacilityDetail payload as the HEI panel —
+  // this is the "View Data" behind the VTP bars, mirroring the domain cards.
+  const [vtpFacilitiesByCounty, setVtpFacilitiesByCounty] = useState<
+    Record<string, { name: string; values: Record<string, number> }[]>
+  >({});
+
   useEffect(() => {
     let cancelled = false;
     // Per county, the partner whose roster owns it (counties are disjoint
@@ -1132,6 +1140,10 @@ export function HomeTab({
         { name: string; values: Record<string, number> }[]
       > = {};
       const domainMap: Record<
+        string,
+        { name: string; values: Record<string, number> }[]
+      > = {};
+      const vtpFacilityMap: Record<
         string,
         { name: string; values: Record<string, number> }[]
       > = {};
@@ -1261,7 +1273,7 @@ export function HomeTab({
         // average (e.g. pmtct_initial_test & pmtct_anc1_visits per facility
         // for PMTCT/VTP QoC). Keyed by indicator id for friendly labels.
         const DOMAIN_DX = new Set([
-          "uSxBUWnagGg", // pmtct_anc1_visits
+          "f9vesk5d4IY", // pmtct_anc1_visits (MOH 711 New ANC clients)
           "ETX9cUWF43c", // pmtct_initial_test
           "XBaEY6d5bzt", // pmtct_need
           "FGATEY1l3k4", // pmtct_art
@@ -1292,6 +1304,48 @@ export function HomeTab({
             (f: { name: string; values: Record<string, number> }) =>
               Object.keys(f.values).length > 0,
           );
+        // Raw values feeding the VTP QoC bars, per facility — 1st/4th/8th
+        // ANC, tested, PMTCT need/ART, HIV+ deliveries, HEI 18–24m outcome,
+        // retention and PNC 48h. Same payload as the domain capture; lets
+        // the VTP "View Data" show the exact facility tallies behind each
+        // bar, exactly like the domain cards do.
+        const VTP_DX = new Set([
+          "f9vesk5d4IY", // pmtct_anc1_visits — bar 1 den / bar 2 den
+          "ETX9cUWF43c", // pmtct_initial_test — bar 2 num
+          "XBaEY6d5bzt", // pmtct_need — bar 3/6 den
+          "FGATEY1l3k4", // pmtct_art — bar 3 num
+          "Fz0LzxMT1vV", // anc4_visits — bar 1 num
+          "C8xdcRWT9d2", // hiv_deliveries — bar 6 num
+          "hkhajO6SfQO", // hei_eid_pct — bar 4 fallback
+          "tYL0A1JspLB", // hei_pcr_pos_6_8wks — bar 5 fallback
+          "q8kmDg03bi3", // hei_art_linkage — bar 5/6 linkage
+          "uM0kppDX04I", // hei_negative_18m — bar 7 num
+          "xHufJhG2OJx", // hei_cohort_24m — bar 7 den
+          "lcNiLGUuIHs", // retention_rate — bar 8
+          "KXOpQO6bxoU", // pnc_48h_mother — d2 county %
+          "cKr5133RFuN", // anc8_visits — ANC chart 8th ANC
+        ]);
+        vtpFacilityMap[county] = (res.facilityDetail ?? [])
+          .map(
+            (f: {
+              name: string;
+              values: Record<string, number>;
+            }): {
+              name: string;
+              values: Record<string, number>;
+            } => ({
+              name: f.name,
+              values: Object.fromEntries(
+                Object.entries(f.values)
+                  .filter(([dx]) => VTP_DX.has(dx))
+                  .map(([dx, v]) => [dxToId.get(dx) ?? dx, v]),
+              ) as Record<string, number>,
+            }),
+          )
+          .filter(
+            (f: { name: string; values: Record<string, number> }) =>
+              Object.keys(f.values).length > 0,
+          );
       }
       if (!cancelled) {
         setVtpLiveByCounty(map);
@@ -1299,6 +1353,7 @@ export function HomeTab({
         setHeiFacilitiesByCounty(heiMap);
         setAncKhisByCounty(ancMap);
         setDomainFacilitiesByCounty(domainMap);
+        setVtpFacilitiesByCounty(vtpFacilityMap);
       }
     });
     return () => {
@@ -1464,6 +1519,97 @@ export function HomeTab({
         })),
       })),
     [scoreScope, ancKhisByCounty],
+  );
+
+  // Per-facility tallies behind the VTP bars, per partner — the same kind
+  // of "View Data" the domain cards expose, so every bar can be checked
+  // facility by facility. Built from the byFacilityDetail payload of the
+  // VTP fetch (no extra KHIS round-trip). Only facilities with at least one
+  // reported value appear; the bar's source (● KHIS / ★ entry) is kept.
+  const vtpFacilityViewByPartner = useMemo(
+    () =>
+      scoreScope.map(({ partner: p, units }) => {
+        const pct = (
+          num: number | null | undefined,
+          den: number | null | undefined,
+        ): number | null => {
+          if (num == null || den == null || den <= 0) return null;
+          return Math.round((num / den) * 1000) / 10;
+        };
+        const counties = Array.from(
+          new Set(units.map((u) => vtpUnitCounty(p, u))),
+        ).sort((a, b) => a.localeCompare(b));
+        const rows: DataRow[] = counties.flatMap((county) =>
+          [...(vtpFacilitiesByCounty[county] ?? [])]
+            .sort((a, b) => a.name.localeCompare(b.name))
+            .map((f) => {
+              const v = f.values;
+              const anc1 = v["pmtct_anc1_visits"] ?? null;
+              const tested = v["pmtct_initial_test"] ?? null;
+              const need = v["pmtct_need"] ?? null;
+              const art = v["pmtct_art"] ?? null;
+              const anc4 = v["anc4_visits"] ?? null;
+              const anc8 = v["anc8_visits"] ?? null;
+              const hivDel = v["hiv_deliveries"] ?? null;
+              const neg18 = v["hei_negative_18m"] ?? null;
+              const cohort = v["hei_cohort_24m"] ?? null;
+              return {
+                County: county,
+                Facility: f.name,
+                "1st ANC visits": anc1,
+                "Tested at 1st ANC": tested,
+                "Tested %": pct(tested, anc1),
+                "4th ANC visits": anc4,
+                "8th ANC contacts": anc8,
+                "PMTCT need": need,
+                "On ART": art,
+                "ART %": pct(art, need),
+                "HIV+ deliveries": hivDel,
+                "EID ≤8wk %": v["hei_eid_pct"] ?? null,
+                "PCR+ HEI": v["hei_pcr_pos_6_8wks"] ?? null,
+                "Linked to CCC": v["hei_art_linkage"] ?? null,
+                "HEI AB−18m": neg18,
+                "Cohort 24m": cohort,
+                "Outcome 18–24m %": pct(neg18, cohort),
+                "Retention %": v["retention_rate"] ?? null,
+                "PNC 48h mother %": v["pnc_48h_mother"] ?? null,
+              };
+            }),
+        );
+        const inputs: ViewInput[] = counties.flatMap((county) => {
+          const live = vtpLiveByCounty?.[county];
+          if (!live) return [];
+          const out: ViewInput[] = [];
+          VTP_QOC.forEach((ind, idx) => {
+            const val = live[idx];
+            if (val == null) return;
+            out.push({
+              label: `${county} · ${ind.short}`,
+              value: `${val}%`,
+              source:
+                idx === 3 || idx === 4 ? ("est" as const) : ("live" as const),
+            });
+          });
+          return out;
+        });
+        return {
+          partner: p,
+          units,
+          counties,
+          data: rows,
+          detail: {
+            formula:
+              "raw KHIS values per facility for the selected month — each VTP bar is computed from these same numbers (counts ÷ counts, or the % element directly). Bars 4 (EID) and 5 (PCR+ ART) are shown from the entry form where the bar is ★.",
+            inputs,
+            notes: [
+              "Only facilities that reported at least one of these elements appear — a facility missing from a column simply didn't report that element this month.",
+              "Tested % = tested at 1st ANC ÷ 1st ANC visits · ART % = on ART ÷ PMTCT need · Outcome 18–24m % = HEI AB−18m ÷ cohort 24m.",
+              "1st ANC visits now use the MOH 711 'New ANC clients' element; 8th ANC contacts use the MOH 711 Rev 2020 element — both match the facility's ANC register tallies.",
+            ],
+          },
+        };
+      }),
+    [scoreScope, vtpFacilitiesByCounty, vtpLiveByCounty],
   );
 
   // §5.4 — Safe systems per partner, each enabler compared across the CURRENT
@@ -2015,6 +2161,24 @@ export function HomeTab({
                 rows={rows}
                 counties={units}
               />
+              {/* Per-facility tallies behind the VTP bars — the same "View
+                  Data" the domain cards expose, per facility. */}{" "}
+              {(() => {
+                const vv = vtpFacilityViewByPartner.find(
+                  (x) => x.partner.id === partner.id,
+                );
+                if (!vv || vv.data.length === 0) return null;
+                return (
+                  <div className="flex justify-end">
+                    <ViewDataButton
+                      title={`VTP tallies — ${partner.name}`}
+                      data={vv.data}
+                      note={`${vv.data.length} facilities with reported values · rows match the bars above`}
+                      detail={vv.detail}
+                    />
+                  </div>
+                );
+              })()}
               {/* HEI/EID reporting facilities — which roster facilities
                   submitted EID / PCR+ / linkage / 18m outcome / 24m cohort
                   data for the selected month. Tick exactly these in KHIS to
