@@ -351,6 +351,69 @@ export const KHIS_INDICATORS: KhisIndicator[] = [
     khisName: "12.2.5 Deliveries",
     domain: "2",
   },
+  // MOH 711 delivery-mode elements — summed to give the skilled-deliveries
+  // COUNT (numerator of the SBA % indicators). Used to compute SBA % locally
+  // with ANC1 attendance as the denominator (the facility may not report
+  // "Estimated Deliveries", which the KHIS % indicator requires).
+  {
+    id: "deliv_normal",
+    label: "Normal Deliveries (MOH 711)",
+    dx: "jaPrPmor6WV",
+    isIndicator: false,
+    khisName: "MOH 711 Normal Deliveries",
+    verified: true,
+    domain: "2",
+  },
+  {
+    id: "deliv_assisted_vaginal",
+    label: "Assisted Vaginal Deliveries (MOH 711)",
+    dx: "Kx64gGqaFVq",
+    isIndicator: false,
+    khisName: "MOH 711 Assisted vaginal delivery",
+    verified: true,
+    domain: "2",
+  },
+  {
+    id: "deliv_breach",
+    label: "Breach Deliveries (MOH 711)",
+    dx: "sMqM8DwiAaj",
+    isIndicator: false,
+    khisName: "MOH 711 Breach Delivery",
+    verified: true,
+    domain: "2",
+  },
+  {
+    id: "deliv_caesarian",
+    label: "Caesarian Sections (MOH 711)",
+    dx: "rAZBTMa7Jy3",
+    isIndicator: false,
+    khisName: "MOH 711 Caesarian Sections",
+    verified: true,
+    domain: "2",
+  },
+  // MOH 711 PNC ≤48h numerators — used to compute Early PNC / Continuity
+  // locally (÷ total deliveries / ÷ live births) so they work at every scope
+  // (the KHIS % indicators require the same facility to report both sides).
+  {
+    id: "pnc_48h_mother_care",
+    label: "Mothers with PNC within 48h (MOH 711)",
+    dx: "qahRo2120r8",
+    isIndicator: false,
+    khisName:
+      "MOH 711 Rev 2020_Mothers receiving Postpartum Care within 48 hours",
+    verified: true,
+    domain: "2",
+  },
+  {
+    id: "pnc_48h_infant_care",
+    label: "Infants with PNC within 48h (MOH 711)",
+    dx: "wxg6cuH9cXF",
+    isIndicator: false,
+    khisName:
+      "MOH 711 Rev 2020_Infants receiving Pospartum care within 48 hours",
+    verified: true,
+    domain: "2",
+  },
   {
     id: "pnc_48h_coverage",
     label: "PNC within 48h coverage (%)",

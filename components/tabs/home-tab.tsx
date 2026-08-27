@@ -94,10 +94,11 @@ export function HomeTab({
   // -----------------------------------------------------------------------
   // Live 90:90:80:80 pillars at the CURRENT filter scope. Computed from
   // per-county KHIS fetches scoped to the partner's roster facilities
-  // (roster=1) — partner-only. % indicators (SBA, PNC, dropout) are DHIS2
-  // indicators that would be summed per facility → garbage, so they are
-  // nulled at roster scopes; ANC uses the count-based anc4/anc1 ratio and
-  // MMR/NMR/SBR use raw counts.
+  // (roster=1) — partner-only. The dropout indicator is a DHIS2 % that
+  // would be summed per facility → garbage, so it is nulled at roster
+  // scopes; ANC uses the count-based anc4/anc1 ratio, SBA uses MOH 711
+  // skilled-delivery counts ÷ ANC1 attendance, PNC uses MOH 711 PNC ≤48h
+  // counts ÷ deliveries / live births, and MMR/NMR/SBR use raw counts.
   // -----------------------------------------------------------------------
   const pillarScopes = useMemo(() => {
     if (filter.facility) {
@@ -188,7 +189,7 @@ export function HomeTab({
                 )}&partner=${encodeURIComponent(filter.partner)}`
               : `facility=${s.uid}`;
         return fetch(
-          `/api/khis?${q}&pe=${pe}&indicators=pmtct_anc1_visits,anc4_visits,anc1_4_dropout,sba_pct_live,pnc_48h_mother,pnc_48h_infant,mmr,maternal_deaths_reported,moh711_live_births,neonatal_deaths,stillbirths`,
+          `/api/khis?${q}&pe=${pe}&indicators=pmtct_anc1_visits,anc4_visits,anc1_4_dropout,deliv_normal,deliv_assisted_vaginal,deliv_breach,deliv_caesarian,pnc_48h_mother_care,pnc_48h_infant_care,mmr,maternal_deaths_reported,moh711_live_births,neonatal_deaths,stillbirths`,
         )
           .then((r) => (r.ok ? r.json() : null))
           .catch(() => null);
@@ -225,12 +226,7 @@ export function HomeTab({
         // denominator facilities legitimately exceed 100% (e.g. 121 infants
         // PNC'd for 120 births → 100.8%), so only impossible negatives are
         // rejected; the card display caps at 100%.
-        const PCT_KEYS = new Set([
-          "anc1_4_dropout",
-          "sba_pct_live",
-          "pnc_48h_mother",
-          "pnc_48h_infant",
-        ]);
+        const PCT_KEYS = new Set(["anc1_4_dropout"]);
         const isMultiOu =
           scope.kind !== "facility" && hasFacilityRoster(filter.partner);
         const ind = (key: string): number | null => {
@@ -279,11 +275,41 @@ export function HomeTab({
             ? Math.round((md / lb) * 100000 * 10) / 10
             : undefined
           : r1(ind("mmr"));
+        // SBA % — computed locally: skilled deliveries (sum of the MOH 711
+        // delivery modes) ÷ ANC1 attendance (the expected-pregnancies proxy
+        // chosen over KHIS's Estimated Deliveries, which many facilities
+        // don't report). A count/count ratio, so it sums correctly at every
+        // scope and no longer needs nulling at multi-OU scopes.
+        const sbaCount = [
+          "deliv_normal",
+          "deliv_assisted_vaginal",
+          "deliv_breach",
+          "deliv_caesarian",
+        ].reduce((acc, k) => acc + (ind(k) ?? 0), 0);
+        const sba =
+          anc1 != null && anc1 > 0 && sbaCount > 0
+            ? Math.round((sbaCount / anc1) * 1000) / 10
+            : undefined;
+        // PNC % — computed locally from MOH 711 counts (count/count, so it
+        // sums correctly at every scope): Early PNC = mothers with PNC ≤48h
+        // ÷ total deliveries (the 4 delivery modes); Continuity = infants
+        // with PNC ≤48h ÷ live births. Matches the KHIS % indicators exactly
+        // (verified: Meru TRH 484/484 = 100.0, 484/480 = 100.83).
+        const pncMothers = ind("pnc_48h_mother_care");
+        const pncInfants = ind("pnc_48h_infant_care");
+        const pncM =
+          pncMothers != null && sbaCount > 0
+            ? Math.round((pncMothers / sbaCount) * 1000) / 10
+            : undefined;
+        const pncI =
+          pncInfants != null && lb != null && lb > 0
+            ? Math.round((pncInfants / lb) * 1000) / 10
+            : undefined;
         map[name] = {
           anc: anc != null ? Math.round(anc * 10) / 10 : undefined,
-          sba: r1(ind("sba_pct_live")),
-          pncM: r1(ind("pnc_48h_mother")),
-          pncI: r1(ind("pnc_48h_infant")),
+          sba,
+          pncM,
+          pncI,
           mmr: mmrLive,
           nmr,
           sbr,
@@ -2034,7 +2060,7 @@ export function HomeTab({
               note="live KHIS % per pillar where reported · displayed value clamped at 100"
               detail={{
                 formula:
-                  "ANC coverage = 100 − ANC1→4 dropout rate (or ANC4 ÷ ANC1 × 100 when dropout is unreported) · SBA / PNC = KHIS % per county, averaged across the reported counties",
+                  "ANC coverage = 100 − ANC1→4 dropout rate (or ANC4 ÷ ANC1 × 100 when dropout is unreported) · SBA = MOH 711 skilled deliveries ÷ ANC1 attendance (× 100) · Early PNC = mothers with PNC ≤48h ÷ total deliveries (× 100) · Continuity = infants with PNC ≤48h ÷ live births (× 100)",
                 inputs: pillarScopeLabels.flatMap<ViewInput>((c) => {
                   const r = pillarByCounty?.[c];
                   if (!r)
@@ -2075,6 +2101,7 @@ export function HomeTab({
                 notes: [
                   "Percentages are averaged across counties — summing facility-level % across a roster would exceed 100 and be meaningless.",
                   "KHIS occasionally reports >100% (e.g. Turkana PNC 103.76) — the bar is clamped to 100 and flagged with *.",
+                  "SBA uses ANC1 attendance as the denominator — where a facility reports more deliveries than ANC1 clients the % exceeds 100 and is clamped (e.g. Meru TRH 417).",
                   `Scope: ${scopeLabel} · ${peLabel}.`,
                 ],
               }}
@@ -2147,8 +2174,8 @@ export function HomeTab({
                 </p>
                 {current != null && current > 100 && (
                   <p className="text-[10px] mt-1 text-amber-600">
-                    * KHIS reports &gt;100% — likely double-counted visits
-                    (clamped to 100)
+                    * &gt;100% — double-counted visits or under-reported
+                    denominator (clamped to 100)
                   </p>
                 )}
                 {liveVal != null && (

@@ -487,13 +487,9 @@ function CoverageSection() {
   const [coverageScope, setCoverageScope] = useState<string | null>(null);
 
   // Percentage indicators — nulled whenever a multi-facility scope would sum
-  // them into garbage (same treatment as the Home page).
-  const PCT_KEYS = new Set([
-    "anc1_4_dropout",
-    "sba_pct_live",
-    "pnc_48h_mother",
-    "pnc_48h_infant",
-  ]);
+  // them into garbage (same treatment as the Home page). SBA and PNC are
+  // computed from MOH 711 counts, so only the dropout indicator remains.
+  const PCT_KEYS = new Set(["anc1_4_dropout"]);
 
   useEffect(() => {
     let cancelled = false;
@@ -514,7 +510,7 @@ function CoverageSection() {
                 filter.partner,
               )}&roster=1`;
         return fetch(
-          `/api/khis?${q}&pe=${pe}&indicators=pmtct_anc1_visits,anc4_visits,anc1_4_dropout,sba_pct_live,pnc_48h_mother,pnc_48h_infant,kmc,chlorhexidine,stillbirths,mmr,maternal_deaths_reported,moh711_live_births`,
+          `/api/khis?${q}&pe=${pe}&indicators=pmtct_anc1_visits,anc4_visits,anc1_4_dropout,deliv_normal,deliv_assisted_vaginal,deliv_breach,deliv_caesarian,pnc_48h_mother_care,pnc_48h_infant_care,kmc,chlorhexidine,stillbirths,mmr,maternal_deaths_reported,moh711_live_births`,
         )
           .then((r) => (r.ok ? r.json() : null))
           .catch(() => null);
@@ -567,11 +563,36 @@ function CoverageSection() {
             ? Math.round((md / lb) * 100000 * 10) / 10
             : undefined
           : r1(ind("mmr"));
+        // SBA % — computed locally: skilled deliveries (MOH 711 modes) ÷ ANC1
+        // attendance (count/count, so it sums correctly at every scope).
+        const sbaCount = [
+          "deliv_normal",
+          "deliv_assisted_vaginal",
+          "deliv_breach",
+          "deliv_caesarian",
+        ].reduce((acc, k) => acc + (ind(k) ?? 0), 0);
+        const sba =
+          anc1 != null && anc1 > 0 && sbaCount > 0
+            ? Math.round((sbaCount / anc1) * 1000) / 10
+            : undefined;
+        // PNC % — computed locally from MOH 711 counts (same rationale as
+        // SBA): Early PNC = mothers with PNC ≤48h ÷ total deliveries;
+        // Continuity = infants with PNC ≤48h ÷ live births.
+        const pncMothers = ind("pnc_48h_mother_care");
+        const pncInfants = ind("pnc_48h_infant_care");
+        const pnc =
+          pncMothers != null && sbaCount > 0
+            ? Math.round((pncMothers / sbaCount) * 1000) / 10
+            : undefined;
+        const pncInfant =
+          pncInfants != null && lb != null && lb > 0
+            ? Math.round((pncInfants / lb) * 1000) / 10
+            : undefined;
         map[name] = {
           anc4Pct,
-          sba: r1(ind("sba_pct_live")),
-          pnc: r1(ind("pnc_48h_mother")),
-          pncInfant: r1(ind("pnc_48h_infant")),
+          sba,
+          pnc,
+          pncInfant,
           kmc: ind("kmc") ?? undefined,
           chlorhexidine: ind("chlorhexidine") ?? undefined,
           stillbirths: ind("stillbirths") ?? undefined,
@@ -791,7 +812,7 @@ function CoverageSection() {
               note={`${liveSub} · % of eligible women (county-level average)`}
               detail={{
                 formula:
-                  "ANC4 % = women with 4+ ANC visits ÷ expected pregnancies × 100 · SBA % = skilled deliveries ÷ deliveries × 100 · PNC % = mothers with PNC ≤48h ÷ deliveries × 100",
+                  "ANC4 % = women with 4+ ANC visits ÷ expected pregnancies × 100 · SBA % = skilled deliveries ÷ ANC1 attendance × 100 · PNC % = mothers with PNC ≤48h ÷ total deliveries × 100 · Continuity % = infants with PNC ≤48h ÷ live births × 100",
                 inputs: counties.flatMap((name) => {
                   const c = coverage?.[name];
                   return [
