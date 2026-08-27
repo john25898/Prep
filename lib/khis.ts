@@ -14,8 +14,8 @@
 export const KHIS_BASE_URL =
   process.env.KHIS_BASE_URL ?? "https://hiskenya.dha.go.ke/api";
 
-const KHIS_USERNAME = process.env.KHIS_USERNAME ?? "rgngumo";
-const KHIS_PASSWORD = process.env.KHIS_PASSWORD ?? "Advisorychs123!";
+const KHIS_USERNAME = process.env.KHIS_USERNAME ?? "Tom Hastings";
+const KHIS_PASSWORD = process.env.KHIS_PASSWORD ?? "N3sh!8112";
 
 export interface KhisRow {
   dx: string;
