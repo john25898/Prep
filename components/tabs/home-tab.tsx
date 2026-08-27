@@ -215,20 +215,22 @@ export function HomeTab({
         const scope = pillarScopes[i];
         const name = scope?.label;
         if (!name || !res?.indicators) return;
-        // Percentage indicators must be 0–100 at county level; MMR is a ratio
-        // per 100,000 and the mortality/stillbirth inputs are raw COUNTS that
-        // can exceed 100 — only guard actual percentages. At sub-county scope
-        // (multi-facility roster) % indicators and the MMR ratio are summed
-        // and meaningless — only raw counts feed the derived rates.
+        // PCT_KEYS are KHIS % indicators. At multi-OU roster scopes
+        // (county-with-roster=1 and sub-county) per-facility indicator values
+        // are summed → garbage for % elements (e.g. SBA summed to 1,512%),
+        // so they are nulled and only raw counts feed the derived rates.
+        // MMR is the same (a per-100,000 ratio summed across facilities).
+        // At SINGLE-OU scope (one facility, or a whole county) the KHIS
+        // indicator value is that org unit's own genuine value — small-
+        // denominator facilities legitimately exceed 100% (e.g. 121 infants
+        // PNC'd for 120 births → 100.8%), so only impossible negatives are
+        // rejected; the card display caps at 100%.
         const PCT_KEYS = new Set([
           "anc1_4_dropout",
           "sba_pct_live",
           "pnc_48h_mother",
           "pnc_48h_infant",
         ]);
-        // Roster scopes (county-with-roster=1 and sub-county) sum per-facility
-        // indicator values → garbage for % elements; only raw counts are
-        // summed. Single-facility scope keeps the facility's own values.
         const isMultiOu =
           scope.kind !== "facility" && hasFacilityRoster(filter.partner);
         const ind = (key: string): number | null => {
@@ -238,7 +240,8 @@ export function HomeTab({
           const v = found?.value ?? null;
           if (v == null) return null;
           if (isMultiOu && (PCT_KEYS.has(key) || key === "mmr")) return null;
-          return PCT_KEYS.has(key) && (v < 0 || v > 100) ? null : v;
+          if (PCT_KEYS.has(key) && v < 0) return null;
+          return v;
         };
         const r1 = (v: number | null) =>
           v != null ? Math.round(v * 10) / 10 : undefined;

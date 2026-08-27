@@ -529,7 +529,10 @@ function CoverageSection() {
         // (county + roster=1, sub-county, partner roster) % indicators and the
         // MMR ratio are summed per facility → meaningless — only raw counts
         // are kept and ANC / MMR are derived from counts instead (same
-        // treatment as the Home page's Results & Impact card).
+        // treatment as the Home page's Results & Impact card). At single-OU
+        // scope (one facility) the KHIS indicator is the facility's own value
+        // and can legitimately exceed 100% (small denominators) — only reject
+        // impossible negatives; the display caps at 100%.
         const isMultiOu = !filter.facility && hasFacilityRoster(filter.partner);
         const ind = (key: string): number | null => {
           const found = res.indicators.find(
@@ -538,7 +541,8 @@ function CoverageSection() {
           const v = found?.value ?? null;
           if (v == null) return null;
           if (isMultiOu && (PCT_KEYS.has(key) || key === "mmr")) return null;
-          return PCT_KEYS.has(key) && (v < 0 || v > 100) ? null : v;
+          if (PCT_KEYS.has(key) && v < 0) return null;
+          return v;
         };
         const r1 = (v: number | null) =>
           v != null ? Math.round(v * 10) / 10 : undefined;
