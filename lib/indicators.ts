@@ -463,15 +463,6 @@ export const KHIS_INDICATORS: KhisIndicator[] = [
     domain: "1",
   },
   {
-    id: "pmtct_anc_retest",
-    label: "HIV Retested at ANC (MOH 731-2 Retest at ANC)",
-    dx: "mA13hGdhvJg",
-    isIndicator: false,
-    khisName: "MOH 731_EMTCT_Tested at ANC_Retest_HV02-03",
-    verified: true,
-    domain: "1",
-  },
-  {
     id: "pmtct_new_positive",
     label: "Newly HIV+ at ANC (MOH 731-2 Positive Results ANC)",
     dx: "gmaBILMqfJ8",

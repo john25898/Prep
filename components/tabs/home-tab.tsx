@@ -733,7 +733,6 @@ export function HomeTab({
           facsOf(county).map((f) => {
             const anc1 = f.values["pmtct_anc1_visits"] ?? null;
             const tested = f.values["pmtct_initial_test"] ?? null;
-            const retest = f.values["pmtct_anc_retest"] ?? null;
             const kp = f.values["pmtct_anc1_known_pos"] ?? null;
             const newPos = f.values["pmtct_new_positive"] ?? null;
             const need =
@@ -750,7 +749,6 @@ export function HomeTab({
               "1st ANC visits": anc1,
               "Tested at 1st ANC": tested,
               "Tested %": pct(tested, anc1),
-              "Retested at ANC": retest,
               "PMTCT need": need,
               "On ART": art,
               "ART %": pct(art, need),
@@ -1060,7 +1058,6 @@ export function HomeTab({
   const VTP_KHIS_DX = [
     "pmtct_anc1_visits", // bar 1 den (ATT% = anc4/anc1) & bar 2 den
     "pmtct_initial_test", // bar 2 num — ANC initial test for PBFW
-    "pmtct_anc_retest", // ANC retest (MOH 731-2 HV02-03)
     "pmtct_anc1_known_pos", // need component — KP at 1st ANC
     "pmtct_new_positive", // need component — newly HIV+ at ANC
     "pmtct_anc1_on_haart", // ART component — on HAART at 1st ANC
@@ -1310,7 +1307,6 @@ export function HomeTab({
         const DOMAIN_DX = new Set([
           "f9vesk5d4IY", // pmtct_anc1_visits (MOH 711 New ANC clients)
           "JNjdyMxJbrR", // pmtct_initial_test (MOH 731-2 HV02-02)
-          "mA13hGdhvJg", // pmtct_anc_retest (MOH 731-2 HV02-03)
           "e9YgXAmC0qf", // pmtct_anc1_known_pos (need comp, HV02-01)
           "gmaBILMqfJ8", // pmtct_new_positive (need comp, HV02-10)
           "O9Wyf1FMHcM", // pmtct_anc1_on_haart (ART comp, HV02-14)
@@ -1350,7 +1346,6 @@ export function HomeTab({
         const VTP_DX = new Set([
           "f9vesk5d4IY", // pmtct_anc1_visits — bar 1 den / bar 2 den
           "JNjdyMxJbrR", // pmtct_initial_test — bar 2 num (HV02-02)
-          "mA13hGdhvJg", // pmtct_anc_retest — ANC retest (HV02-03)
           "e9YgXAmC0qf", // pmtct_anc1_known_pos — need comp (HV02-01)
           "gmaBILMqfJ8", // pmtct_new_positive — need comp (HV02-10)
           "O9Wyf1FMHcM", // pmtct_anc1_on_haart — ART comp (HV02-14)
@@ -1587,7 +1582,6 @@ export function HomeTab({
               const v = f.values;
               const anc1 = v["pmtct_anc1_visits"] ?? null;
               const tested = v["pmtct_initial_test"] ?? null;
-              const retest = v["pmtct_anc_retest"] ?? null;
               const kp = v["pmtct_anc1_known_pos"] ?? null;
               const newPos = v["pmtct_new_positive"] ?? null;
               const need =
@@ -1609,7 +1603,6 @@ export function HomeTab({
                 "1st ANC visits": anc1,
                 "Tested at 1st ANC": tested,
                 "Tested %": pct(tested, anc1),
-                "Retested at ANC": retest,
                 "4th ANC visits": anc4,
                 "8th ANC contacts": anc8,
                 "PMTCT need": need,
@@ -1655,7 +1648,7 @@ export function HomeTab({
             notes: [
               "Only facilities that reported at least one of these elements appear — a facility missing from a column simply didn't report that element this month.",
               "Tested % = tested at 1st ANC ÷ 1st ANC visits · ART % = on ART ÷ PMTCT need · Outcome 18–24m % = HEI AB−18m ÷ cohort 24m.",
-              "Testing & ART elements are MOH 731-2 EMTCT Rev 2023 (HV02-01..15): KP at 1st ANC, ANC initial/retest test, newly HIV+ at ANC, on HAART at 1st ANC, started HAART at ANC.",
+              "Testing & ART elements are MOH 731-2 EMTCT Rev 2023 (HV02-01..15): KP at 1st ANC, ANC initial test, newly HIV+ at ANC, on HAART at 1st ANC, started HAART at ANC.",
               "1st ANC visits now use the MOH 711 'New ANC clients' element; 8th ANC contacts use the MOH 711 Rev 2020 element — both match the facility's ANC register tallies.",
             ],
           },
