@@ -45,7 +45,12 @@ import {
   PARTNER_FACILITIES,
   hasFacilityRoster,
 } from "@/lib/partners";
-import { ViewDataButton, type ViewInput } from "@/components/view-data";
+import {
+  ViewDataButton,
+  type DataRow,
+  type ViewInput,
+} from "@/components/view-data";
+import { assessmentScore } from "@/lib/assessment";
 import {
   BAR_SERIES,
   CADENCE,
@@ -377,6 +382,7 @@ export function HomeTab({
     d2?: number; // Coverage — PNC within 48h (KHIS %)
     d4?: number; // MPDSR — % of reported deaths audited
     d5?: number; // Data systems — % of scoped facilities reporting
+    d5Raw?: { reporting: number; ouCount: number }; // raw d5 ingredients
     testedPct?: number; // HIV testing coverage for PBFW
     artPct?: number; // ART initiation for HIV+ PBFW
   }
@@ -463,6 +469,10 @@ export function HomeTab({
           s.d5 = Math.round(
             clampPct((reportingRow.facilities / res.ouCount) * 100),
           );
+          s.d5Raw = {
+            reporting: reportingRow.facilities,
+            ouCount: res.ouCount,
+          };
         }
         map[id] = s;
       });
@@ -484,6 +494,15 @@ export function HomeTab({
     string,
     LiveDomainScores
   > | null>(null);
+
+  // Per county: the raw KHIS values that feed the 5 domain scores, per
+  // facility — e.g. pmtct_anc1_visits & pmtct_initial_test per facility for
+  // the PMTCT/VTP QoC card, so the user can validate the tallies behind each
+  // domain average. Rides the same VTP fetch (byFacilityDetail=1) — no extra
+  // KHIS round-trip. Values keyed by indicator id (dx mapped to id).
+  const [domainFacilitiesByCounty, setDomainFacilitiesByCounty] = useState<
+    Record<string, { name: string; values: Record<string, number> }[]>
+  >({});
 
   // Domain 3 readiness per partner — computed live from entered assessments
   // scoped to the partner's counties.
@@ -562,6 +581,302 @@ export function HomeTab({
       }),
     [rows],
   );
+
+  // -----------------------------------------------------------------------
+  // View Data payloads for the 5 aggregate domain cards and the Partner ×
+  // Domain matrix: the individual tallies behind each average, per facility
+  // where KHIS returned them (pmtct_initial_test, pmtct_anc1_visits, …),
+  // otherwise per partner / per assessment. Nothing fabricated — values are
+  // the same ones feeding the scores on screen.
+  // -----------------------------------------------------------------------
+  const domainViewData = useMemo(() => {
+    const pct = (
+      num: number | null | undefined,
+      den: number | null | undefined,
+    ): number | null => {
+      if (num == null || den == null || den <= 0) return null;
+      return Math.round((num / den) * 1000) / 10;
+    };
+    const activePartners = rows.filter((r) => !r.pending);
+    const lv = (id: string) => liveByPartner[id] ?? {};
+
+    // d1 — PMTCT/VTP QoC: per-facility testing & ART tallies.
+    const d1Rows: DataRow[] = Object.entries(domainFacilitiesByCounty)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .flatMap(([county, facs]) =>
+        [...facs]
+          .sort((a, b) => a.name.localeCompare(b.name))
+          .map((f) => {
+            const anc1 = f.values["pmtct_anc1_visits"] ?? null;
+            const tested = f.values["pmtct_initial_test"] ?? null;
+            const need = f.values["pmtct_need"] ?? null;
+            const art = f.values["pmtct_art"] ?? null;
+            return {
+              County: county,
+              Facility: f.name,
+              "1st ANC visits": anc1,
+              "Tested at 1st ANC": tested,
+              "Tested %": pct(tested, anc1),
+              "PMTCT need": need,
+              "On ART": art,
+              "ART %": pct(art, need),
+            };
+          }),
+      );
+    const d1Inputs: ViewInput[] = activePartners.flatMap((r) => {
+      const l = lv(r.partner.id);
+      const out: ViewInput[] = [];
+      if (l.testedPct != null)
+        out.push({
+          label: `${r.partner.name} — testing coverage (tested ÷ 1st ANC)`,
+          value: `${l.testedPct}%`,
+          source: "live",
+        });
+      if (l.artPct != null)
+        out.push({
+          label: `${r.partner.name} — ART initiation (ART ÷ need)`,
+          value: `${l.artPct}%`,
+          source: "live",
+        });
+      if (r.domains[0] != null)
+        out.push({
+          label: `${r.partner.name} — d1 score (average of the two)`,
+          value: `${r.domains[0].toFixed(1)}%`,
+          source: "live",
+        });
+      return out;
+    });
+
+    // d2 — Coverage: per-facility PNC within 48h (mother %).
+    const d2Rows: DataRow[] = Object.entries(domainFacilitiesByCounty)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .flatMap(([county, facs]) =>
+        [...facs]
+          .sort((a, b) => a.name.localeCompare(b.name))
+          .map((f) => ({
+            County: county,
+            Facility: f.name,
+            "PNC within 48h — mother %": f.values["pnc_48h_mother"] ?? null,
+          })),
+      )
+      .filter((r) => r["PNC within 48h — mother %"] != null);
+    const d2Inputs: ViewInput[] = activePartners.flatMap((r) => {
+      const l = lv(r.partner.id);
+      const out: ViewInput[] = [];
+      if (l.d2 != null)
+        out.push({
+          label: `${r.partner.name} — d2 score (PNC 48h %)`,
+          value: `${l.d2.toFixed(1)}%`,
+          source: "live",
+        });
+      return out;
+    });
+
+    // d3 — Readiness: every entered assessment (score + scope).
+    const d3Rows: DataRow[] = [...allAssessments]
+      .sort(
+        (a, b) =>
+          a.county.localeCompare(b.county) ||
+          a.facilityName.localeCompare(b.facilityName),
+      )
+      .map((a) => {
+        const s = assessmentScore(a);
+        return {
+          County: a.county,
+          Facility: a.facilityName,
+          "Assessment date": a.date,
+          Type: a.assessmentType,
+          "Items answered": s.answered,
+          "Readiness %": Math.round(s.percentage * 10) / 10,
+        };
+      });
+    const d3Inputs: ViewInput[] = activePartners.flatMap((r) => {
+      const d3 = readinessByPartner[r.partner.id];
+      if (d3.avg == null) return [];
+      return [
+        {
+          label: `${r.partner.name} — readiness (${d3.count} assessment${d3.count === 1 ? "" : "s"})`,
+          value: `${d3.avg.toFixed(1)}%`,
+          source: "registry",
+        },
+      ];
+    });
+
+    // d4 — MPDSR: per-facility deaths reported & audited.
+    const d4Rows: DataRow[] = Object.entries(domainFacilitiesByCounty)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .flatMap(([county, facs]) =>
+        [...facs]
+          .sort((a, b) => a.name.localeCompare(b.name))
+          .map((f) => {
+            const matRep = f.values["maternal_deaths_reported"] ?? null;
+            const matAud = f.values["maternal_deaths_audited"] ?? null;
+            const neoRep = f.values["neonatal_deaths"] ?? null;
+            const neoAud = f.values["neonatal_deaths_audited"] ?? null;
+            return {
+              County: county,
+              Facility: f.name,
+              "Maternal deaths reported": matRep,
+              "Maternal deaths audited": matAud,
+              "Neonatal deaths reported": neoRep,
+              "Neonatal deaths audited": neoAud,
+              "Audit %": pct(
+                (matAud ?? 0) + (neoAud ?? 0),
+                (matRep ?? 0) + (neoRep ?? 0),
+              ),
+            };
+          }),
+      )
+      .filter(
+        (r) =>
+          r["Maternal deaths reported"] != null ||
+          r["Neonatal deaths reported"] != null,
+      );
+    const d4Inputs: ViewInput[] = activePartners.flatMap((r) => {
+      const l = lv(r.partner.id);
+      const out: ViewInput[] = [];
+      if (l.d4 != null)
+        out.push({
+          label: `${r.partner.name} — d4 score (avg audit %)`,
+          value: `${l.d4.toFixed(1)}%`,
+          source: "live",
+        });
+      return out;
+    });
+
+    // d5 — Data systems: per partner, facilities reporting ÷ in scope.
+    const d5Rows: DataRow[] = activePartners.map((r) => {
+      const raw = lv(r.partner.id).d5Raw;
+      return {
+        Partner: r.partner.name,
+        "Facilities reporting (MOH 731)": raw?.reporting ?? null,
+        "Facilities in scope": raw?.ouCount ?? null,
+        "Reporting %":
+          raw && raw.ouCount > 0
+            ? Math.round((raw.reporting / raw.ouCount) * 1000) / 10
+            : null,
+      };
+    });
+    const d5Inputs: ViewInput[] = activePartners.flatMap((r) => {
+      const raw = lv(r.partner.id).d5Raw;
+      if (!raw || raw.ouCount <= 0) return [];
+      return [
+        {
+          label: `${r.partner.name} — reporting (${raw.reporting} ÷ ${raw.ouCount} facilities)`,
+          value: `${Math.round((raw.reporting / raw.ouCount) * 1000) / 10}%`,
+          source: "live",
+        },
+      ];
+    });
+
+    return [
+      {
+        title: "PMTCT/VTP Quality of Care (d1) — tallied data",
+        note: "per facility — testing & ART tallies behind the card",
+        data: d1Rows,
+        detail: {
+          formula:
+            "Tested % = pmtct_initial_test ÷ pmtct_anc1_visits × 100; ART % = pmtct_art ÷ pmtct_need × 100; d1 = average of both (each clamped 0–100)",
+          inputs: d1Inputs,
+          notes: [
+            "Facility rows come from the per-county KHIS fetch (byFacilityDetail) — no extra requests.",
+            "Blank cells mean that facility reported no value for the indicator this period.",
+          ],
+        },
+      },
+      {
+        title: "Coverage 90:90:80:80 (d2) — tallied data",
+        note: "per facility — PNC within 48h (mother %)",
+        data: d2Rows,
+        detail: {
+          formula:
+            "d2 = PNC within 48h coverage (KHIS %) — trusted only when the scoped rollup is a genuine 0–100 value",
+          inputs: d2Inputs,
+          notes: [
+            "Only facilities reporting a PNC-within-48h value are listed.",
+            "Roster-scope sums of per-facility % are meaningless — the score uses county-level values.",
+          ],
+        },
+      },
+      {
+        title: "Readiness & Safe Systems (d3) — tallied data",
+        note: "per entered facility assessment",
+        data: d3Rows,
+        detail: {
+          formula:
+            "per assessment: Yes = 2 pts, Partial = 1, No = 0, N/A excluded; % = points ÷ (2 × answered). d3 = mean across the partner's assessments",
+          inputs: d3Inputs,
+          notes: [
+            "Readiness is computed live from entered assessments — never from KHIS.",
+            "Assessments outside the current scope are excluded from the average but listed here for reference.",
+          ],
+        },
+      },
+      {
+        title: "MPDSR & Accountability (d4) — tallied data",
+        note: "per facility — deaths reported & audited",
+        data: d4Rows,
+        detail: {
+          formula:
+            "Audit % = (maternal audited + neonatal audited) ÷ (reported + reported) × 100; d4 = average of maternal & neonatal audit %",
+          inputs: d4Inputs,
+          notes: [
+            "Only facilities reporting any death this period are listed.",
+            "d4 uses county-level values when available; the partner roster value is the fallback.",
+          ],
+        },
+      },
+      {
+        title: "Data Systems (d5) — tallied data",
+        note: "per partner — facilities reporting ÷ in scope",
+        data: d5Rows,
+        detail: {
+          formula:
+            "d5 = facilities reporting MOH 731 (pmtct_anc1_visits) ÷ roster facilities × 100",
+          inputs: d5Inputs,
+          notes: [
+            "Roster facilities = the partner's facility list in scope for the selected period.",
+            "No KHIS reporting row this period → blank (not reported), never a fake baseline.",
+          ],
+        },
+      },
+    ];
+  }, [
+    rows,
+    allAssessments,
+    readinessByPartner,
+    liveByPartner,
+    domainFacilitiesByCounty,
+  ]);
+
+  // Partner × Domain matrix — same tallies, one row per partner.
+  const matrixViewData = useMemo(() => {
+    const data: DataRow[] = rows.map((r) => {
+      const row: DataRow = { Partner: r.partner.name };
+      DOMAIN_COLUMNS.forEach((col, idx) => {
+        const v = r.pending ? 0 : r.domains[idx];
+        row[col.label] =
+          v === null || v === undefined ? null : `${Math.round(v * 10) / 10}%`;
+      });
+      row["Overall"] =
+        r.overall == null ? null : `${Math.round(r.overall * 10) / 10}%`;
+      return row;
+    });
+    return {
+      title: "Partner Scores by Domain — tallied data",
+      note: "one row per partner — the matrix as shown",
+      data,
+      detail: {
+        formula:
+          "d1 = avg(testing %, ART %) · d2 = PNC 48h · d3 = readiness mean · d4 = avg audit % · d5 = reporting %. Overall = mean of available domains.",
+        inputs: domainViewData.flatMap((d) => d.detail.inputs),
+        notes: [
+          "Nuru Ya Mtoto shows 0.0% — no facility list loaded yet (pending).",
+          "Domains with no KHIS value this period show blank (—); no baseline constants are displayed.",
+        ],
+      },
+    };
+  }, [rows, domainViewData]);
 
   const overallChartData = useMemo(
     () =>
@@ -759,6 +1074,10 @@ export function HomeTab({
         string,
         { name: string; values: Record<string, number> }[]
       > = {};
+      const domainMap: Record<
+        string,
+        { name: string; values: Record<string, number> }[]
+      > = {};
       const pct = (num: number | null, den: number | null): number | null => {
         if (num == null || den == null || den <= 0) return null;
         return Math.max(0, Math.min(100, Math.round((num / den) * 1000) / 10));
@@ -880,12 +1199,49 @@ export function HomeTab({
           anc4Att: anc4,
           anc8Att: ind("anc8_visits"),
         };
+        // Raw values feeding the 5 domain scores, per facility — so the
+        // domain cards/matrix can show the individual tallies behind each
+        // average (e.g. pmtct_initial_test & pmtct_anc1_visits per facility
+        // for PMTCT/VTP QoC). Keyed by indicator id for friendly labels.
+        const DOMAIN_DX = new Set([
+          "uSxBUWnagGg", // pmtct_anc1_visits
+          "ETX9cUWF43c", // pmtct_initial_test
+          "XBaEY6d5bzt", // pmtct_need
+          "FGATEY1l3k4", // pmtct_art
+          "KXOpQO6bxoU", // pnc_48h_mother
+          "RIvynmrUFRZ", // maternal_deaths_reported
+          "sEmbbCR882p", // maternal_deaths_audited
+          "GAr6xu6f1n7", // neonatal_deaths
+          "tHRlLvvCObn", // neonatal_deaths_audited
+        ]);
+        domainMap[county] = (res.facilityDetail ?? [])
+          .map(
+            (f: {
+              name: string;
+              values: Record<string, number>;
+            }): {
+              name: string;
+              values: Record<string, number>;
+            } => ({
+              name: f.name,
+              values: Object.fromEntries(
+                Object.entries(f.values)
+                  .filter(([dx]) => DOMAIN_DX.has(dx))
+                  .map(([dx, v]) => [dxToId.get(dx) ?? dx, v]),
+              ) as Record<string, number>,
+            }),
+          )
+          .filter(
+            (f: { name: string; values: Record<string, number> }) =>
+              Object.keys(f.values).length > 0,
+          );
       }
       if (!cancelled) {
         setVtpLiveByCounty(map);
         setCountyDomains(domMap);
         setHeiFacilitiesByCounty(heiMap);
         setAncKhisByCounty(ancMap);
+        setDomainFacilitiesByCounty(domainMap);
       }
     });
     return () => {
@@ -1762,6 +2118,7 @@ export function HomeTab({
         {DOMAIN_COLUMNS.map((col, idx) => {
           const avg = columnAverages[idx];
           const tone = scoreTone(avg);
+          const view = domainViewData[idx];
           return (
             <div
               key={col.key}
@@ -1778,6 +2135,14 @@ export function HomeTab({
                 All {rows.filter((r) => !r.pending).length} active partners ·
                 average of partner scores
               </p>
+              <div className="mt-3">
+                <ViewDataButton
+                  title={view.title}
+                  data={view.data}
+                  note={view.note}
+                  detail={view.detail}
+                />
+              </div>
             </div>
           );
         })}
@@ -1785,15 +2150,23 @@ export function HomeTab({
 
       {/* Partner × Domain matrix */}
       <div className="bg-white rounded-lg border border-slate-200 overflow-hidden">
-        <div className="px-6 pt-6 pb-3">
-          <h3 className="text-lg font-semibold text-gray-900">
-            Partner Scores by Domain
-          </h3>
-          <p className="text-sm text-gray-500 mt-1">
-            Green ≥ 80% (on track) · Amber 60–79% (needs attention) · Red &lt;
-            60% (off track) · Gray — no data. Amber “Pending” rows default to 0
-            until their facility list is loaded.
-          </p>
+        <div className="px-6 pt-6 pb-3 flex items-start justify-between gap-3 flex-wrap">
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900">
+              Partner Scores by Domain
+            </h3>
+            <p className="text-sm text-gray-500 mt-1">
+              Green ≥ 80% (on track) · Amber 60–79% (needs attention) · Red &lt;
+              60% (off track) · Gray — no data. Amber “Pending” rows default to
+              0 until their facility list is loaded.
+            </p>
+          </div>
+          <ViewDataButton
+            title={matrixViewData.title}
+            data={matrixViewData.data}
+            note={matrixViewData.note}
+            detail={matrixViewData.detail}
+          />
         </div>
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-slate-200">
