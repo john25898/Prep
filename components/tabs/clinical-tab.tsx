@@ -169,6 +169,7 @@ const Subtab2A = ({
     county: countyScope,
     subCounty: subCountyScope,
     facility: facilityUid,
+    roster: true,
     indicators: [
       "pmtct_anc1_visits",
       "pmtct_initial_test",
@@ -184,6 +185,7 @@ const Subtab2A = ({
     county: countyScope,
     subCounty: subCountyScope,
     facility: facilityUid,
+    roster: true,
     indicators: ["pmtct_anc1_visits"],
     byCounty: true,
   });
@@ -193,6 +195,7 @@ const Subtab2A = ({
     county: countyScope,
     subCounty: subCountyScope,
     facility: facilityUid,
+    roster: true,
     indicators: ["pmtct_initial_test"],
     byCounty: true,
   });
@@ -202,6 +205,7 @@ const Subtab2A = ({
     county: countyScope,
     subCounty: subCountyScope,
     facility: facilityUid,
+    roster: true,
     indicators: ["pmtct_new_positive"],
     byCounty: true,
   });
@@ -211,6 +215,7 @@ const Subtab2A = ({
     county: countyScope,
     subCounty: subCountyScope,
     facility: facilityUid,
+    roster: true,
     indicators: ["pmtct_anc1_known_pos"],
     byCounty: true,
   });
@@ -861,6 +866,7 @@ const Subtab2B = ({
     county: countyScope,
     subCounty: subCountyScope,
     facility: facilityUid,
+    roster: true,
     indicators: [
       "pmtct_anc1_visits",
       "pmtct_initial_test",

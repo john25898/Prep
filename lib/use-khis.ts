@@ -38,6 +38,7 @@ export interface UseKhisOptions {
   county?: string;
   subCounty?: string;
   facility?: string;
+  roster?: boolean;
   byFacility?: boolean;
   byCounty?: boolean;
   byPeriod?: boolean;
@@ -68,6 +69,7 @@ export function useKhis(opts: UseKhisOptions = {}) {
     if (opts.county) q.set("county", opts.county);
     if (opts.subCounty) q.set("subcounty", opts.subCounty);
     if (opts.facility) q.set("facility", opts.facility);
+    if (opts.roster) q.set("roster", "1");
     if (opts.byFacility) q.set("byFacility", "1");
     if (opts.byCounty) q.set("byCounty", "1");
     if (opts.byPeriod) q.set("byPeriod", "1");
@@ -94,6 +96,7 @@ export function useKhis(opts: UseKhisOptions = {}) {
     opts.county,
     opts.subCounty,
     opts.facility,
+    opts.roster,
     indicatorsKey,
     opts.byFacility,
     opts.byCounty,
