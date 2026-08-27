@@ -22,7 +22,11 @@ import { useAssessments } from "@/lib/use-assessments";
 import { useGeoFilter } from "@/lib/geo-filter-context";
 import { useKhis } from "@/lib/use-khis";
 import { getPartner } from "@/lib/geo";
-import { PARTNER_COUNTIES, PARTNER_FACILITIES } from "@/lib/partners";
+import {
+  PARTNER_COUNTIES,
+  PARTNER_FACILITIES,
+  hasFacilityRoster,
+} from "@/lib/partners";
 import { AssessmentTab } from "@/components/tabs/assessment-tab";
 import { MortalityTab } from "@/components/tabs/mortality-tab";
 import { ClinicalTab } from "@/components/tabs/clinical-tab";
@@ -450,6 +454,8 @@ interface CountyCoverageLive {
   chlorhexidine?: number;
   stillbirths?: number;
   mmr?: number;
+  md?: number;
+  lb?: number;
 }
 
 function CoverageSection() {
@@ -478,6 +484,16 @@ function CoverageSection() {
     CountyCoverageLive
   > | null>(null);
   const [coverageLoading, setCoverageLoading] = useState(true);
+  const [coverageScope, setCoverageScope] = useState<string | null>(null);
+
+  // Percentage indicators — nulled whenever a multi-facility scope would sum
+  // them into garbage (same treatment as the Home page).
+  const PCT_KEYS = new Set([
+    "anc1_4_dropout",
+    "sba_pct_live",
+    "pnc_48h_mother",
+    "pnc_48h_infant",
+  ]);
 
   useEffect(() => {
     let cancelled = false;
@@ -494,9 +510,11 @@ function CoverageSection() {
             ? `subcounty=${encodeURIComponent(c)}&partner=${encodeURIComponent(
                 filter.partner,
               )}`
-            : `county=${encodeURIComponent(c)}`;
+            : `county=${encodeURIComponent(c)}&partner=${encodeURIComponent(
+                filter.partner,
+              )}&roster=1`;
         return fetch(
-          `/api/khis?${q}&pe=${pe}&indicators=anc4_visits,anc1_4_dropout,sba_pct_live,pnc_48h_mother,pnc_48h_infant,kmc,chlorhexidine,stillbirths,mmr`,
+          `/api/khis?${q}&pe=${pe}&indicators=pmtct_anc1_visits,anc4_visits,anc1_4_dropout,sba_pct_live,pnc_48h_mother,pnc_48h_infant,kmc,chlorhexidine,stillbirths,mmr,maternal_deaths_reported,moh711_live_births`,
         )
           .then((r) => (r.ok ? r.json() : null))
           .catch(() => null);
@@ -507,45 +525,59 @@ function CoverageSection() {
       results.forEach((res, i) => {
         const name = counties[i];
         if (!name || !res?.indicators) return;
-        // At sub-county scope (multi-facility roster) % indicators and the MMR
-        // ratio are summed and meaningless — only raw counts are kept.
-        const isMultiOu = !!filter.subCounty;
+        // Percentage indicators must be 0–100; at any multi-facility scope
+        // (county + roster=1, sub-county, partner roster) % indicators and the
+        // MMR ratio are summed per facility → meaningless — only raw counts
+        // are kept and ANC / MMR are derived from counts instead (same
+        // treatment as the Home page's Results & Impact card).
+        const isMultiOu = !filter.facility && hasFacilityRoster(filter.partner);
         const ind = (key: string): number | null => {
           const found = res.indicators.find(
             (x: { id: string; value: number | null }) => x.id === key,
           );
           const v = found?.value ?? null;
           if (v == null) return null;
-          if (
-            isMultiOu &&
-            [
-              "anc1_4_dropout",
-              "sba_pct_live",
-              "pnc_48h_mother",
-              "pnc_48h_infant",
-              "mmr",
-            ].includes(key)
-          ) {
-            return null;
-          }
-          return v;
+          if (isMultiOu && (PCT_KEYS.has(key) || key === "mmr")) return null;
+          return PCT_KEYS.has(key) && (v < 0 || v > 100) ? null : v;
         };
         const r1 = (v: number | null) =>
           v != null ? Math.round(v * 10) / 10 : undefined;
         const dropout = ind("anc1_4_dropout");
+        const anc1 = ind("pmtct_anc1_visits");
+        const anc4 = ind("anc4_visits");
+        // ANC 4+ % — KHIS dropout indicator where reported, else the
+        // count-based anc4 ÷ anc1 ratio (roster scopes sum counts correctly).
+        let anc4Pct: number | undefined;
+        if (dropout != null) anc4Pct = Math.round((100 - dropout) * 10) / 10;
+        else if (anc1 != null && anc1 > 0 && anc4 != null) {
+          const ratio = Math.round((anc4 / anc1) * 1000) / 10;
+          if (ratio <= 100) anc4Pct = ratio;
+        }
+        // MMR — KHIS ratio indicator at single-OU scopes; count-based
+        // maternal deaths ÷ live births × 100,000 at roster scopes (summing
+        // the per-100,000 ratio across facilities would be garbage).
+        const lb = ind("moh711_live_births");
+        const md = ind("maternal_deaths_reported");
+        const mmrLive = isMultiOu
+          ? lb != null && lb > 0 && md != null && md > 0
+            ? Math.round((md / lb) * 100000 * 10) / 10
+            : undefined
+          : r1(ind("mmr"));
         map[name] = {
-          anc4Pct:
-            dropout != null ? Math.round((100 - dropout) * 10) / 10 : undefined,
+          anc4Pct,
           sba: r1(ind("sba_pct_live")),
           pnc: r1(ind("pnc_48h_mother")),
           pncInfant: r1(ind("pnc_48h_infant")),
           kmc: ind("kmc") ?? undefined,
           chlorhexidine: ind("chlorhexidine") ?? undefined,
           stillbirths: ind("stillbirths") ?? undefined,
-          mmr: r1(ind("mmr")),
+          mmr: mmrLive,
+          md: md ?? undefined,
+          lb: lb ?? undefined,
         };
       });
       if (!cancelled) {
+        if (results[0]?.scope) setCoverageScope(results[0].scope);
         setCoverage(map);
         setCoverageLoading(false);
       }
@@ -553,7 +585,7 @@ function CoverageSection() {
     return () => {
       cancelled = true;
     };
-  }, [counties, pe]);
+  }, [counties, pe, filter.partner]);
 
   // Partner-level live aggregates — average of reported counties (or sum of
   // counts), falling back to the baseline constants when KHIS has no value.
@@ -576,6 +608,21 @@ function CoverageSection() {
         .filter((v): v is number => v != null);
       return vals.length ? vals.reduce((a, b) => a + b, 0) : undefined;
     };
+    // MMR across several counties = Σ maternal deaths ÷ Σ live births ×
+    // 100,000 (deaths-reporting counties only, so a county with live births
+    // but no reported deaths doesn't dilute the denominator) — the same
+    // count-based treatment as the Home page. Single-scope keeps the
+    // per-county count-based value.
+    const mdRows = rows.filter((r) => r.md != null);
+    const mdSum = mdRows.reduce((a, r) => a + (r.md as number), 0);
+    const lbMd = mdRows
+      .map((r) => r.lb)
+      .filter((v): v is number => v != null)
+      .reduce((a, b) => a + b, 0);
+    const mmr =
+      rows.length > 1 && lbMd > 0 && mdSum > 0
+        ? Math.round((mdSum / lbMd) * 100000 * 10) / 10
+        : avg("mmr");
     return {
       anc4Pct: avg("anc4Pct"),
       sba: avg("sba"),
@@ -584,7 +631,7 @@ function CoverageSection() {
       kmc: sum("kmc"),
       chlorhexidine: sum("chlorhexidine"),
       stillbirths: sum("stillbirths"),
-      mmr: avg("mmr"),
+      mmr,
     };
   }, [coverage, counties]);
 
@@ -596,10 +643,18 @@ function CoverageSection() {
       : filter.county
         ? filter.county
         : partnerLabel;
+  // At a single-county / sub-county / facility scope the route's own scope
+  // label (e.g. "Embu County · jamii-tekelezi (49 facilities)") is the most
+  // precise; at multi-county partner scope it would only name the first
+  // county, so fall back to the partner label.
   const liveSub = coverageLoading
     ? "Loading KHIS…"
     : liveReady
-      ? `Live · KHIS ${peLabel} · ${scopeCoverageLabel}`
+      ? `Live · KHIS ${peLabel} · ${
+          counties.length > 1
+            ? scopeCoverageLabel
+            : (coverageScope ?? scopeCoverageLabel)
+        }`
       : `No KHIS data for ${peLabel} — shown blank`;
 
   // Live current values per indicator code (2.1–2.8) — real KHIS only, no
@@ -1120,10 +1175,24 @@ function ReadinessSection() {
 
       {/* County readiness — live from assessments */}
       <div className="bg-white rounded-lg p-6 border border-slate-200">
-        <h3 className="text-lg font-semibold text-gray-900 mb-1">
-          Facility Readiness by County —{" "}
-          {getPartner(filter.partner)?.shortName ?? "Partner"} (live)
-        </h3>
+        <div className="flex flex-wrap items-center justify-between gap-2 mb-1">
+          <h3 className="text-lg font-semibold text-gray-900">
+            Facility Readiness by County —{" "}
+            {getPartner(filter.partner)?.shortName ?? "Partner"} (live)
+          </h3>
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="px-2.5 py-1 rounded-full bg-lime-50 text-lime-700 border border-lime-200 text-xs font-semibold whitespace-nowrap">
+              Live · facility assessments · {peLabel}
+            </span>
+            <ViewDataButton
+              title={`Facility Readiness by County — ${
+                getPartner(filter.partner)?.shortName ?? "Partner"
+              }`}
+              data={countyReadiness}
+              note="Readiness = average of the entered facility assessments per county (no KHIS source — assessment tick-lists)."
+            />
+          </div>
+        </div>
         <p className="text-sm text-gray-500 mb-4">
           Average readiness score computed from the assessments entered below;
           counties with no assessment yet show blank.
@@ -1248,7 +1317,9 @@ function MpdsrSection({
             ? `subcounty=${encodeURIComponent(c)}&partner=${encodeURIComponent(
                 partner,
               )}`
-            : `county=${encodeURIComponent(c)}`;
+            : `county=${encodeURIComponent(c)}&partner=${encodeURIComponent(
+                partner,
+              )}&roster=1`;
         return fetch(
           `/api/khis?${q}&pe=${pe}&indicators=maternal_deaths_reported,maternal_deaths_audited,neonatal_deaths,neonatal_deaths_audited`,
         )
@@ -1284,7 +1355,7 @@ function MpdsrSection({
     return () => {
       cancelled = true;
     };
-  }, [mCounties, pe]);
+  }, [mCounties, pe, partner]);
 
   const mpdsr = useKhis({
     partner,
@@ -1298,6 +1369,7 @@ function MpdsrSection({
     county: filter.county || undefined,
     subCounty: filter.subCounty || undefined,
     facility: facilityUid,
+    roster: true,
   });
   const matAudPct =
     mpdsr.value("maternal_deaths_reported") &&
@@ -1709,7 +1781,9 @@ function DataSystemsSection() {
             ? `subcounty=${encodeURIComponent(c)}&partner=${encodeURIComponent(
                 filter.partner,
               )}`
-            : `county=${encodeURIComponent(c)}`;
+            : `county=${encodeURIComponent(c)}&partner=${encodeURIComponent(
+                filter.partner,
+              )}&roster=1`;
         return fetch(
           `/api/khis?${q}&pe=${pe}&indicators=pmtct_anc1_visits&reporting=1`,
         )
@@ -1735,7 +1809,7 @@ function DataSystemsSection() {
     return () => {
       cancelled = true;
     };
-  }, [dCounties, pe]);
+  }, [dCounties, pe, filter.partner]);
 
   const flow = [
     {

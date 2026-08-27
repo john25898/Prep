@@ -128,6 +128,7 @@ export function MortalityTab({
     county: countyScope,
     subCounty: subCountyScope,
     facility: facilityUid,
+    roster: true,
     indicators: [
       "maternal_deaths_reported",
       "maternal_deaths_audited",
@@ -150,6 +151,7 @@ export function MortalityTab({
     county: countyScope,
     subCounty: subCountyScope,
     facility: facilityUid,
+    roster: true,
     indicators: ["maternal_deaths_reported", "neonatal_deaths"],
     byPeriod: true,
   });
