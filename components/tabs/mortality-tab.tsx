@@ -16,6 +16,7 @@ import {
 import { CheckCircle2, XCircle, Sparkles, Save } from "lucide-react";
 import { useGeoFilter } from "@/lib/geo-filter-context";
 import { useKhis } from "@/lib/use-khis";
+import { useMpdsrMeetings } from "@/lib/use-mpdsr-entries";
 import { PARTNER_FACILITIES } from "@/lib/partners";
 import { AIAssistant, type ChartInsight } from "@/components/ai-assistant";
 import { ViewDataButton } from "@/components/view-data";
@@ -29,33 +30,8 @@ import { captureChartImage } from "@/lib/capture-chart";
 //   • Number of Maternal Deaths reported                  → LIVE KHIS
 //   • Number of Neonatal Deaths reported                  → LIVE KHIS
 //   • % of supported facilities holding monthly MPDSR/QI review meetings
-//     → program registers (NO KHIS org-unit source — stays illustrative and
-//       is labelled "registry" so it is never mistaken for KHIS data).
+//     → data entry (MPDSR/QI meeting form) — KHIS does not report meetings.
 // ---------------------------------------------------------------------------
-
-// Supported facilities (program list, used by the MPDSR meeting register —
-// illustrative, NOT from KHIS).
-const FACILITIES = [
-  "Embu County Referral Hospital",
-  "Runyenjes Sub-County Hospital",
-  "Meru Teaching & Referral Hospital",
-  "Nkubu Health Centre",
-  "Ol Kalou Sub-County Hospital",
-  "Chuka County Referral Hospital",
-];
-
-// 4 of the 6 supported facilities hold a monthly MPDSR/QI review meeting.
-const MEETING_FACILITIES = new Set([
-  "Embu County Referral Hospital",
-  "Meru Teaching & Referral Hospital",
-  "Ol Kalou Sub-County Hospital",
-  "Chuka County Referral Hospital",
-]);
-
-const meetingFacilitiesCount = MEETING_FACILITIES.size;
-const meetingPct = Math.round(
-  (meetingFacilitiesCount / FACILITIES.length) * 100,
-);
 
 function shortMonth(pe: string): string {
   const m = parseInt(pe.slice(4, 6), 10);
@@ -118,6 +94,35 @@ export function MortalityTab({
     );
     return fac?.uid;
   }, [filter.facility, partner]);
+
+  // MPDSR/QI meeting register — live from the meeting data-entry form
+  // (Domain 4.3). KHIS does not report meetings, so this chart is driven by
+  // the MPDSR/QI meeting entries for the selected period.
+  const meetingEntries = useMpdsrMeetings();
+  const peMonths = useMemo(() => pe.split(";"), [pe]);
+  const meetingsForPe = useMemo(
+    () => meetingEntries.filter((e) => peMonths.includes(e.pe)),
+    [meetingEntries, peMonths],
+  );
+  // One row per facility: the newest entry in the period decides the status.
+  const meetingRows = useMemo(() => {
+    const latest = new Map<string, boolean>();
+    for (const e of meetingsForPe) {
+      if (!latest.has(e.facilityName))
+        latest.set(e.facilityName, e.meetingHeld);
+    }
+    return [...latest.entries()].map(([facility, holdsMeetings]) => ({
+      facility,
+      holdsMeetings,
+    }));
+  }, [meetingsForPe]);
+  const meetingFacilitiesCount = meetingRows.filter(
+    (r) => r.holdsMeetings,
+  ).length;
+  const meetingPct =
+    meetingRows.length > 0
+      ? Math.round((meetingFacilitiesCount / meetingRows.length) * 100)
+      : null;
   const countyScope = filter.county || undefined;
   const subCountyScope = filter.subCounty || undefined;
 
@@ -367,8 +372,12 @@ export function MortalityTab({
             />
             <Kpi
               title="Monthly MPDSR/QI Review Meetings"
-              value={`${meetingPct}%`}
-              sub={`${meetingFacilitiesCount} of ${FACILITIES.length} facilities — registry`}
+              value={meetingPct != null ? `${meetingPct}%` : "—"}
+              sub={
+                meetingRows.length > 0
+                  ? `${meetingFacilitiesCount} of ${meetingRows.length} facilities — data entry`
+                  : "no entries yet — data entry"
+              }
               accent="text-emerald-600"
             />
           </div>
@@ -602,7 +611,7 @@ export function MortalityTab({
         )}
       </div>
 
-      {/* Monthly MPDSR/QI review meetings per facility */}
+      {/* Monthly MPDSR/QI review meetings per facility — live from data entry */}
       <div className="bg-white rounded-lg p-6 border border-slate-200">
         <div className="flex flex-wrap items-start justify-between gap-2 mb-1">
           <h3 className="text-lg font-semibold text-gray-900">
@@ -610,54 +619,59 @@ export function MortalityTab({
           </h3>
           <ViewDataButton
             title="Monthly MPDSR/QI Review Meetings"
-            data={FACILITIES.map((f) => ({
-              facility: f,
-              holdsMonthlyMeeting: MEETING_FACILITIES.has(f),
-            }))}
-            note="program registers — illustrative, not on KHIS"
+            data={meetingRows}
+            note="live from MPDSR/QI meeting data entry — KHIS does not report meetings"
           />
         </div>
-        <p className="text-sm text-gray-500 mb-4">
-          {meetingFacilitiesCount} of {FACILITIES.length} supported facilities (
-          {meetingPct}%) hold a monthly MPDSR/QI review meeting
-          <span className="ml-1 rounded-md bg-slate-100 px-1.5 py-0.5 text-xs font-semibold text-slate-500">
-            program registers — not available on KHIS
-          </span>
-        </p>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-          {FACILITIES.map((facility) => {
-            const holdsMeetings = MEETING_FACILITIES.has(facility);
-            return (
-              <div
-                key={facility}
-                className={`flex items-center justify-between rounded-lg border px-4 py-3 ${
-                  holdsMeetings
-                    ? "border-emerald-200 bg-emerald-50"
-                    : "border-red-200 bg-red-50"
-                }`}
-              >
-                <span className="text-sm font-medium text-gray-800">
-                  {facility}
-                </span>
-                <span
-                  className={`flex items-center gap-1.5 text-xs font-semibold ${
-                    holdsMeetings ? "text-emerald-700" : "text-red-600"
+        {meetingRows.length === 0 ? (
+          <p className="text-sm text-gray-500 mb-4">
+            No MPDSR/QI meeting entries for {peLabel} yet — add them via the
+            MPDSR/QI meeting form (data entry — KHIS does not report meetings).
+          </p>
+        ) : (
+          <>
+            <p className="text-sm text-gray-500 mb-4">
+              {meetingFacilitiesCount} of {meetingRows.length} facilities with
+              entries ({meetingPct}%) held a monthly MPDSR/QI review meeting in{" "}
+              {peLabel}
+              <span className="ml-1 rounded-md bg-slate-100 px-1.5 py-0.5 text-xs font-semibold text-slate-500">
+                live · data entry — not available on KHIS
+              </span>
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+              {meetingRows.map((row) => (
+                <div
+                  key={row.facility}
+                  className={`flex items-center justify-between rounded-lg border px-4 py-3 ${
+                    row.holdsMeetings
+                      ? "border-emerald-200 bg-emerald-50"
+                      : "border-red-200 bg-red-50"
                   }`}
                 >
-                  {holdsMeetings ? (
-                    <>
-                      <CheckCircle2 className="w-4 h-4" /> Monthly meeting held
-                    </>
-                  ) : (
-                    <>
-                      <XCircle className="w-4 h-4" /> No meeting this month
-                    </>
-                  )}
-                </span>
-              </div>
-            );
-          })}
-        </div>
+                  <span className="text-sm font-medium text-gray-800">
+                    {row.facility}
+                  </span>
+                  <span
+                    className={`flex items-center gap-1.5 text-xs font-semibold ${
+                      row.holdsMeetings ? "text-emerald-700" : "text-red-600"
+                    }`}
+                  >
+                    {row.holdsMeetings ? (
+                      <>
+                        <CheckCircle2 className="w-4 h-4" /> Monthly meeting
+                        held
+                      </>
+                    ) : (
+                      <>
+                        <XCircle className="w-4 h-4" /> No meeting this month
+                      </>
+                    )}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

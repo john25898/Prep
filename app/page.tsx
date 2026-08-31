@@ -12,6 +12,8 @@ import {
   Trash2,
   Syringe,
   Baby,
+  CalendarCheck,
+  HeartPulse,
 } from "lucide-react";
 import type { ChartInsight } from "@/components/ai-assistant";
 import { HomeTab } from "@/components/tabs/home-tab";
@@ -21,6 +23,8 @@ import { PrepTab } from "@/components/tabs/prep-tab";
 import { AssessmentDialog } from "@/components/assessment-dialog";
 import { VtpEidHeiDialog } from "@/components/vtp-eid-hei-dialog";
 import { HeiOutcomeDialog } from "@/components/hei-outcome-dialog";
+import { MpdsrMeetingDialog } from "@/components/mpdsr-meeting-dialog";
+import { CauseOfDeathDialog } from "@/components/cause-of-death-dialog";
 import { GeoFilterBar } from "@/components/geo-filter-bar";
 import { GeoFilterProvider } from "@/lib/geo-filter-context";
 
@@ -110,6 +114,8 @@ export default function Dashboard() {
   const [showAssessmentDialog, setShowAssessmentDialog] = useState(false);
   const [showVtpEidHeiDialog, setShowVtpEidHeiDialog] = useState(false);
   const [showHeiOutcomeDialog, setShowHeiOutcomeDialog] = useState(false);
+  const [showMpdsrMeetingDialog, setShowMpdsrMeetingDialog] = useState(false);
+  const [showCodDialog, setShowCodDialog] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const toastTimer = useRef<number | null>(null);
 
@@ -220,6 +226,26 @@ export default function Dashboard() {
                     <Baby className="w-5 h-5 text-violet-600" />
                     HEI 18–24 Outcome Entry (HCA)
                   </button>
+                  <button
+                    onClick={() => {
+                      setShowMpdsrMeetingDialog(true);
+                      setShowGripMenu(false);
+                    }}
+                    className="w-full flex items-center gap-3 px-4 py-3 hover:bg-slate-100 rounded-lg transition-colors font-medium text-gray-900 border border-amber-300 bg-amber-50/40"
+                  >
+                    <CalendarCheck className="w-5 h-5 text-amber-600" />
+                    MPDSR/QI Monthly Meeting Entry
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowCodDialog(true);
+                      setShowGripMenu(false);
+                    }}
+                    className="w-full flex items-center gap-3 px-4 py-3 hover:bg-slate-100 rounded-lg transition-colors font-medium text-gray-900 border border-rose-300 bg-rose-50/40"
+                  >
+                    <HeartPulse className="w-5 h-5 text-rose-600" />
+                    Cause of Death Entry (MPDSR)
+                  </button>
                 </div>
               )}
             </div>
@@ -266,6 +292,14 @@ export default function Dashboard() {
         )}
         {showHeiOutcomeDialog && (
           <HeiOutcomeDialog onClose={() => setShowHeiOutcomeDialog(false)} />
+        )}
+        {showMpdsrMeetingDialog && (
+          <MpdsrMeetingDialog
+            onClose={() => setShowMpdsrMeetingDialog(false)}
+          />
+        )}
+        {showCodDialog && (
+          <CauseOfDeathDialog onClose={() => setShowCodDialog(false)} />
         )}
 
         {/* Content */}
