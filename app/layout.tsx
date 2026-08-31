@@ -3,7 +3,7 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "DOS ips ewene dashboard",
+  title: "DOS IPS EWENE Dashboard",
   description:
     "DOS IPS EWENE dashboard for maternal & neonatal health facility readiness assessment and data visualization",
   icons: {
