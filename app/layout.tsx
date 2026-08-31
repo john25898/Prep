@@ -3,9 +3,9 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "EWENE MNH Health Platform",
+  title: "DOS ips ewene dashboard",
   description:
-    "EWENE Maternal & Neonatal Health dashboard for facility readiness assessment and data visualization",
+    "DOS IPS EWENE dashboard for maternal & neonatal health facility readiness assessment and data visualization",
   icons: {
     icon: [
       {
