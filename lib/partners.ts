@@ -2,10 +2,11 @@
 // Implementing-partner facility rosters + KHIS org-unit mapping
 //
 // Partner → counties → KHIS county OU UIDs (all 47 level-2 counties resolved
-// live on KHIS; the first 24 are the implementing partners', the rest are the
-// remaining national counties so the DOS IP scope covers all 47). Facility
-// rosters are the program-assigned lists (e.g. the JTP PrEP roster); runtime
-// data always comes from national KHIS.
+// live on KHIS as a MASTER registry; the DOS IP "national" scope covers ONLY
+// the 24 implementing-partner counties, never the full 47 — a county with no
+// implementing partner has no program activity to report). Facility rosters
+// are the program-assigned lists (e.g. the JTP PrEP roster); runtime data
+// always comes from national KHIS.
 // ---------------------------------------------------------------------------
 
 export interface PartnerFacility {
@@ -49,7 +50,8 @@ export const COUNTY_OUS: Record<string, string> = {
   Kisumu: "tAbBVBbueqD",
   Nyamira: "uepLTG8wGWJ",
   Vihiga: "sANMZ3lpqGs",
-  // Remaining national counties (level 2) — complete the DOS IP 47-county scope
+  // Remaining national counties (level 2) — master registry only (NOT in the
+  // DOS IP scope; see PARTNER_COUNTIES.national = DOS_IP_COUNTIES below)
   Bomet: "HMNARUV2CW4",
   Garissa: "uyOrcHZBpW0",
   "Homa Bay": "nK0A12Q7MvS",
@@ -130,10 +132,39 @@ export const PARTNER_COUNTIES: Record<string, string[]> = {
   "tujenge-jamii": ["Nakuru", "Baringo", "Samburu", "Laikipia", "Kajiado"],
   "dumisha-afya": ["Bungoma", "Busia"],
   "nuru-ya-mtoto": ["Kakamega", "Kisumu", "Nyamira", "Vihiga"],
-  national: Object.keys(COUNTY_OUS),
 };
 
-/** Partner id → facility roster (undefined until extracted for that partner). */
+/**
+ * DOS IP "national" scope = the UNION of implementing-partner counties (24),
+ * NOT all 47. Counties without an implementing partner (e.g. Nairobi,
+ * Kiambu, Kisii) are out of scope for the DOS IP view too.
+ */
+export const DOS_IP_COUNTIES: string[] = Array.from(
+  new Set(Object.values(PARTNER_COUNTIES).flat()),
+);
+
+// Registered after DOS_IP_COUNTIES is computed from the 7 partners above.
+(PARTNER_COUNTIES as Record<string, string[]>)["national"] = DOS_IP_COUNTIES;
+
+/** Dedupe a roster union by KHIS org-unit UID (defensive; county-scoped
+ *  partners never overlap in practice, but keeps the national union exact). */
+function dedupeFacilities(list: PartnerFacility[]): PartnerFacility[] {
+  const seen = new Set<string>();
+  const out: PartnerFacility[] = [];
+  for (const f of list) {
+    if (seen.has(f.uid)) continue;
+    seen.add(f.uid);
+    out.push(f);
+  }
+  return out;
+}
+
+/**
+ * Partner id → facility roster (undefined until extracted for that partner).
+ * `national` (DOS IP) = the UNION of all implementing-partner rosters, so the
+ * national scope drills to the same county → sub-county → facility levels as
+ * any single partner and only ever sees partner-assigned facilities.
+ */
 export const PARTNER_FACILITIES: Record<string, PartnerFacility[]> = {
   "jamii-tekelezi": JAMII_TEKELEZI_FACILITIES,
   "tujenge-jamii": TUJENGE_JAMII_FACILITIES,
@@ -142,6 +173,15 @@ export const PARTNER_FACILITIES: Record<string, PartnerFacility[]> = {
   "ampath-uzima": AMPATH_UZIMA_FACILITIES,
   "stawisha-pwani": STAWISHA_PWANI_FACILITIES,
   "nuru-ya-mtoto": NURU_YA_MTOTO_FACILITIES,
+  national: dedupeFacilities([
+    ...JAMII_TEKELEZI_FACILITIES,
+    ...TUJENGE_JAMII_FACILITIES,
+    ...DUMISHA_AFYA_FACILITIES,
+    ...IMARISHA_JAMII_FACILITIES,
+    ...AMPATH_UZIMA_FACILITIES,
+    ...STAWISHA_PWANI_FACILITIES,
+    ...NURU_YA_MTOTO_FACILITIES,
+  ]),
 };
 
 /** County OU UIDs for a partner (all counties, regardless of roster). */
@@ -149,7 +189,6 @@ export function partnerCountyOUs(partnerId: string): string[] {
   const counties = PARTNER_COUNTIES[partnerId] ?? [];
   return counties.map((c) => COUNTY_OUS[c]).filter(Boolean) as string[];
 }
-
 /** Facility UIDs for a partner's roster (empty if none extracted yet). */
 export function partnerFacilityOUs(partnerId: string): string[] {
   return (PARTNER_FACILITIES[partnerId] ?? []).map((f) => f.uid);

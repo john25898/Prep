@@ -7,7 +7,7 @@
 // ---------------------------------------------------------------------------
 
 import { FacilityAssessment, KENYA_COUNTIES } from "@/lib/assessment";
-import { partnerSubCounties } from "@/lib/partners";
+import { partnerSubCounties, DOS_IP_COUNTIES } from "@/lib/partners";
 import type { PeriodMode } from "@/lib/period";
 export type { PeriodMode };
 export {
@@ -70,9 +70,9 @@ export const PARTNERS: Partner[] = [
   },
   {
     id: "national",
-    name: "DOS IP (All 47 Counties)",
+    name: "DOS IP (24 Partner Counties)",
     shortName: "DOS IP",
-    counties: KENYA_COUNTIES,
+    counties: DOS_IP_COUNTIES,
   },
 ];
 
