@@ -717,7 +717,7 @@ export const KHIS_INDICATORS: KhisIndicator[] = [
     id: "maternal_deaths_audited",
     label: "Maternal deaths audited (Rev2020)",
     dx: "sEmbbCR882p",
-    isIndicator: false,
+    isIndicator: true,
     khisName: "Number of Maternal Deaths audited in health facilities_Rev2020",
     verified: true,
     domain: "4",

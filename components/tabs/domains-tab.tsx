@@ -27,9 +27,18 @@ import {
   PARTNER_FACILITIES,
   hasFacilityRoster,
 } from "@/lib/partners";
+import { useCodEntries, useMpdsrMeetings } from "@/lib/use-mpdsr-entries";
+import {
+  causeOfDeathTotals,
+  codEntryTotal,
+  meetingHeldPct,
+  meetingHeldPctByCounty,
+} from "@/lib/mpdsr-entry";
 import { AssessmentTab } from "@/components/tabs/assessment-tab";
 import { MortalityTab } from "@/components/tabs/mortality-tab";
 import { ClinicalTab } from "@/components/tabs/clinical-tab";
+import { MpdsrMeetingDialog } from "@/components/mpdsr-meeting-dialog";
+import { CauseOfDeathDialog } from "@/components/cause-of-death-dialog";
 import type { ChartInsight } from "@/components/ai-assistant";
 import { ViewDataButton } from "@/components/view-data";
 import { JT_COVERAGE_COUNTIES, readinessForCounties } from "./home/shared";
@@ -146,47 +155,7 @@ const MPDSR_INDICATORS: IndicatorDef[] = [
     baseline: "41% counties (national)",
     y1: 100,
     y2: 100,
-    note: "Source: County records (monthly)",
-  },
-  {
-    code: "4.4",
-    label: "% of MPDSR recommendations implemented within 3 months",
-    baseline: "To be established at baseline",
-    y1: 70,
-    y2: 90,
-    note: "Source: MPDSR action tracker (quarterly)",
-  },
-  {
-    code: "4.5",
-    label: "% of providers correctly diagnosing & treating PPH",
-    baseline: "40% (national)",
-    y1: 55,
-    y2: 70,
-    note: "Source: HFA-QOC / skills assessment (semi-annual)",
-  },
-  {
-    code: "4.6",
-    label: "% of providers correctly diagnosing & treating birth asphyxia",
-    baseline: "36% (national)",
-    y1: 50,
-    y2: 65,
-    note: "Source: HFA-QOC / skills assessment (semi-annual)",
-  },
-  {
-    code: "4.7",
-    label: "% of health workers trained on EmONC within the last 2 years",
-    baseline: "28% (national)",
-    y1: 50,
-    y2: 75,
-    note: "Source: MOH training records (quarterly)",
-  },
-  {
-    code: "4.8",
-    label: "% of supported facilities with functional MPDSR/QI teams",
-    baseline: "63% (national)",
-    y1: 85,
-    y2: 100,
-    note: "Source: HFA-QOC (quarterly)",
+    note: "Source: Data entry — MPDSR/QI meeting form (monthly)",
   },
 ];
 
@@ -1304,6 +1273,32 @@ function MpdsrSection({
 }) {
   const { filter, pe, peLabel } = useGeoFilter();
   const partner = filter.partner || "jamii-tekelezi";
+  const [showMeetingDialog, setShowMeetingDialog] = useState(false);
+  const [showCodDialog, setShowCodDialog] = useState(false);
+  // Data-entry sources for the two Domain-4 items KHIS does not report:
+  // 4.3 monthly meetings + cause-of-death disaggregation.
+  const meetingEntries = useMpdsrMeetings();
+  const codEntries = useCodEntries();
+  // pe may be a single month ("202505") or a range ("202505;202506;…").
+  const peMonths = useMemo(() => pe.split(";"), [pe]);
+  const meetingsForPe = useMemo(
+    () => meetingEntries.filter((e) => peMonths.includes(e.pe)),
+    [meetingEntries, peMonths],
+  );
+  const meetingPct = useMemo(
+    () => meetingHeldPct(meetingEntries, peMonths),
+    [meetingEntries, peMonths],
+  );
+  const meetingByCounty = useMemo(
+    () => meetingHeldPctByCounty(meetingEntries, peMonths),
+    [meetingEntries, peMonths],
+  );
+  const causeOfDeathData = useMemo(
+    () => causeOfDeathTotals(codEntries, peMonths),
+    [codEntries, peMonths],
+  );
+  const codDeathsTotal = useMemo(() => codEntryTotal(codEntries), [codEntries]);
+
   // The KHIS API expects a facility UID, not a name — resolve from the roster.
   const facilityUid = useMemo(() => {
     if (!filter.facility) return undefined;
@@ -1440,43 +1435,19 @@ function MpdsrSection({
     },
     {
       name: "Monthly MPDSR/QI meetings",
-      current: null,
+      current: meetingPct,
       target: 100,
-      est: true,
-    },
-    {
-      name: "Recommendations implemented",
-      current: null,
-      target: 90,
-      est: true,
-    },
-    { name: "PPH Treatment Skills", current: null, target: 70, est: true },
-    {
-      name: "Asphyxia Treatment Skills",
-      current: null,
-      target: 65,
-      est: true,
+      est: meetingPct == null,
     },
   ];
 
   // County MPDSR performance — audit % live per county from KHIS; meetings %
-  // has no KHIS source (county registers only) so stays blank.
+  // live per county from the MPDSR meeting data entry form.
   const countyMpdsrData = mCounties.map((name) => ({
     name,
     audited: countyAudit?.[name] ?? null,
-    meetings: null,
+    meetings: meetingByCounty[name] ?? null,
   }));
-
-  // Cause-of-death disaggregation (doc disaggregation: county; cause of death).
-  const causeOfDeathData = [
-    { name: "PPH", maternal: 42, neonatal: 0 },
-    { name: "Sepsis", maternal: 18, neonatal: 12 },
-    { name: "Pre-eclampsia/Eclampsia", maternal: 15, neonatal: 0 },
-    { name: "Obstructed labour", maternal: 8, neonatal: 14 },
-    { name: "Preterm / LBW", maternal: 0, neonatal: 38 },
-    { name: "Birth asphyxia", maternal: 0, neonatal: 26 },
-    { name: "Other", maternal: 9, neonatal: 10 },
-  ];
 
   const auditedBadge = mpdsr.loading ? (
     <span className="px-2 py-1 rounded-md bg-amber-50 text-amber-700 text-xs font-bold">
@@ -1507,14 +1478,13 @@ function MpdsrSection({
           A death that is not audited cannot be prevented. The MPDSR loop is:
           <b> report → audit → recommend → implement → re-audit</b>. The
           framework demands 100% of maternal and neonatal deaths audited each
-          month, and ≥ 70% of recommendations implemented within 3 months —
-          turning every tragedy into a systemic fix.
+          month — turning every tragedy into a systemic fix.
         </p>
       </div>
 
       {/* Subtab KPI strip — Domain 4 headline indicators */}
       <div className="flex items-start justify-between gap-3">
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 flex-1">
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 flex-1">
           <SubtabKpi
             code="4.1 · MPDSR"
             title="Maternal Deaths Audited"
@@ -1576,20 +1546,61 @@ function MpdsrSection({
           <SubtabKpi
             code="4.3 · Reviews"
             title="Monthly MPDSR/QI Meetings"
-            value="—"
-            sub="No KHIS source — county registers"
-            tone="na"
-          />
-          <SubtabKpi
-            code="4.4 · Action"
-            title="Recommendations Implemented"
-            value="—"
-            sub="No KHIS source — MPDSR action tracker"
-            tone="na"
+            value={meetingPct != null ? `${meetingPct}%` : "—"}
+            sub={
+              meetingPct != null
+                ? `Data entry · ${meetingsForPe.length} facility month${meetingsForPe.length === 1 ? "" : "s"} for ${peLabel}`
+                : meetingsForPe.length > 0
+                  ? `entries for ${peLabel} — no meetings held`
+                  : "No entries — add via the MPDSR/QI meeting form"
+            }
+            tone={
+              meetingPct != null
+                ? toneOf(meetingPct, 100)
+                : meetingsForPe.length > 0
+                  ? "off"
+                  : "na"
+            }
           />
         </div>
         {auditedBadge}
       </div>
+
+      {/* Data entry shortcuts — meetings + cause-of-death (no KHIS source) */}
+      <div className="bg-white rounded-lg p-4 border border-slate-200 flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h3 className="text-sm font-semibold text-gray-900">
+            MPDSR monthly data entry
+          </h3>
+          <p className="text-xs text-gray-500 mt-0.5">
+            KHIS does not report meetings or cause-of-death — enter them here.
+            {codDeathsTotal > 0
+              ? ` ${codDeathsTotal} deaths captured across cause-of-death entries.`
+              : ""}
+          </p>
+        </div>
+        <div className="flex gap-3">
+          <button
+            onClick={() => setShowMeetingDialog(true)}
+            className="px-4 py-2 rounded-lg bg-amber-600 text-white text-sm font-semibold hover:bg-amber-700 transition-colors"
+          >
+            ＋ Add MPDSR/QI Meeting
+          </button>
+          <button
+            onClick={() => setShowCodDialog(true)}
+            className="px-4 py-2 rounded-lg bg-rose-600 text-white text-sm font-semibold hover:bg-rose-700 transition-colors"
+          >
+            ＋ Add Cause of Death
+          </button>
+        </div>
+      </div>
+
+      {showMeetingDialog && (
+        <MpdsrMeetingDialog onClose={() => setShowMeetingDialog(false)} />
+      )}
+      {showCodDialog && (
+        <CauseOfDeathDialog onClose={() => setShowCodDialog(false)} />
+      )}
 
       {/* Cause-of-death disaggregation — where deaths concentrate */}
       <div className="bg-white rounded-lg p-6 border border-slate-200">
@@ -1598,20 +1609,29 @@ function MpdsrSection({
             Cause of Death Disaggregation (4.1 / 4.2)
           </h3>
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="px-2 py-1 rounded-md bg-slate-100 text-slate-600 text-xs font-bold">
-              Illustrative — cause-of-death is not reported on KHIS monthly
+            <span
+              className={`px-2 py-1 rounded-md text-xs font-bold ${
+                codDeathsTotal > 0
+                  ? "bg-emerald-50 text-emerald-700"
+                  : "bg-slate-100 text-slate-600"
+              }`}
+            >
+              {codDeathsTotal > 0
+                ? `Live · data entry · ${codDeathsTotal} deaths (all months)`
+                : "No entries yet — add via the cause-of-death form"}
             </span>
             <ViewDataButton
               title="Cause of Death Disaggregation"
               data={causeOfDeathData}
-              note="Illustrative — not available on KHIS"
+              note={`Cause-of-death is not reported on KHIS — entered via the data entry form${codDeathsTotal > 0 ? ` (${peLabel})` : ""}`}
             />
           </div>
         </div>
         <p className="text-sm text-gray-500 mb-4">
           The audit must name the cause before it can fix the system. PPH and
           preterm/LBW dominate — both are addressed by the readiness enablers in
-          Domain 3.
+          Domain 3. Enter monthly cause-of-death data per facility using the
+          form above.
         </p>
         <ResponsiveContainer width="100%" height={280}>
           <BarChart data={causeOfDeathData} margin={{ left: 0, right: 12 }}>
@@ -1643,16 +1663,16 @@ function MpdsrSection({
       <div className="bg-white rounded-lg p-6 border border-slate-200">
         <div className="flex flex-wrap items-center justify-between gap-2 mb-1">
           <h3 className="text-lg font-semibold text-gray-900">
-            The MPDSR Audit Loop — % vs Target (4.1 – 4.6)
+            The MPDSR Audit Loop — % vs Target (4.1 – 4.3)
           </h3>
           <div className="flex items-center gap-2 flex-wrap">
             <span className="px-2 py-1 rounded-md bg-slate-100 text-slate-600 text-xs font-bold">
-              Audit % live · meetings/skills rows blank (no KHIS source)
+              Audit % live (KHIS) · meetings % live (data entry)
             </span>
             <ViewDataButton
               title="MPDSR Audit Loop — % vs Target"
               data={chartData}
-              note={`${mpdsr.loading ? "Loading KHIS…" : matAudPct != null || neoAudPct != null ? `Live audit % · KHIS · ${mpdsr.data?.scope} · ${mpdsr.data?.peLabel}` : mpdsrNoData ? "no KHIS data — zeros" : "no KHIS deaths in scope — blank"} · blank rows have no KHIS source`}
+              note={`${mpdsr.loading ? "Loading KHIS…" : matAudPct != null || neoAudPct != null ? `Live audit % · KHIS · ${mpdsr.data?.scope} · ${mpdsr.data?.peLabel}` : mpdsrNoData ? "no KHIS data — zeros" : "no KHIS deaths in scope — blank"} · meetings % from data entry (${meetingsForPe.length} entries for ${peLabel})`}
             />
           </div>
         </div>
@@ -1701,7 +1721,7 @@ function MpdsrSection({
             <ViewDataButton
               title={`MPDSR by County — ${partner}`}
               data={countyMpdsrData}
-              note={`Audit % = live KHIS per county · meetings % blank (no KHIS source — county registers)`}
+              note={`Audit % = live KHIS per county · meetings % = data entry per county (${meetingsForPe.length} entries for ${peLabel})`}
             />
           </div>
         </div>
@@ -1739,10 +1759,10 @@ function MpdsrSection({
       <div className="bg-white rounded-lg p-6 border border-slate-200">
         <div className="flex flex-wrap items-center justify-between gap-2 mb-1">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">
-            MPDSR &amp; Clinical Quality Indicators (4.1 – 4.8)
+            MPDSR Indicators (4.1 – 4.3)
           </h3>
           <span className="px-2 py-1 rounded-md bg-slate-100 text-slate-600 text-xs font-bold">
-            4.1/4.2 live KHIS · 4.3–4.8 blank (no KHIS source)
+            4.1/4.2 live KHIS · 4.3 live data entry
           </span>
         </div>
         <div className="space-y-5">
@@ -1755,7 +1775,9 @@ function MpdsrSection({
                   ? matAudPct
                   : ind.code === "4.2"
                     ? neoAudPct
-                    : null
+                    : ind.code === "4.3"
+                      ? meetingPct
+                      : null
               }
             />
           ))}
