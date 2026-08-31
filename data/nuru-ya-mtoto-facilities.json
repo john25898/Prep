@@ -1,0 +1,2235 @@
+[
+  {
+    "uid": "tmOunpxPDt9",
+    "name": "AP Line Dispensary",
+    "county": "Kakamega",
+    "subCounty": "Lurambi",
+    "ward": "Shirere"
+  },
+  {
+    "uid": "Hz0YZaxawTo",
+    "name": "Ahmadiya Hospital",
+    "county": "Kakamega",
+    "subCounty": "Mumias East",
+    "ward": "Lusheya/Lubinu"
+  },
+  {
+    "uid": "wP6cPKxmPwl",
+    "name": "Approved Dispensary",
+    "county": "Kakamega",
+    "subCounty": "Lurambi",
+    "ward": "Mahiakalo"
+  },
+  {
+    "uid": "redd34wc4hO",
+    "name": "Beggs Nursing Home (Matunda)",
+    "county": "Kakamega",
+    "subCounty": "Likuyani",
+    "ward": "Nzoia"
+  },
+  {
+    "uid": "WYaAkILOP16",
+    "name": "Buchangu Dispensary",
+    "county": "Kakamega",
+    "subCounty": "Navakholo",
+    "ward": "Bunyala Central"
+  },
+  {
+    "uid": "gl9nmj6WvWP",
+    "name": "Budonga Dispensary",
+    "county": "Kakamega",
+    "subCounty": "Navakholo",
+    "ward": "Bunyala West"
+  },
+  {
+    "uid": "ndBnE6yUjoy",
+    "name": "Bukaya Health Centre",
+    "county": "Kakamega",
+    "subCounty": "Mumias West",
+    "ward": "Etenje"
+  },
+  {
+    "uid": "wcM6pww7h2a",
+    "name": "Bukura Health Centre",
+    "county": "Kakamega",
+    "subCounty": "Lurambi",
+    "ward": "Butsotso South"
+  },
+  {
+    "uid": "wXYxrsjOc8d",
+    "name": "Bungasi Health Centre",
+    "county": "Kakamega",
+    "subCounty": "Mumias West",
+    "ward": "Musanda"
+  },
+  {
+    "uid": "dI28kasf8Jj",
+    "name": "Bushiri Health Centre",
+    "county": "Kakamega",
+    "subCounty": "Navakholo",
+    "ward": "Ingoste-matiha"
+  },
+  {
+    "uid": "OVV0fHS7fux",
+    "name": "Butere Sub County Hospital",
+    "county": "Kakamega",
+    "subCounty": "Butere",
+    "ward": "Marama Central"
+  },
+  {
+    "uid": "Tns72Eh3EfT",
+    "name": "Butingo Dispensary",
+    "county": "Kakamega",
+    "subCounty": "Navakholo",
+    "ward": "Bunyala West"
+  },
+  {
+    "uid": "O9z0alrbAid",
+    "name": "Buyemi Dispensary(Ikolomani)",
+    "county": "Kakamega",
+    "subCounty": "Ikolomani",
+    "ward": "Idakho Central"
+  },
+  {
+    "uid": "JTL8OVhlUqF",
+    "name": "Chebwai Mission Dispensary",
+    "county": "Kakamega",
+    "subCounty": "Malava",
+    "ward": "Butali/Chegulo"
+  },
+  {
+    "uid": "LJ5JNqUKr2k",
+    "name": "Chegulo Dispensary",
+    "county": "Kakamega",
+    "subCounty": "Malava",
+    "ward": "Butali/Chegulo"
+  },
+  {
+    "uid": "Ci1bld843vy",
+    "name": "Chekalini Health Centre",
+    "county": "Kakamega",
+    "subCounty": "Lugari",
+    "ward": "Chekalini"
+  },
+  {
+    "uid": "mfEvntdmjUe",
+    "name": "Chevoso Dispensary",
+    "county": "Kakamega",
+    "subCounty": "Malava",
+    "ward": "South Kabras"
+  },
+  {
+    "uid": "cMV2EgW6Tza",
+    "name": "Chief Milimu Dispensary",
+    "county": "Kakamega",
+    "subCounty": "Shinyalu",
+    "ward": "Isukha South"
+  },
+  {
+    "uid": "S9Q1bx9tpZz",
+    "name": "Chombeli Health Centre",
+    "county": "Kakamega",
+    "subCounty": "Malava",
+    "ward": "Shirungu-mugai"
+  },
+  {
+    "uid": "Ky6P5BmX0sQ",
+    "name": "Ebuhala Health Centre",
+    "county": "Kakamega",
+    "subCounty": "Khwisero",
+    "ward": "Kisa West"
+  },
+  {
+    "uid": "W1S8ml7ActI",
+    "name": "Ekambuli Health Centre",
+    "county": "Kakamega",
+    "subCounty": "Khwisero",
+    "ward": "Kisa Central"
+  },
+  {
+    "uid": "iWFObHTUbzT",
+    "name": "Eluche Dispensary",
+    "county": "Kakamega",
+    "subCounty": "Mumias East",
+    "ward": "East Wanga"
+  },
+  {
+    "uid": "pZd75ZZ55tI",
+    "name": "Elukhambi Dispensary",
+    "county": "Kakamega",
+    "subCounty": "Lurambi",
+    "ward": "Butsotso South"
+  },
+  {
+    "uid": "PMtDVZGDXRv",
+    "name": "Elwangale Health Centre",
+    "county": "Kakamega",
+    "subCounty": "Khwisero",
+    "ward": "Kisa East"
+  },
+  {
+    "uid": "sKHkoTOfodh",
+    "name": "Elwasambi Dispensary",
+    "county": "Kakamega",
+    "subCounty": "Mumias East",
+    "ward": "Lusheya/Lubinu"
+  },
+  {
+    "uid": "fVYB9g9ByWU",
+    "name": "Elwesero Model Health Centre",
+    "county": "Kakamega",
+    "subCounty": "Lurambi",
+    "ward": "Shirere"
+  },
+  {
+    "uid": "h5OdkQ5jKdv",
+    "name": "Emalindi Health Centre",
+    "county": "Kakamega",
+    "subCounty": "Khwisero",
+    "ward": "Kisa East"
+  },
+  {
+    "uid": "FGkaUMhNlgb",
+    "name": "Ematiha Dispensary",
+    "county": "Kakamega",
+    "subCounty": "Navakholo",
+    "ward": "Ingoste-matiha"
+  },
+  {
+    "uid": "rGIiGfPUc5P",
+    "name": "Emukaba Dispensary",
+    "county": "Kakamega",
+    "subCounty": "Lurambi",
+    "ward": "Butsotso East"
+  },
+  {
+    "uid": "DkcS7mBduV7",
+    "name": "Emusanda Health Centre",
+    "county": "Kakamega",
+    "subCounty": "Lurambi",
+    "ward": "Butsotso Central"
+  },
+  {
+    "uid": "guZb4if7tPO",
+    "name": "Emutsesa Health Centre",
+    "county": "Kakamega",
+    "subCounty": "Khwisero",
+    "ward": "Kisa Central"
+  },
+  {
+    "uid": "WKpi4HTOfa6",
+    "name": "Eshiabwali Health Centre",
+    "county": "Kakamega",
+    "subCounty": "Khwisero",
+    "ward": "Kisa East"
+  },
+  {
+    "uid": "rEKNga4CgFK",
+    "name": "Eshikhuyu Dispensary",
+    "county": "Kakamega",
+    "subCounty": "Lurambi",
+    "ward": "Butsotso Central"
+  },
+  {
+    "uid": "ozud4J6eShX",
+    "name": "Eshikulu Dispensary",
+    "county": "Kakamega",
+    "subCounty": "Mumias West",
+    "ward": "Etenje"
+  },
+  {
+    "uid": "hVOEvLLuWx6",
+    "name": "Eshimukoko Health Centre",
+    "county": "Kakamega",
+    "subCounty": "Butere",
+    "ward": "Marama North"
+  },
+  {
+    "uid": "dAnPb1AZoKy",
+    "name": "Eshinutsa Health Centre",
+    "county": "Kakamega",
+    "subCounty": "Khwisero",
+    "ward": "Kisa East"
+  },
+  {
+    "uid": "hUDoz9oxecE",
+    "name": "Eshiongo Dispensary",
+    "county": "Kakamega",
+    "subCounty": "Navakholo",
+    "ward": "Shinoyi-shikomari-esumeiya"
+  },
+  {
+    "uid": "IBvuTu4Q05K",
+    "name": "Eshirembe Dispensary",
+    "county": "Kakamega",
+    "subCounty": "Lurambi",
+    "ward": "Butsotso South"
+  },
+  {
+    "uid": "WVQA3Ztjy6t",
+    "name": "Iguhu Sub County Hospital",
+    "county": "Kakamega",
+    "subCounty": "Ikolomani",
+    "ward": "Idakho East"
+  },
+  {
+    "uid": "WRugAsHxL6F",
+    "name": "Ikomero Health Centre",
+    "county": "Kakamega",
+    "subCounty": "Khwisero",
+    "ward": "Kisa West"
+  },
+  {
+    "uid": "FkiRDv9jRrl",
+    "name": "Ikuywa Dispensary",
+    "county": "Kakamega",
+    "subCounty": "Shinyalu",
+    "ward": "Isukha East"
+  },
+  {
+    "uid": "d4U4gk3e0uD",
+    "name": "Ileho Health Centre",
+    "county": "Kakamega",
+    "subCounty": "Shinyalu",
+    "ward": "Isukha East"
+  },
+  {
+    "uid": "ZWaly1q0aqs",
+    "name": "Imalaba Dispensary",
+    "county": "Kakamega",
+    "subCounty": "Ikolomani",
+    "ward": "Idakho South"
+  },
+  {
+    "uid": "UV4fccuhV0R",
+    "name": "Imanga Health Centre",
+    "county": "Kakamega",
+    "subCounty": "Butere",
+    "ward": "Marama Central"
+  },
+  {
+    "uid": "z3XPCm6Ssp3",
+    "name": "Imbiakalo Dispensary",
+    "county": "Kakamega",
+    "subCounty": "Malava",
+    "ward": "West Kabras"
+  },
+  {
+    "uid": "rVLDPAPrFsC",
+    "name": "Imulama Dispensary",
+    "county": "Kakamega",
+    "subCounty": "Ikolomani",
+    "ward": "Idakho North"
+  },
+  {
+    "uid": "FqsoLjbSI9A",
+    "name": "Indangalasia Dispensary",
+    "county": "Kakamega",
+    "subCounty": "Matungu",
+    "ward": "Koyonzo"
+  },
+  {
+    "uid": "XGZfxVpbX5c",
+    "name": "Iranda Health Centre",
+    "county": "Kakamega",
+    "subCounty": "Butere",
+    "ward": "Marama West"
+  },
+  {
+    "uid": "Wmm9bP13tUz",
+    "name": "Isumba Dispensary",
+    "county": "Kakamega",
+    "subCounty": "Lurambi",
+    "ward": "Butsotso South"
+  },
+  {
+    "uid": "iw6A6nx6ugM",
+    "name": "Ivochio Dispensary",
+    "county": "Kakamega",
+    "subCounty": "Shinyalu",
+    "ward": "Murhanda"
+  },
+  {
+    "uid": "Hz3BwMUktOJ",
+    "name": "Kakamega County General Hospital",
+    "county": "Kakamega",
+    "subCounty": "Lurambi",
+    "ward": "Shirere"
+  },
+  {
+    "uid": "BEjIOW8DUVY",
+    "name": "Kamashia Health Centre",
+    "county": "Kakamega",
+    "subCounty": "Mumias East",
+    "ward": "Lusheya/Lubinu"
+  },
+  {
+    "uid": "qknYkm1vsuY",
+    "name": "Kambiri Health Centre",
+    "county": "Kakamega",
+    "subCounty": "Shinyalu",
+    "ward": "Isukha North"
+  },
+  {
+    "uid": "r5bAjjkOcRq",
+    "name": "Khalaba Health Centre",
+    "county": "Kakamega",
+    "subCounty": "Matungu",
+    "ward": "Khalaba"
+  },
+  {
+    "uid": "vK6NKz2Sr8B",
+    "name": "Kharanda Health Centre",
+    "county": "Kakamega",
+    "subCounty": "Navakholo",
+    "ward": "Bunyala West"
+  },
+  {
+    "uid": "hbWUwbyiJhb",
+    "name": "Khaunga Health Centre",
+    "county": "Kakamega",
+    "subCounty": "Mumias East",
+    "ward": "East Wanga"
+  },
+  {
+    "uid": "kyuG50xCh7R",
+    "name": "Khwisero Level IV Hospital",
+    "county": "Kakamega",
+    "subCounty": "Khwisero",
+    "ward": "Kisa North"
+  },
+  {
+    "uid": "DdPmglUPme3",
+    "name": "Kilingili Health Centre",
+    "county": "Kakamega",
+    "subCounty": "Ikolomani",
+    "ward": "Idakho South"
+  },
+  {
+    "uid": "UVRLJhXsWSL",
+    "name": "Kimangeti Dispensary",
+    "county": "Kakamega",
+    "subCounty": "Malava",
+    "ward": "Chemuche"
+  },
+  {
+    "uid": "AKCk8JAY0dK",
+    "name": "Kisembe Dispensary",
+    "county": "Kakamega",
+    "subCounty": "Navakholo",
+    "ward": "Bunyala West"
+  },
+  {
+    "uid": "iIngX6G2Ezq",
+    "name": "Kongoni Health Centre",
+    "county": "Kakamega",
+    "subCounty": "Likuyani",
+    "ward": "Kongoni"
+  },
+  {
+    "uid": "El8fBMbWcrO",
+    "name": "Kuvasali Health Centre",
+    "county": "Kakamega",
+    "subCounty": "Malava",
+    "ward": "East Kabras"
+  },
+  {
+    "uid": "AbSJUr5oge2",
+    "name": "Likuyani Sub-County Hospital",
+    "county": "Kakamega",
+    "subCounty": "Likuyani",
+    "ward": "Likuyani"
+  },
+  {
+    "uid": "QwmMZVZSkRy",
+    "name": "Lugari Forest Dispensary",
+    "county": "Kakamega",
+    "subCounty": "Lugari",
+    "ward": "Lugari"
+  },
+  {
+    "uid": "ZhDOwErGfV4",
+    "name": "Lukohe Health Centre",
+    "county": "Kakamega",
+    "subCounty": "Butere",
+    "ward": "Marama North"
+  },
+  {
+    "uid": "k0yug2XqYRT",
+    "name": "Lumakanda County Hospital",
+    "county": "Kakamega",
+    "subCounty": "Lugari",
+    "ward": "Lumakanda"
+  },
+  {
+    "uid": "r8z0MeOdroa",
+    "name": "Lumani Dispensary",
+    "county": "Kakamega",
+    "subCounty": "Lugari",
+    "ward": "Chevaywa"
+  },
+  {
+    "uid": "Z65JvisTm4o",
+    "name": "Lumino Dispensary",
+    "county": "Kakamega",
+    "subCounty": "Likuyani",
+    "ward": "Likuyani"
+  },
+  {
+    "uid": "V4mRikko5vW",
+    "name": "Lung'anyiro Health Centre",
+    "county": "Kakamega",
+    "subCounty": "Matungu",
+    "ward": "Namamali"
+  },
+  {
+    "uid": "zvicDsjeRbr",
+    "name": "Lunyito Dispensary",
+    "county": "Kakamega",
+    "subCounty": "Lugari",
+    "ward": "Lugari"
+  },
+  {
+    "uid": "vlaFA7e0Boh",
+    "name": "Lusheya Health Centre",
+    "county": "Kakamega",
+    "subCounty": "Mumias East",
+    "ward": "Lusheya/Lubinu"
+  },
+  {
+    "uid": "TtPo1TF1tpl",
+    "name": "Lutaso Dispensary",
+    "county": "Kakamega",
+    "subCounty": "Navakholo",
+    "ward": "Bunyala East"
+  },
+  {
+    "uid": "dkDsAHgijLc",
+    "name": "Mabole Health Centre",
+    "county": "Kakamega",
+    "subCounty": "Butere",
+    "ward": "Marenyo-shianda"
+  },
+  {
+    "uid": "aTrw18DrKW1",
+    "name": "Mabusi Health Centre",
+    "county": "Kakamega",
+    "subCounty": "Likuyani",
+    "ward": "Nzoia"
+  },
+  {
+    "uid": "mzlrz5MPNNj",
+    "name": "Mahanga Dispensary (Lugari)",
+    "county": "Kakamega",
+    "subCounty": "Lugari",
+    "ward": "Lwandeti"
+  },
+  {
+    "uid": "lbpwWBn36iE",
+    "name": "Majengo Dispensary",
+    "county": "Kakamega",
+    "subCounty": "Lugari",
+    "ward": "Lumakanda"
+  },
+  {
+    "uid": "WHog7fSSmKt",
+    "name": "Makunga Sub-County Hospital",
+    "county": "Kakamega",
+    "subCounty": "Mumias East",
+    "ward": "Malaha/Isongo/Makunga"
+  },
+  {
+    "uid": "sS7IzDF2Tm1",
+    "name": "Malaha Dispensary",
+    "county": "Kakamega",
+    "subCounty": "Mumias East",
+    "ward": "Malaha/Isongo/Makunga"
+  },
+  {
+    "uid": "pxlVNltvIME",
+    "name": "Malava County Hospital",
+    "county": "Kakamega",
+    "subCounty": "Malava",
+    "ward": "Shirungu-mugai"
+  },
+  {
+    "uid": "CceWNo4yXvT",
+    "name": "Malekha Dispensary",
+    "county": "Kakamega",
+    "subCounty": "Malava",
+    "ward": "Shirungu-mugai"
+  },
+  {
+    "uid": "S0pNUj8UTsw",
+    "name": "Manda Dispensary",
+    "county": "Kakamega",
+    "subCounty": "Malava",
+    "ward": "Manda-shivanga"
+  },
+  {
+    "uid": "Jq3sWm3tMJy",
+    "name": "Manyala Sub County Hospital",
+    "county": "Kakamega",
+    "subCounty": "Butere",
+    "ward": "Marama South"
+  },
+  {
+    "uid": "M6xawHYldR7",
+    "name": "Mapengo Dispensary",
+    "county": "Kakamega",
+    "subCounty": "Lugari",
+    "ward": "Chekalini"
+  },
+  {
+    "uid": "rxOzjXrbCkg",
+    "name": "Matete Level 4 Hospital",
+    "county": "Kakamega",
+    "subCounty": "Lugari",
+    "ward": "Chevaywa"
+  },
+  {
+    "uid": "aldqNnKJgrg",
+    "name": "Matioli Dispensary",
+    "county": "Kakamega",
+    "subCounty": "Lurambi",
+    "ward": "Butsotso South"
+  },
+  {
+    "uid": "zRb4VBix3Qg",
+    "name": "Matunda Maternity Home",
+    "county": "Kakamega",
+    "subCounty": "Likuyani",
+    "ward": "Nzoia"
+  },
+  {
+    "uid": "iuatmqJAf90",
+    "name": "Matunda Sub County Hospital",
+    "county": "Kakamega",
+    "subCounty": "Likuyani",
+    "ward": "Nzoia"
+  },
+  {
+    "uid": "MdJ4Zb1k9o6",
+    "name": "Matungu Sub County Hospital",
+    "county": "Kakamega",
+    "subCounty": "Matungu",
+    "ward": "Mayoni"
+  },
+  {
+    "uid": "ilI3ROaTEuf",
+    "name": "Maturu Dispensary",
+    "county": "Kakamega",
+    "subCounty": "Lugari",
+    "ward": "Lwandeti"
+  },
+  {
+    "uid": "s7kF3iHFhmi",
+    "name": "Mautuma Sub County Hospital",
+    "county": "Kakamega",
+    "subCounty": "Lugari",
+    "ward": "Mautuma"
+  },
+  {
+    "uid": "ByiHGSgYyaR",
+    "name": "Mbagara Dispensary",
+    "county": "Kakamega",
+    "subCounty": "Lugari",
+    "ward": "Mautuma"
+  },
+  {
+    "uid": "wTvF9os0GY9",
+    "name": "Mirere Health Centre",
+    "county": "Kakamega",
+    "subCounty": "Matungu",
+    "ward": "Namamali"
+  },
+  {
+    "uid": "W4iT4HvZqo1",
+    "name": "Mlimani Dispensary",
+    "county": "Kakamega",
+    "subCounty": "Likuyani",
+    "ward": "Sinoko"
+  },
+  {
+    "uid": "SL8fi4azWSe",
+    "name": "Mugai Dispensary",
+    "county": "Kakamega",
+    "subCounty": "Malava",
+    "ward": "Shirungu-mugai"
+  },
+  {
+    "uid": "UptqVvZaPxr",
+    "name": "Mugomari Dispensary",
+    "county": "Kakamega",
+    "subCounty": "Shinyalu",
+    "ward": "Isukha West"
+  },
+  {
+    "uid": "Qvul0TKYFSw",
+    "name": "Muhaka Health Centre",
+    "county": "Kakamega",
+    "subCounty": "Khwisero",
+    "ward": "Kisa West"
+  },
+  {
+    "uid": "z9FKHisHLl1",
+    "name": "Mukuyu Dispensary",
+    "county": "Kakamega",
+    "subCounty": "Lugari",
+    "ward": "Mautuma"
+  },
+  {
+    "uid": "KWE4k0FdpyQ",
+    "name": "Mulwanda Health Centre",
+    "county": "Kakamega",
+    "subCounty": "Khwisero",
+    "ward": "Kisa Central"
+  },
+  {
+    "uid": "FUmxPkE1UYR",
+    "name": "Mumias Level IV Hospital",
+    "county": "Kakamega",
+    "subCounty": "Mumias West",
+    "ward": "Mumias Central"
+  },
+  {
+    "uid": "pyNcZj1SiiO",
+    "name": "Mumias Model Health Centre",
+    "county": "Kakamega",
+    "subCounty": "Mumias West",
+    "ward": "Mumias Central"
+  },
+  {
+    "uid": "Xcn5Q2e73rw",
+    "name": "Mundobelwa Health Centre",
+    "county": "Kakamega",
+    "subCounty": "Khwisero",
+    "ward": "Kisa North"
+  },
+  {
+    "uid": "Sl09BVeTcZl",
+    "name": "Mundoli Health Centre",
+    "county": "Kakamega",
+    "subCounty": "Khwisero",
+    "ward": "Kisa Central"
+  },
+  {
+    "uid": "eFmuvjEF89U",
+    "name": "Mung'Ang'A Health Centre",
+    "county": "Kakamega",
+    "subCounty": "Mumias East",
+    "ward": "East Wanga"
+  },
+  {
+    "uid": "yBE1qjhnu5Q",
+    "name": "Mung'ung'u Dispensary",
+    "county": "Kakamega",
+    "subCounty": "Matungu",
+    "ward": "Koyonzo"
+  },
+  {
+    "uid": "lUeBChLhZoD",
+    "name": "Munyuki Dispensary",
+    "county": "Kakamega",
+    "subCounty": "Lugari",
+    "ward": "Lumakanda"
+  },
+  {
+    "uid": "GsdR4nzQbYe",
+    "name": "Murudef Dispensary",
+    "county": "Kakamega",
+    "subCounty": "Ikolomani",
+    "ward": "Idakho Central"
+  },
+  {
+    "uid": "dP6vWptiu3u",
+    "name": "Musanda Dispensary",
+    "county": "Kakamega",
+    "subCounty": "Mumias West",
+    "ward": "Musanda"
+  },
+  {
+    "uid": "HLBR8Fm8NHq",
+    "name": "Musembe Dispensary",
+    "county": "Kakamega",
+    "subCounty": "Shinyalu",
+    "ward": "Isukha Central"
+  },
+  {
+    "uid": "cFRuOTWF3ur",
+    "name": "Musembe Dispensary (Lugari)",
+    "county": "Kakamega",
+    "subCounty": "Lugari",
+    "ward": "Chekalini"
+  },
+  {
+    "uid": "Sy2bE0LtTJx",
+    "name": "Muting'ong'o Dispensary",
+    "county": "Kakamega",
+    "subCounty": "Malava",
+    "ward": "Chemuche"
+  },
+  {
+    "uid": "cSJA4hwmlLm",
+    "name": "Mwihila Mission Hospital",
+    "county": "Kakamega",
+    "subCounty": "Khwisero",
+    "ward": "Kisa North"
+  },
+  {
+    "uid": "VFkTXLKIbBT",
+    "name": "Mwikalikha Health Centre",
+    "county": "Kakamega",
+    "subCounty": "Khwisero",
+    "ward": "Kisa North"
+  },
+  {
+    "uid": "uj2UMJenimd",
+    "name": "Nabongo Dispensary",
+    "county": "Kakamega",
+    "subCounty": "Lurambi",
+    "ward": "Sheywe"
+  },
+  {
+    "uid": "DIonv0JYDFH",
+    "name": "Nala Maternity and Nursing Home",
+    "county": "Kakamega",
+    "subCounty": "Lurambi",
+    "ward": "Shirere"
+  },
+  {
+    "uid": "bm0xjIsElOx",
+    "name": "Namagara Dispensary",
+    "county": "Kakamega",
+    "subCounty": "Malava",
+    "ward": "Manda-shivanga"
+  },
+  {
+    "uid": "z6NaFzIMBFT",
+    "name": "Namasoli Health Centre",
+    "county": "Kakamega",
+    "subCounty": "Khwisero",
+    "ward": "Kisa Central"
+  },
+  {
+    "uid": "NaNOAO9vdQF",
+    "name": "Namirama Dispensary",
+    "county": "Kakamega",
+    "subCounty": "Navakholo",
+    "ward": "Bunyala East"
+  },
+  {
+    "uid": "s10bI57eZ6v",
+    "name": "Namulungu Dispensary",
+    "county": "Kakamega",
+    "subCounty": "Matungu",
+    "ward": "Kholera"
+  },
+  {
+    "uid": "UOKEv02h8eL",
+    "name": "National Youth Service Dispensary (Turbo)",
+    "county": "Kakamega",
+    "subCounty": "Lugari",
+    "ward": "Lumakanda"
+  },
+  {
+    "uid": "MPbxqvaEWLa",
+    "name": "Navakholo Sub County Hospital",
+    "county": "Kakamega",
+    "subCounty": "Navakholo",
+    "ward": "Bunyala Central"
+  },
+  {
+    "uid": "PLczdqs5KKm",
+    "name": "Nyaporo Dispensary",
+    "county": "Kakamega",
+    "subCounty": "Mumias East",
+    "ward": "Malaha/Isongo/Makunga"
+  },
+  {
+    "uid": "wCYNSByDP30",
+    "name": "Nzoia Matete Dispensary",
+    "county": "Kakamega",
+    "subCounty": "Lugari",
+    "ward": "Lwandeti"
+  },
+  {
+    "uid": "TDU6t8gEJgE",
+    "name": "Sakali Dispensary",
+    "county": "Kakamega",
+    "subCounty": "Lurambi",
+    "ward": "Mahiakalo"
+  },
+  {
+    "uid": "IwDcBQwgbEg",
+    "name": "Sango Dispensary",
+    "county": "Kakamega",
+    "subCounty": "Likuyani",
+    "ward": "Sango"
+  },
+  {
+    "uid": "vhGugNZUV3w",
+    "name": "Savane Health Centre",
+    "county": "Kakamega",
+    "subCounty": "Ikolomani",
+    "ward": "Idakho East"
+  },
+  {
+    "uid": "KZokajoLAXf",
+    "name": "Seregeya Dispensary",
+    "county": "Kakamega",
+    "subCounty": "Likuyani",
+    "ward": "Likuyani"
+  },
+  {
+    "uid": "BRIBehwYmcd",
+    "name": "Shamakhubu Health Centre",
+    "county": "Kakamega",
+    "subCounty": "Shinyalu",
+    "ward": "Murhanda"
+  },
+  {
+    "uid": "UNbhlHZjMF2",
+    "name": "Shamberere Health Centre",
+    "county": "Kakamega",
+    "subCounty": "Malava",
+    "ward": "South Kabras"
+  },
+  {
+    "uid": "d7xdgRnT1pE",
+    "name": "Shianda Health Centre",
+    "county": "Kakamega",
+    "subCounty": "Mumias East",
+    "ward": "East Wanga"
+  },
+  {
+    "uid": "PuVGCzBiYAp",
+    "name": "Shibanze Dispensary",
+    "county": "Kakamega",
+    "subCounty": "Matungu",
+    "ward": "Kholera"
+  },
+  {
+    "uid": "y1jWd1Ug7ts",
+    "name": "Shibwe Sub-County Hospital",
+    "county": "Kakamega",
+    "subCounty": "Ikolomani",
+    "ward": "Idakho Central"
+  },
+  {
+    "uid": "IDtVLOWs5dB",
+    "name": "Shihalia Dispensary",
+    "county": "Kakamega",
+    "subCounty": "Ikolomani",
+    "ward": "Idakho Central"
+  },
+  {
+    "uid": "HRweTMDGBxV",
+    "name": "Shihome Dispensary",
+    "county": "Kakamega",
+    "subCounty": "Malava",
+    "ward": "South Kabras"
+  },
+  {
+    "uid": "W1JxUhwofMg",
+    "name": "Shikokho Dispensary",
+    "county": "Kakamega",
+    "subCounty": "Ikolomani",
+    "ward": "Idakho East"
+  },
+  {
+    "uid": "r7Lt1WaGvWx",
+    "name": "Shikumu Dispensary",
+    "county": "Kakamega",
+    "subCounty": "Ikolomani",
+    "ward": "Idakho Central"
+  },
+  {
+    "uid": "VymFeOiKKGv",
+    "name": "Shikunga Health Centre",
+    "county": "Kakamega",
+    "subCounty": "Butere",
+    "ward": "Marenyo-shianda"
+  },
+  {
+    "uid": "zsswqbRZEzQ",
+    "name": "Shikusi Dispensary",
+    "county": "Kakamega",
+    "subCounty": "Shinyalu",
+    "ward": "Isukha South"
+  },
+  {
+    "uid": "kbg8aYUzgUM",
+    "name": "Shinyalu Model Health Centre",
+    "county": "Kakamega",
+    "subCounty": "Shinyalu",
+    "ward": "Isukha Central"
+  },
+  {
+    "uid": "agO9AbQPxH4",
+    "name": "Shiraha Health Centre",
+    "county": "Kakamega",
+    "subCounty": "Butere",
+    "ward": "Marama North"
+  },
+  {
+    "uid": "fB3xG06tgRu",
+    "name": "Shisaba Dispensary",
+    "county": "Kakamega",
+    "subCounty": "Butere",
+    "ward": "Marama West"
+  },
+  {
+    "uid": "KzjIbQebF4W",
+    "name": "Shiseso Health Centre",
+    "county": "Kakamega",
+    "subCounty": "Ikolomani",
+    "ward": "Idakho North"
+  },
+  {
+    "uid": "DN1DpNnTw3q",
+    "name": "Shitsitswi Health Centre",
+    "county": "Kakamega",
+    "subCounty": "Butere",
+    "ward": "Marama Central"
+  },
+  {
+    "uid": "c6oal13vwWU",
+    "name": "Shivanga Health Centre",
+    "county": "Kakamega",
+    "subCounty": "Malava",
+    "ward": "Manda-shivanga"
+  },
+  {
+    "uid": "PKZbcnRwCfc",
+    "name": "Sinoko Dispensary (Likuyani)",
+    "county": "Kakamega",
+    "subCounty": "Likuyani",
+    "ward": "Sinoko"
+  },
+  {
+    "uid": "ODM2QM6y8hO",
+    "name": "Sisokhe Dispensary",
+    "county": "Kakamega",
+    "subCounty": "Navakholo",
+    "ward": "Bunyala West"
+  },
+  {
+    "uid": "Hvo3qjmJZTO",
+    "name": "Sivilie Health Centre",
+    "county": "Kakamega",
+    "subCounty": "Navakholo",
+    "ward": "Bunyala East"
+  },
+  {
+    "uid": "OB7IC7CcLnh",
+    "name": "Sonak Community Medical Centre",
+    "county": "Kakamega",
+    "subCounty": "Khwisero",
+    "ward": "Kisa Central"
+  },
+  {
+    "uid": "Gwo8OLfAeek",
+    "name": "Soy Sambu Dispensary",
+    "county": "Kakamega",
+    "subCounty": "Likuyani",
+    "ward": "Sango"
+  },
+  {
+    "uid": "zjvUyYZscbf",
+    "name": "St Charles Lwanga Health Centre",
+    "county": "Kakamega",
+    "subCounty": "Lugari",
+    "ward": "Chekalini"
+  },
+  {
+    "uid": "D4qI2X6dXcu",
+    "name": "St Marthas Chimoi Health Centre",
+    "county": "Kakamega",
+    "subCounty": "Malava",
+    "ward": "Manda-shivanga"
+  },
+  {
+    "uid": "MsF0OYgs0ut",
+    "name": "St. Monica Eregi Mission Health Centre",
+    "county": "Kakamega",
+    "subCounty": "Ikolomani",
+    "ward": "Idakho South"
+  },
+  {
+    "uid": "FiGBHFGyJas",
+    "name": "Turbo Forest Dispensary",
+    "county": "Kakamega",
+    "subCounty": "Likuyani",
+    "ward": "Likuyani"
+  },
+  {
+    "uid": "Bmhbkq3ILv5",
+    "name": "Vikunga Dispensary",
+    "county": "Kakamega",
+    "subCounty": "Shinyalu",
+    "ward": "Isukha West"
+  },
+  {
+    "uid": "oRbDEjHUl6c",
+    "name": "Virhembe Nursing Home",
+    "county": "Kakamega",
+    "subCounty": "Shinyalu",
+    "ward": "Isukha Central"
+  },
+  {
+    "uid": "hmIgXXyNHOj",
+    "name": "Aga Khan Hospital (Kisumu)",
+    "county": "Kisumu",
+    "subCounty": "Kisumu Central",
+    "ward": "Market Milimani"
+  },
+  {
+    "uid": "oEWhqoUHkvt",
+    "name": "Airport Health Centre (Kisumu)",
+    "county": "Kisumu",
+    "subCounty": "Kisumu West",
+    "ward": "Central Kisumu"
+  },
+  {
+    "uid": "LdOHCxKsiqK",
+    "name": "Angola Health Centre",
+    "county": "Kisumu",
+    "subCounty": "Kisumu East",
+    "ward": "Kolwa East"
+  },
+  {
+    "uid": "t6mwHRbgVVb",
+    "name": "Avenue Hospital Kisumu",
+    "county": "Kisumu",
+    "subCounty": "Kisumu Central",
+    "ward": "Railways"
+  },
+  {
+    "uid": "qNO02IGD3yn",
+    "name": "Chiga Sub County Hospital",
+    "county": "Kisumu",
+    "subCounty": "Kisumu East",
+    "ward": "Kolwa East"
+  },
+  {
+    "uid": "aRWvqnCMOEN",
+    "name": "Chulaimbo County Hospital",
+    "county": "Kisumu",
+    "subCounty": "Kisumu West",
+    "ward": "North West Kisumu"
+  },
+  {
+    "uid": "H2T8SxOU1zP",
+    "name": "Disciples of Mercy Clinic",
+    "county": "Kisumu",
+    "subCounty": "Kisumu East",
+    "ward": "Kajulu"
+  },
+  {
+    "uid": "ngqqwzhuvjL",
+    "name": "Gita Sub County Hospital",
+    "county": "Kisumu",
+    "subCounty": "Kisumu East",
+    "ward": "Kajulu"
+  },
+  {
+    "uid": "lFZ0yIDgUyJ",
+    "name": "K-Met Corkran Medical Clinic",
+    "county": "Kisumu",
+    "subCounty": "Kisumu Central",
+    "ward": "Railways"
+  },
+  {
+    "uid": "DNnvCXUMH4v",
+    "name": "Kowino Dispensary",
+    "county": "Kisumu",
+    "subCounty": "Kisumu East",
+    "ward": "Nyalenda A"
+  },
+  {
+    "uid": "Ziuf2e6LMfZ",
+    "name": "Kuoyo Health Center",
+    "county": "Kisumu",
+    "subCounty": "Kisumu East",
+    "ward": "Kolwa East"
+  },
+  {
+    "uid": "DsOK1u3aO6G",
+    "name": "Mainga Health Centre",
+    "county": "Kisumu",
+    "subCounty": "Kisumu West",
+    "ward": "West Kisumu"
+  },
+  {
+    "uid": "sSoQItUt4xV",
+    "name": "Masaba Hospital Kisumu",
+    "county": "Kisumu",
+    "subCounty": "Kisumu West",
+    "ward": "North West Kisumu"
+  },
+  {
+    "uid": "mrAt9Y3nTvD",
+    "name": "Mbaka Oromo Health Centre",
+    "county": "Kisumu",
+    "subCounty": "Kisumu West",
+    "ward": "North West Kisumu"
+  },
+  {
+    "uid": "zZdbrp6Tyiv",
+    "name": "Migosi Sub County Hospital",
+    "county": "Kisumu",
+    "subCounty": "Kisumu Central",
+    "ward": "Migosi"
+  },
+  {
+    "uid": "E4jVwDn9VtO",
+    "name": "Nightingale Medical Centre",
+    "county": "Kisumu",
+    "subCounty": "Kisumu Central",
+    "ward": "Kondele"
+  },
+  {
+    "uid": "uMzpY2vfUnF",
+    "name": "Nyalenda Health Centre",
+    "county": "Kisumu",
+    "subCounty": "Kisumu Central",
+    "ward": "Nyalenda B"
+  },
+  {
+    "uid": "JVl5vd8v985",
+    "name": "Ober Kamoth Sub County Hospital",
+    "county": "Kisumu",
+    "subCounty": "Kisumu West",
+    "ward": "South West Kisumu"
+  },
+  {
+    "uid": "xSUP8uKu35W",
+    "name": "Ojola Sub County Hospital",
+    "county": "Kisumu",
+    "subCounty": "Kisumu West",
+    "ward": "South West Kisumu"
+  },
+  {
+    "uid": "Aa4MetEuYbi",
+    "name": "Orongo Dispensary",
+    "county": "Kisumu",
+    "subCounty": "Kisumu East",
+    "ward": "Central Kisumu"
+  },
+  {
+    "uid": "pOzVvOXQ6TL",
+    "name": "Port Florence Hospital",
+    "county": "Kisumu",
+    "subCounty": "Kisumu West",
+    "ward": "Central Kisumu"
+  },
+  {
+    "uid": "RuEWpmWUmCM",
+    "name": "Riat Dispensary",
+    "county": "Kisumu",
+    "subCounty": "Kisumu West",
+    "ward": "West Kisumu"
+  },
+  {
+    "uid": "uirOz9L34AZ",
+    "name": "Simba Opepo Health Centre",
+    "county": "Kisumu",
+    "subCounty": "Kisumu East",
+    "ward": "Kajulu"
+  },
+  {
+    "uid": "TLYxOpSwSUe",
+    "name": "St Jairus Hospital",
+    "county": "Kisumu",
+    "subCounty": "Kisumu West",
+    "ward": "Central Kisumu"
+  },
+  {
+    "uid": "BeyRouwSiVk",
+    "name": "St Jones and Ring Road Health Clinic",
+    "county": "Kisumu",
+    "subCounty": "Kisumu Central",
+    "ward": "Nyalenda B"
+  },
+  {
+    "uid": "bX5nd5eRa7d",
+    "name": "St Mark's Lela Health Centre",
+    "county": "Kisumu",
+    "subCounty": "Kisumu West",
+    "ward": "Central Kisumu"
+  },
+  {
+    "uid": "zkY1vTT6ZhX",
+    "name": "Star Maternity & Nursing Home",
+    "county": "Kisumu",
+    "subCounty": "Kisumu Central",
+    "ward": "Shauri Moyo Kaloleni"
+  },
+  {
+    "uid": "XgCDq1zkmPu",
+    "name": "Sunga Dispensary",
+    "county": "Kisumu",
+    "subCounty": "Kisumu West",
+    "ward": "North West Kisumu"
+  },
+  {
+    "uid": "NwNdyVDgAPq",
+    "name": "Usoma Health Centre",
+    "county": "Kisumu",
+    "subCounty": "Kisumu West",
+    "ward": "Central Kisumu"
+  },
+  {
+    "uid": "f6tOBNIJ0HW",
+    "name": "Amaiga Dispensary",
+    "county": "Nyamira",
+    "subCounty": "Manga",
+    "ward": "Kamera"
+  },
+  {
+    "uid": "R6OvNgtymXw",
+    "name": "Amatierio Health Centre",
+    "county": "Nyamira",
+    "subCounty": "Borabu",
+    "ward": "Kiabonyoru"
+  },
+  {
+    "uid": "z3iVrJLrSQo",
+    "name": "Bogwendo Health Centre",
+    "county": "Nyamira",
+    "subCounty": "Manga",
+    "ward": "Magombo"
+  },
+  {
+    "uid": "mZ5dBUXvXqh",
+    "name": "Bosiango Health Centre",
+    "county": "Nyamira",
+    "subCounty": "Nyamira",
+    "ward": "Bogichora"
+  },
+  {
+    "uid": "oPB35EIF6o3",
+    "name": "Chaina Dispensary",
+    "county": "Nyamira",
+    "subCounty": "Nyamira North",
+    "ward": "Itibo"
+  },
+  {
+    "uid": "jVfleNBXcwG",
+    "name": "Chepngombe Health Centre",
+    "county": "Nyamira",
+    "subCounty": "Borabu",
+    "ward": "Esise"
+  },
+  {
+    "uid": "hYlQ9bF0BNY",
+    "name": "Ekerenyo Sub-County Hospital",
+    "county": "Nyamira",
+    "subCounty": "Nyamira North",
+    "ward": "Ekerenyo"
+  },
+  {
+    "uid": "wvzZZaYO0Fm",
+    "name": "Embonga Health Centre",
+    "county": "Nyamira",
+    "subCounty": "Nyamira",
+    "ward": "Bogichora"
+  },
+  {
+    "uid": "ZQT01wKQqiS",
+    "name": "Endiba Health Centre",
+    "county": "Nyamira",
+    "subCounty": "Borabu",
+    "ward": "Kiabonyoru"
+  },
+  {
+    "uid": "YFxkxX3dyJ0",
+    "name": "Esani Sub-County  Hospital",
+    "county": "Nyamira",
+    "subCounty": "Masaba North",
+    "ward": "Gesima"
+  },
+  {
+    "uid": "z1cwlRDg4i1",
+    "name": "Esianyi Dispensary",
+    "county": "Nyamira",
+    "subCounty": "Nyamira North",
+    "ward": "Magwagwa"
+  },
+  {
+    "uid": "d9MqCk2B3Gs",
+    "name": "Etono Health Centre",
+    "county": "Nyamira",
+    "subCounty": "Nyamira North",
+    "ward": "Bomwagamo"
+  },
+  {
+    "uid": "SLYEU6SItMd",
+    "name": "Gesima Sub County Hospital",
+    "county": "Nyamira",
+    "subCounty": "Masaba North",
+    "ward": "Gesima"
+  },
+  {
+    "uid": "tJVeZDtaAeT",
+    "name": "Gesure Health Centre (Manga)",
+    "county": "Nyamira",
+    "subCounty": "Manga",
+    "ward": "Manga"
+  },
+  {
+    "uid": "TjAizB1Q3zr",
+    "name": "Getare Health Centre",
+    "county": "Nyamira",
+    "subCounty": "Manga",
+    "ward": "Kamera"
+  },
+  {
+    "uid": "foKJoeEplXv",
+    "name": "Gianchore Health Centre",
+    "county": "Nyamira",
+    "subCounty": "Nyamira",
+    "ward": "Bogichora"
+  },
+  {
+    "uid": "IrAwqGGDUVy",
+    "name": "Girango Dispensary",
+    "county": "Nyamira",
+    "subCounty": "Masaba North",
+    "ward": "Gachuba"
+  },
+  {
+    "uid": "UXpnlt136Fm",
+    "name": "Gisage Dispensary",
+    "county": "Nyamira",
+    "subCounty": "Nyamira North",
+    "ward": "Magwagwa"
+  },
+  {
+    "uid": "nQpfownNCBk",
+    "name": "Igena Itambe Health Centre",
+    "county": "Nyamira",
+    "subCounty": "Nyamira",
+    "ward": "Bosamaro"
+  },
+  {
+    "uid": "w6Y5qDucxn0",
+    "name": "Ikobe Health Centre",
+    "county": "Nyamira",
+    "subCounty": "Manga",
+    "ward": "Manga"
+  },
+  {
+    "uid": "kTrvZAjAcnU",
+    "name": "Ikonge Dispensary",
+    "county": "Nyamira",
+    "subCounty": "Nyamira North",
+    "ward": "Ekerenyo"
+  },
+  {
+    "uid": "aqfZGfHVbn2",
+    "name": "Isoge Health Centre",
+    "county": "Nyamira",
+    "subCounty": "Borabu",
+    "ward": "Nyansiongo"
+  },
+  {
+    "uid": "BB8Fv5gv7SE",
+    "name": "Itibo Mission Health Centre",
+    "county": "Nyamira",
+    "subCounty": "Nyamira North",
+    "ward": "Itibo"
+  },
+  {
+    "uid": "brSpidcNdoF",
+    "name": "Kenyambi Health Centre (Nyamira)",
+    "county": "Nyamira",
+    "subCounty": "Nyamira",
+    "ward": "Bogichora"
+  },
+  {
+    "uid": "B6t2Uc0FqSP",
+    "name": "Kenyenya Health Centre (Nyamira)",
+    "county": "Nyamira",
+    "subCounty": "Nyamira",
+    "ward": "Bonyamatuta"
+  },
+  {
+    "uid": "wVKkAhozU17",
+    "name": "Kenyerere Health Centre (Nyamira)",
+    "county": "Nyamira",
+    "subCounty": "Nyamira",
+    "ward": "Bonyamatuta"
+  },
+  {
+    "uid": "KIcB1UkdXXb",
+    "name": "Kenyoro Health Centre",
+    "county": "Nyamira",
+    "subCounty": "Nyamira North",
+    "ward": "Itibo"
+  },
+  {
+    "uid": "shH3wN0yTJZ",
+    "name": "Kerobo Health Centre",
+    "county": "Nyamira",
+    "subCounty": "Nyamira North",
+    "ward": "Bomwagamo"
+  },
+  {
+    "uid": "sDUKRZ8adP3",
+    "name": "Kerumbe Dispensary",
+    "county": "Nyamira",
+    "subCounty": "Borabu",
+    "ward": "Mekenene"
+  },
+  {
+    "uid": "Hl0KZfBiE39",
+    "name": "Kiang'inda Health Centre",
+    "county": "Nyamira",
+    "subCounty": "Nyamira",
+    "ward": "Bosamaro"
+  },
+  {
+    "uid": "BpQOavntuoE",
+    "name": "Kiangoso Health Centre",
+    "county": "Nyamira",
+    "subCounty": "Manga",
+    "ward": "Kamera"
+  },
+  {
+    "uid": "toOGtwnm0oz",
+    "name": "Kijauri Sub County Hospital",
+    "county": "Nyamira",
+    "subCounty": "Borabu",
+    "ward": "Nyansiongo"
+  },
+  {
+    "uid": "qiryyPJ0w1h",
+    "name": "Kinara Hospital",
+    "county": "Nyamira",
+    "subCounty": "Nyamira",
+    "ward": "Township"
+  },
+  {
+    "uid": "PKjDudRnOeJ",
+    "name": "Kineni Health Centre",
+    "county": "Nyamira",
+    "subCounty": "Borabu",
+    "ward": "Nyansiongo"
+  },
+  {
+    "uid": "Zb9vfEOPJLP",
+    "name": "Kipkebe Health Centre",
+    "county": "Nyamira",
+    "subCounty": "Borabu",
+    "ward": "Mekenene"
+  },
+  {
+    "uid": "zwIF2bQgFlO",
+    "name": "Machururiati Dispensary",
+    "county": "Nyamira",
+    "subCounty": "Masaba North",
+    "ward": "Gesima"
+  },
+  {
+    "uid": "FcIvchcbwUH",
+    "name": "Magombo Community Dispensary",
+    "county": "Nyamira",
+    "subCounty": "Manga",
+    "ward": "Magombo"
+  },
+  {
+    "uid": "nrZfcIAiyRx",
+    "name": "Magombo Health Centre",
+    "county": "Nyamira",
+    "subCounty": "Masaba North",
+    "ward": "Gachuba"
+  },
+  {
+    "uid": "qQBZhGY6Zue",
+    "name": "Magwagwa (SDA) Dispensary",
+    "county": "Nyamira",
+    "subCounty": "Nyamira North",
+    "ward": "Magwagwa"
+  },
+  {
+    "uid": "fgKTzsc9pph",
+    "name": "Magwagwa Health Centre",
+    "county": "Nyamira",
+    "subCounty": "Nyamira North",
+    "ward": "Magwagwa"
+  },
+  {
+    "uid": "gO4F9cwk5WB",
+    "name": "Manga Sub County Hospital",
+    "county": "Nyamira",
+    "subCounty": "Manga",
+    "ward": "Manga"
+  },
+  {
+    "uid": "Kp2Kfseofdd",
+    "name": "Masaba Sub-County  Hospital",
+    "county": "Nyamira",
+    "subCounty": "Masaba North",
+    "ward": "Rigoma"
+  },
+  {
+    "uid": "SWDBkgq9Eqe",
+    "name": "Matongo Health Centre",
+    "county": "Nyamira",
+    "subCounty": "Nyamira North",
+    "ward": "Bokeira"
+  },
+  {
+    "uid": "r003lM7ULWV",
+    "name": "Mecheo Dispensary",
+    "county": "Nyamira",
+    "subCounty": "Borabu",
+    "ward": "Esise"
+  },
+  {
+    "uid": "qaTjMQMpHPq",
+    "name": "Miriri Dispensary",
+    "county": "Nyamira",
+    "subCounty": "Masaba North",
+    "ward": "Gachuba"
+  },
+  {
+    "uid": "DQ9uKSobLf0",
+    "name": "Mochenwa Health Centre",
+    "county": "Nyamira",
+    "subCounty": "Masaba North",
+    "ward": "Gesima"
+  },
+  {
+    "uid": "IbIpYe5FyiE",
+    "name": "Mokomoni Health Centre",
+    "county": "Nyamira",
+    "subCounty": "Borabu",
+    "ward": "Kiabonyoru"
+  },
+  {
+    "uid": "EVeWGkaFwhO",
+    "name": "Mong'oni Dispensary",
+    "county": "Nyamira",
+    "subCounty": "Masaba North",
+    "ward": "Rigoma"
+  },
+  {
+    "uid": "FNIEbT5nfml",
+    "name": "Mongorisi Health Centre",
+    "county": "Nyamira",
+    "subCounty": "Nyamira",
+    "ward": "Bogichora"
+  },
+  {
+    "uid": "kB3a5DNtVlu",
+    "name": "Motontera Health Centre",
+    "county": "Nyamira",
+    "subCounty": "Nyamira",
+    "ward": "Nyamaiya"
+  },
+  {
+    "uid": "eEVi7Ji3nke",
+    "name": "Mwongori Dispensary",
+    "county": "Nyamira",
+    "subCounty": "Borabu",
+    "ward": "Mekenene"
+  },
+  {
+    "uid": "q1fSSC4w9pO",
+    "name": "Nyagancha Dispensary",
+    "county": "Nyamira",
+    "subCounty": "Masaba North",
+    "ward": "Gachuba"
+  },
+  {
+    "uid": "o8IOlvEXsMe",
+    "name": "Nyamaiya Health Centre",
+    "county": "Nyamira",
+    "subCounty": "Nyamira",
+    "ward": "Nyamaiya"
+  },
+  {
+    "uid": "eWl04gJBWM3",
+    "name": "Nyamakoroto Dispensary",
+    "county": "Nyamira",
+    "subCounty": "Masaba North",
+    "ward": "Gesima"
+  },
+  {
+    "uid": "iYpP2OYAWcL",
+    "name": "Nyambaria Geke Dispensary",
+    "county": "Nyamira",
+    "subCounty": "Manga",
+    "ward": "Magombo"
+  },
+  {
+    "uid": "HjL1sFQUDS0",
+    "name": "Nyamira Adventist Health Centre",
+    "county": "Nyamira",
+    "subCounty": "Nyamira",
+    "ward": "Township"
+  },
+  {
+    "uid": "hKvUlAHlVJx",
+    "name": "Nyamira County Referral Hospital",
+    "county": "Nyamira",
+    "subCounty": "Nyamira",
+    "ward": "Township"
+  },
+  {
+    "uid": "BVmPVKqyQJE",
+    "name": "Nyamira Royal Clinic",
+    "county": "Nyamira",
+    "subCounty": "Nyamira",
+    "ward": "Township"
+  },
+  {
+    "uid": "EKgRy3CAlod",
+    "name": "Nyamusi Sub-County Hospital",
+    "county": "Nyamira",
+    "subCounty": "Nyamira North",
+    "ward": "Magwagwa"
+  },
+  {
+    "uid": "SlWsYkPHSxs",
+    "name": "Nyanchonori Dispensary",
+    "county": "Nyamira",
+    "subCounty": "Masaba North",
+    "ward": "Rigoma"
+  },
+  {
+    "uid": "sAf3Y4aI3zy",
+    "name": "Nyandoche Ibere Dispensary",
+    "county": "Nyamira",
+    "subCounty": "Borabu",
+    "ward": "Mekenene"
+  },
+  {
+    "uid": "YVbnjQr0hoD",
+    "name": "Nyangena Sub County Hospital",
+    "county": "Nyamira",
+    "subCounty": "Manga",
+    "ward": "Kamera"
+  },
+  {
+    "uid": "pfefIJMcoRj",
+    "name": "Nyangweta Health Centre",
+    "county": "Nyamira",
+    "subCounty": "Nyamira",
+    "ward": "Bosamaro"
+  },
+  {
+    "uid": "KTbbX60HB6W",
+    "name": "Nyankono Dispensary",
+    "county": "Nyamira",
+    "subCounty": "Borabu",
+    "ward": "Mekenene"
+  },
+  {
+    "uid": "mIhBcu4mJnr",
+    "name": "Nyansabakwa Health Centre",
+    "county": "Nyamira",
+    "subCounty": "Nyamira",
+    "ward": "Nyamaiya"
+  },
+  {
+    "uid": "sON080cYG4f",
+    "name": "Nyansangio Health Centre",
+    "county": "Nyamira",
+    "subCounty": "Nyamira",
+    "ward": "Nyamaiya"
+  },
+  {
+    "uid": "XXfTejSDscY",
+    "name": "Nyanturago Health Centre (Nyamira)",
+    "county": "Nyamira",
+    "subCounty": "Nyamira",
+    "ward": "Bosamaro"
+  },
+  {
+    "uid": "Qua0FhXY1Ud",
+    "name": "Ogango Dispensary",
+    "county": "Nyamira",
+    "subCounty": "Manga",
+    "ward": "Manga"
+  },
+  {
+    "uid": "KdMmUqXo3ZA",
+    "name": "Ogango Health Centre",
+    "county": "Nyamira",
+    "subCounty": "Nyamira",
+    "ward": "Bogichora"
+  },
+  {
+    "uid": "grOgz9Y2EUz",
+    "name": "Orwaki Dispensary",
+    "county": "Nyamira",
+    "subCounty": "Nyamira North",
+    "ward": "Bokeira"
+  },
+  {
+    "uid": "QlLCgOvlXCv",
+    "name": "Raitigo Dispensary",
+    "county": "Nyamira",
+    "subCounty": "Borabu",
+    "ward": "Esise"
+  },
+  {
+    "uid": "gAm0OAuvKMF",
+    "name": "Rangenyo Mission Health Centre",
+    "county": "Nyamira",
+    "subCounty": "Nyamira",
+    "ward": "Nyamaiya"
+  },
+  {
+    "uid": "te66tg4yn7z",
+    "name": "Riakinaro Health Centre",
+    "county": "Nyamira",
+    "subCounty": "Nyamira",
+    "ward": "Bonyamatuta"
+  },
+  {
+    "uid": "fgS43voN3Fx",
+    "name": "Riakworo Dispensary",
+    "county": "Nyamira",
+    "subCounty": "Masaba North",
+    "ward": "Gesima"
+  },
+  {
+    "uid": "YiIhC0XhFIq",
+    "name": "Riechieri Health Centre",
+    "county": "Nyamira",
+    "subCounty": "Nyamira North",
+    "ward": "Ekerenyo"
+  },
+  {
+    "uid": "Fth3AJnMdn9",
+    "name": "Rigoko Dispensary",
+    "county": "Nyamira",
+    "subCounty": "Borabu",
+    "ward": "Nyansiongo"
+  },
+  {
+    "uid": "QXgTPS1Ym77",
+    "name": "Rigoma Dispensary",
+    "county": "Nyamira",
+    "subCounty": "Masaba North",
+    "ward": "Rigoma"
+  },
+  {
+    "uid": "xcX8ftmXBDI",
+    "name": "Rikenye Dispensary (Masaba)",
+    "county": "Nyamira",
+    "subCounty": "Masaba North",
+    "ward": "Rigoma"
+  },
+  {
+    "uid": "BxTg2VumIKb",
+    "name": "Riongige Health Centre",
+    "county": "Nyamira",
+    "subCounty": "Nyamira",
+    "ward": "Bosamaro"
+  },
+  {
+    "uid": "k1Xa3QbdWWB",
+    "name": "Samora Medical Centre",
+    "county": "Nyamira",
+    "subCounty": "Nyamira North",
+    "ward": "Ekerenyo"
+  },
+  {
+    "uid": "OHZYEciQDBh",
+    "name": "St Joseph's Mission Hospital",
+    "county": "Nyamira",
+    "subCounty": "Borabu",
+    "ward": "Nyansiongo"
+  },
+  {
+    "uid": "FRCpdcj6qow",
+    "name": "St. Elizabeth Gekano Health Centre (Manga)",
+    "county": "Nyamira",
+    "subCounty": "Manga",
+    "ward": "Magombo"
+  },
+  {
+    "uid": "r3d8BgiWRyz",
+    "name": "Tindereti Dispensary",
+    "county": "Nyamira",
+    "subCounty": "Borabu",
+    "ward": "Nyansiongo"
+  },
+  {
+    "uid": "tU8NI8ktS8x",
+    "name": "Ting'a Health Centre",
+    "county": "Nyamira",
+    "subCounty": "Nyamira",
+    "ward": "Bosamaro"
+  },
+  {
+    "uid": "XKVPZ47BC5b",
+    "name": "Tombe Health Centre",
+    "county": "Nyamira",
+    "subCounty": "Manga",
+    "ward": "Manga"
+  },
+  {
+    "uid": "yHZp8VN4Z0I",
+    "name": "Tombe Medicare Centre",
+    "county": "Nyamira",
+    "subCounty": "Manga",
+    "ward": "Manga"
+  },
+  {
+    "uid": "oYc9S0YvbLH",
+    "name": "Banja Health Centre",
+    "county": "Vihiga",
+    "subCounty": "Hamisi",
+    "ward": "Banja"
+  },
+  {
+    "uid": "Yk6aPsR7nng",
+    "name": "Boyani Dispensary",
+    "county": "Vihiga",
+    "subCounty": "Hamisi",
+    "ward": "Tambua"
+  },
+  {
+    "uid": "LFwsHgAoh20",
+    "name": "Bugamangi Dispensary",
+    "county": "Vihiga",
+    "subCounty": "Vihiga",
+    "ward": "Central Maragoli"
+  },
+  {
+    "uid": "gkvsBoZvbH1",
+    "name": "Bugina Health Centre",
+    "county": "Vihiga",
+    "subCounty": "Sabatia",
+    "ward": "Busali"
+  },
+  {
+    "uid": "A2vpkzQnTO0",
+    "name": "Ebukanga Dispensary",
+    "county": "Vihiga",
+    "subCounty": "Emuhaya",
+    "ward": "West Bunyore"
+  },
+  {
+    "uid": "EG1SVurEMgh",
+    "name": "Ebukoolo Dispensary",
+    "county": "Vihiga",
+    "subCounty": "Emuhaya",
+    "ward": "West Bunyore"
+  },
+  {
+    "uid": "t8pVCEXnij3",
+    "name": "Ebusiratsi Health Centre",
+    "county": "Vihiga",
+    "subCounty": "Emuhaya",
+    "ward": "North East Bunyore"
+  },
+  {
+    "uid": "QiAHGmf0031",
+    "name": "Ebusyubi Dispensary",
+    "county": "Vihiga",
+    "subCounty": "Luanda",
+    "ward": "Mwibona"
+  },
+  {
+    "uid": "uco8xXZcBc8",
+    "name": "Ekamanji Dispensary",
+    "county": "Vihiga",
+    "subCounty": "Luanda",
+    "ward": "Luanda Township"
+  },
+  {
+    "uid": "KvcLdBE3Qar",
+    "name": "Ekwanda Health Centre",
+    "county": "Vihiga",
+    "subCounty": "Luanda",
+    "ward": "Luanda South"
+  },
+  {
+    "uid": "RILlb5RVEkC",
+    "name": "Ematsuli Dispensary",
+    "county": "Vihiga",
+    "subCounty": "Emuhaya",
+    "ward": "North East Bunyore"
+  },
+  {
+    "uid": "arDVLu1shRK",
+    "name": "Emuhaya Sub County Referral Hospital",
+    "county": "Vihiga",
+    "subCounty": "Luanda",
+    "ward": "Emabungo"
+  },
+  {
+    "uid": "UgJPzSFxXX4",
+    "name": "Emusenjeli Dispensary",
+    "county": "Vihiga",
+    "subCounty": "Luanda",
+    "ward": "Wemilabi"
+  },
+  {
+    "uid": "bdcsVP2hS8A",
+    "name": "Emusire Sub County Hospital",
+    "county": "Vihiga",
+    "subCounty": "Emuhaya",
+    "ward": "Central Bunyore"
+  },
+  {
+    "uid": "TebstKvirIl",
+    "name": "Enzaro Health Centre",
+    "county": "Vihiga",
+    "subCounty": "Vihiga",
+    "ward": "South Maragoli"
+  },
+  {
+    "uid": "BFMszIA8Pqk",
+    "name": "Equator Nursing and Maternity Home",
+    "county": "Vihiga",
+    "subCounty": "Luanda",
+    "ward": "Luanda Township"
+  },
+  {
+    "uid": "fs0p5MurBkl",
+    "name": "Esiarambatsi Health Centre",
+    "county": "Vihiga",
+    "subCounty": "Emuhaya",
+    "ward": "North East Bunyore"
+  },
+  {
+    "uid": "C5KZymXADHN",
+    "name": "Esirulo Dispensary",
+    "county": "Vihiga",
+    "subCounty": "Emuhaya",
+    "ward": "Central Bunyore"
+  },
+  {
+    "uid": "Av2bHzt2Sqw",
+    "name": "Esitsaba Dispensary",
+    "county": "Vihiga",
+    "subCounty": "Luanda",
+    "ward": "Emabungo"
+  },
+  {
+    "uid": "xMHtgmoaubR",
+    "name": "Givole Dispensary",
+    "county": "Vihiga",
+    "subCounty": "Hamisi",
+    "ward": "Jepkoyai"
+  },
+  {
+    "uid": "LeATvvxVKcP",
+    "name": "Givudimbuli Health Centre",
+    "county": "Vihiga",
+    "subCounty": "Sabatia",
+    "ward": "Wodanga"
+  },
+  {
+    "uid": "zwnu6Pa5gLi",
+    "name": "Hamisi Sub County Hospital",
+    "county": "Vihiga",
+    "subCounty": "Hamisi",
+    "ward": "Gisambai"
+  },
+  {
+    "uid": "HiqYRakSm4q",
+    "name": "Hema Medical Clinic",
+    "county": "Vihiga",
+    "subCounty": "Hamisi",
+    "ward": "Jepkoyai"
+  },
+  {
+    "uid": "QXAvtxBS2Ts",
+    "name": "Iduku Dispensary",
+    "county": "Vihiga",
+    "subCounty": "Vihiga",
+    "ward": "Lugaga-wamuluma"
+  },
+  {
+    "uid": "rI8R5Xp4mez",
+    "name": "Inyali Dispensary",
+    "county": "Vihiga",
+    "subCounty": "Sabatia",
+    "ward": "North Maragoli"
+  },
+  {
+    "uid": "Xm3UkkgGu65",
+    "name": "Ipali Health Centre",
+    "county": "Vihiga",
+    "subCounty": "Emuhaya",
+    "ward": "West Bunyore"
+  },
+  {
+    "uid": "bT0xdjSkCSV",
+    "name": "Itando Mission of Hope and Health Centre",
+    "county": "Vihiga",
+    "subCounty": "Sabatia",
+    "ward": "Lyaduywa/Izava"
+  },
+  {
+    "uid": "NnRW3p4MPs3",
+    "name": "Jepkoyai Dispensary",
+    "county": "Vihiga",
+    "subCounty": "Hamisi",
+    "ward": "Jepkoyai"
+  },
+  {
+    "uid": "QMHy1WuUYtI",
+    "name": "Joint Partner Medical Clinic",
+    "county": "Vihiga",
+    "subCounty": "Hamisi",
+    "ward": "Shiru"
+  },
+  {
+    "uid": "y0kyyERURWh",
+    "name": "Jumuia Friends Hospital Kaimosi",
+    "county": "Vihiga",
+    "subCounty": "Hamisi",
+    "ward": "Shiru"
+  },
+  {
+    "uid": "hqiyXj3Cfxz",
+    "name": "Kaptech Dispensary",
+    "county": "Vihiga",
+    "subCounty": "Hamisi",
+    "ward": "Muhudu"
+  },
+  {
+    "uid": "ev7vSNwz1Gm",
+    "name": "Kaptisi Dispensary",
+    "county": "Vihiga",
+    "subCounty": "Hamisi",
+    "ward": "Shiru"
+  },
+  {
+    "uid": "X2FnCxPnyEH",
+    "name": "Kegondi Health Centre",
+    "county": "Vihiga",
+    "subCounty": "Sabatia",
+    "ward": "West Sabatia"
+  },
+  {
+    "uid": "OwA3FdxjmkQ",
+    "name": "Kima Mission Hospital",
+    "county": "Vihiga",
+    "subCounty": "Luanda",
+    "ward": "Emabungo"
+  },
+  {
+    "uid": "FZc8EjHfowN",
+    "name": "Kimogoi Dispensary",
+    "county": "Vihiga",
+    "subCounty": "Hamisi",
+    "ward": "Gisambai"
+  },
+  {
+    "uid": "GwLVDDMCfyU",
+    "name": "Likindu Health Centre",
+    "county": "Vihiga",
+    "subCounty": "Hamisi",
+    "ward": "Tambua"
+  },
+  {
+    "uid": "qIGDrvFNv3H",
+    "name": "Luanda Town Dispensary",
+    "county": "Vihiga",
+    "subCounty": "Luanda",
+    "ward": "Luanda Township"
+  },
+  {
+    "uid": "QPgGjJSA4pB",
+    "name": "Lyanaginga Model Health Centre",
+    "county": "Vihiga",
+    "subCounty": "Vihiga",
+    "ward": "Mungoma"
+  },
+  {
+    "uid": "sgK5aw8tN1y",
+    "name": "Mago West Hospital",
+    "county": "Vihiga",
+    "subCounty": "Hamisi",
+    "ward": "Shamakhokho"
+  },
+  {
+    "uid": "DbCCiO4AXdh",
+    "name": "Mbale Rural Health Training Centre",
+    "county": "Vihiga",
+    "subCounty": "Vihiga",
+    "ward": "Lugaga-wamuluma"
+  },
+  {
+    "uid": "Fjb8CId2BV7",
+    "name": "Mulele Dispensary",
+    "county": "Vihiga",
+    "subCounty": "Vihiga",
+    "ward": "Mungoma"
+  },
+  {
+    "uid": "z9yLNTDPHpU",
+    "name": "Munoywa Dispensary",
+    "county": "Vihiga",
+    "subCounty": "Sabatia",
+    "ward": "Lyaduywa/Izava"
+  },
+  {
+    "uid": "p8nULMcL3p5",
+    "name": "Musitinyi Dispensary",
+    "county": "Vihiga",
+    "subCounty": "Luanda",
+    "ward": "Wemilabi"
+  },
+  {
+    "uid": "gkuMI9M275m",
+    "name": "Nadanya Dispensary",
+    "county": "Vihiga",
+    "subCounty": "Sabatia",
+    "ward": "Lyaduywa/Izava"
+  },
+  {
+    "uid": "m6zhE2pzHWO",
+    "name": "Sabatia Sub County Hospital",
+    "county": "Vihiga",
+    "subCounty": "Sabatia",
+    "ward": "Wodanga"
+  },
+  {
+    "uid": "oIfTa0e3Og0",
+    "name": "Serem Health Centre",
+    "county": "Vihiga",
+    "subCounty": "Hamisi",
+    "ward": "Shamakhokho"
+  },
+  {
+    "uid": "HBsqa81tb5L",
+    "name": "Shiru Health Centre",
+    "county": "Vihiga",
+    "subCounty": "Hamisi",
+    "ward": "Shiru"
+  },
+  {
+    "uid": "x8dwth6BYiK",
+    "name": "Tigoi Health Centre",
+    "county": "Vihiga",
+    "subCounty": "Hamisi",
+    "ward": "Jepkoyai"
+  },
+  {
+    "uid": "ZJARL7Ml1Hp",
+    "name": "Vihiga County Referral Hospital",
+    "county": "Vihiga",
+    "subCounty": "Vihiga",
+    "ward": "Lugaga-wamuluma"
+  },
+  {
+    "uid": "dhpZNi2matH",
+    "name": "Vihiga Health Centre",
+    "county": "Vihiga",
+    "subCounty": "Vihiga",
+    "ward": "Central Maragoli"
+  }
+]

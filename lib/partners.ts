@@ -1,9 +1,11 @@
 // ---------------------------------------------------------------------------
 // Implementing-partner facility rosters + KHIS org-unit mapping
 //
-// Partner → counties → KHIS county OU UIDs (all 24 resolved live on KHIS,
-// 2026-08-12). Facility rosters are the program-assigned lists (e.g. the JTP
-// PrEP roster); runtime data always comes from national KHIS.
+// Partner → counties → KHIS county OU UIDs (all 47 level-2 counties resolved
+// live on KHIS; the first 24 are the implementing partners', the rest are the
+// remaining national counties so the DOS IP scope covers all 47). Facility
+// rosters are the program-assigned lists (e.g. the JTP PrEP roster); runtime
+// data always comes from national KHIS.
 // ---------------------------------------------------------------------------
 
 export interface PartnerFacility {
@@ -47,6 +49,30 @@ export const COUNTY_OUS: Record<string, string> = {
   Kisumu: "tAbBVBbueqD",
   Nyamira: "uepLTG8wGWJ",
   Vihiga: "sANMZ3lpqGs",
+  // Remaining national counties (level 2) — complete the DOS IP 47-county scope
+  Bomet: "HMNARUV2CW4",
+  Garissa: "uyOrcHZBpW0",
+  "Homa Bay": "nK0A12Q7MvS",
+  Isiolo: "bzOfj0iwfDH",
+  Kericho: "ihZsJ8alvtb",
+  Kiambu: "qKzosKQPl6G",
+  Kirinyaga: "Ulj33KBau7V",
+  Kisii: "sPkRcDvhGWA",
+  Kitui: "j8o6iO4Njsi",
+  Lamu: "NjWSbQTwys4",
+  Machakos: "yhCUgGcCcOo",
+  Makueni: "BoDytkJQ4Qi",
+  Mandera: "R6f9znhg37c",
+  Marsabit: "Eey8fT4Im3y",
+  Migori: "fVra3Pwta0Q",
+  "Murang'a": "ahwTMNAJvrL",
+  Nairobi: "jkG3zaihdSs",
+  Nandi: "t0J75eHKxz5",
+  Narok: "kqJ83J2D72s",
+  Nyeri: "ptWVfaCIdVx",
+  Siaya: "u4t9H8XyU9P",
+  "Tana River": "JsH2bnvNt2d",
+  Wajir: "CeLsrJOH0g9",
 };
 
 /**
@@ -61,6 +87,7 @@ import dumishaRoster from "@/data/dumisha-afya-facilities.json";
 import imarishaRoster from "@/data/imarisha-jamii-facilities.json";
 import ampathRoster from "@/data/ampath-uzima-facilities.json";
 import stawishaRoster from "@/data/stawisha-pwani-facilities.json";
+import nuruRoster from "@/data/nuru-ya-mtoto-facilities.json";
 import ouCountyMap from "@/data/ou-county-map.json";
 import ouSubCountyMap from "@/data/ou-subcounty-map.json";
 
@@ -86,6 +113,8 @@ export const AMPATH_UZIMA_FACILITIES: PartnerFacility[] =
   ampathRoster as PartnerFacility[];
 export const STAWISHA_PWANI_FACILITIES: PartnerFacility[] =
   stawishaRoster as PartnerFacility[];
+export const NURU_YA_MTOTO_FACILITIES: PartnerFacility[] =
+  nuruRoster as PartnerFacility[];
 
 /** Partner id → counties (matches lib/geo.ts PARTNERS). */
 export const PARTNER_COUNTIES: Record<string, string[]> = {
@@ -112,6 +141,7 @@ export const PARTNER_FACILITIES: Record<string, PartnerFacility[]> = {
   "imarisha-jamii": IMARISHA_JAMII_FACILITIES,
   "ampath-uzima": AMPATH_UZIMA_FACILITIES,
   "stawisha-pwani": STAWISHA_PWANI_FACILITIES,
+  "nuru-ya-mtoto": NURU_YA_MTOTO_FACILITIES,
 };
 
 /** County OU UIDs for a partner (all counties, regardless of roster). */
