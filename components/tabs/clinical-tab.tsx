@@ -38,11 +38,18 @@ import { captureChartImage } from "@/lib/capture-chart";
 // period/scope show zeros or n/r (not reported), never fabricated values.
 // ---------------------------------------------------------------------------
 
-// KHIS dx UIDs for the "missed opportunity" pair, resolved from the
+// KHIS dx UIDs for the "missed opportunity" pool, resolved from the
 // indicator registry so the element ids have a single source of truth:
+//   Known +ve     = MOH 731-2 EMTCT HV02-01 (KP at 1st ANC)
 //   New Positive  = MOH 731-2 EMTCT HV02-10 (newly HIV+ at ANC)
+//   On HAART ANC  = MOH 731-2 EMTCT HV02-14 (already on ART at 1st ANC)
 //   Initiated ART = MOH 731-2 EMTCT HV02-15 (started HAART at ANC)
+// The missed-opportunity pool is the SAME pool the treatment funnel uses:
+//   HIV+ identified = KP (HV02-01) + NP (HV02-10)
+//   On ART          = HV02-14 + HV02-15
+const KNOWN_POS_DX = getKhisIndicator("pmtct_anc1_known_pos")?.dx ?? "";
 const NEW_POSITIVE_DX = getKhisIndicator("pmtct_new_positive")?.dx ?? "";
+const ON_HAART_ANC_DX = getKhisIndicator("pmtct_anc1_on_haart")?.dx ?? "";
 const START_HAART_ANC_DX = getKhisIndicator("pmtct_start_haart_anc")?.dx ?? "";
 
 function Kpi({
@@ -984,7 +991,12 @@ const Subtab2B = ({
     facility: facilityUid,
     roster: true,
     byFacilityDetail: true,
-    indicators: ["pmtct_new_positive", "pmtct_start_haart_anc"],
+    indicators: [
+      "pmtct_anc1_known_pos",
+      "pmtct_new_positive",
+      "pmtct_anc1_on_haart",
+      "pmtct_start_haart_anc",
+    ],
   });
 
   // Need = KP at 1st ANC + Newly HIV+ at ANC (HV02-01 + HV02-10); ART =
@@ -1045,64 +1057,80 @@ const Subtab2B = ({
     formScope.hei24.netCohort > 0 &&
     formScope.hei24.neg <= formScope.hei24.netCohort;
 
-  // ---- Missed opportunities (New Positive − Initiated on ART) -------------
-  // One row per facility KHIS reported for either element. Missed =
-  // newly HIV+ at ANC − started HAART at ANC, floored at 0: a facility that
-  // started more clients on ART than it reported newly positive has no
-  // missed opportunity (we do NOT carry a negative "credit" to other
-  // facilities, so the sum of per-facility gaps can legitimately exceed the
-  // partner-level net difference).
+  // ---- Missed opportunities (HIV+ identified − On ART) --------------------
+  // Uses the SAME pool as the treatment funnel, so the two cards reconcile:
+  //   HIV+ identified at 1st ANC = KP (HV02-01) + NP (HV02-10)
+  //   On ART                     = HV02-14 (already on HAART) + HV02-15 (started)
+  // Missed = identified − on ART, floored at 0 per facility: a facility that
+  // has more clients on ART than HIV+ women recorded at ANC has no missed
+  // opportunity (we do NOT carry a negative "credit" to other facilities, so
+  // the sum of per-facility gaps can legitimately exceed the partner-level
+  // net difference).
   const missedOpportunityFacilities = useMemo(() => {
     return (missedData?.facilityDetail ?? [])
       .map((f) => {
+        const knownPositive = f.values[KNOWN_POS_DX] ?? 0;
         const newPositive = f.values[NEW_POSITIVE_DX] ?? 0;
+        const onHaart = f.values[ON_HAART_ANC_DX] ?? 0;
         const startedOnArt = f.values[START_HAART_ANC_DX] ?? 0;
+        const identified = knownPositive + newPositive;
+        const onArt = onHaart + startedOnArt;
         return {
           facility: f.name,
+          knownPositive,
           newPositive,
+          onHaart,
           startedOnArt,
-          missed: Math.max(0, newPositive - startedOnArt),
+          identified,
+          onArt,
+          missed: Math.max(0, identified - onArt),
         };
       })
-      .filter((r) => r.newPositive > 0 || r.startedOnArt > 0)
-      .sort((a, b) => b.missed - a.missed || b.newPositive - a.newPositive);
+      .filter((r) => r.identified > 0 || r.onArt > 0)
+      .sort((a, b) => b.missed - a.missed || b.identified - a.identified);
   }, [missedData]);
 
-  /** Facilities with at least one un-started newly identified positive. */
+  /** Facilities with at least one HIV+ ANC client not on ART. */
   const missedFacilities = missedOpportunityFacilities.filter(
     (r) => r.missed > 0,
   );
   const missedTotal = missedFacilities.reduce((s, r) => s + r.missed, 0);
-  const missedNewPositiveTotal = missedOpportunityFacilities.reduce(
-    (s, r) => s + r.newPositive,
+  const missedIdentifiedTotal = missedOpportunityFacilities.reduce(
+    (s, r) => s + r.identified,
     0,
   );
-  const missedStartedTotal = missedOpportunityFacilities.reduce(
-    (s, r) => s + r.startedOnArt,
+  const missedOnArtTotal = missedOpportunityFacilities.reduce(
+    (s, r) => s + r.onArt,
     0,
   );
   /** Partner-level KHIS net difference (no per-facility flooring). */
   const missedAggregate =
-    live.newPos != null && value("pmtct_start_haart_anc") != null
-      ? Math.max(0, (live.newPos ?? 0) - (value("pmtct_start_haart_anc") ?? 0))
+    live.need != null && live.art != null
+      ? Math.max(0, live.need - live.art)
       : null;
+  // Chart only the facilities with a gap — those are the ones with something
+  // to plot (every other facility has a 0, so it would draw no bar). The full
+  // list of every reporting facility lives in the View Data table, which is
+  // where the coverage of the check is audited.
   const missedChartData = missedFacilities.slice(0, 12).map((r) => ({
     name: r.facility.length > 26 ? `${r.facility.slice(0, 24)}…` : r.facility,
     fullName: r.facility,
     missed: r.missed,
-    newPositive: r.newPositive,
-    startedOnArt: r.startedOnArt,
+    identified: r.identified,
+    onArt: r.onArt,
   }));
-  // Rows for the "View Data" table — the facilities with a gap when there is
-  // one (that is the question being asked), otherwise every facility checked
-  // so a zero result stays auditable. Headers are written out because
+  // Rows for the "View Data" table — always every facility KHIS reported, so
+  // the zero-gap facilities stay auditable instead of silently disappearing.
+  // Facilities with a gap sort first. Headers are written out because
   // ViewDataButton renders the raw keys.
-  const missedViewRows = (
-    missedFacilities.length > 0 ? missedFacilities : missedOpportunityFacilities
-  ).map((r) => ({
+  const missedViewRows = missedOpportunityFacilities.map((r) => ({
     Facility: r.facility,
-    "Newly HIV+ at ANC (HV02-10)": r.newPositive,
+    "HIV+ at ANC, known (KP, HV02-01)": r.knownPositive,
+    "HIV+ at ANC, new (NP, HV02-10)": r.newPositive,
+    "HIV+ identified (KP + NP)": r.identified,
+    "On ART at 1st ANC (HV02-14)": r.onHaart,
     "Started on ART at ANC (HV02-15)": r.startedOnArt,
+    "On ART (HV02-14 + HV02-15)": r.onArt,
     "Missed opportunities": r.missed,
   }));
 
@@ -1886,37 +1914,35 @@ const Subtab2B = ({
             <div>
               <div className="flex items-center justify-between gap-2 mb-3">
                 <h4 className="text-sm font-semibold text-gray-700">
-                  Missed Opportunities (New Positive - Initiated on ART)
+                  Missed Opportunities (HIV+ at ANC not on ART)
                 </h4>
                 <ViewDataButton
-                  title="Missed Opportunities — facilities with a newly HIV+ ANC client not started on ART"
+                  title="Missed Opportunities — every facility KHIS reported for the ANC ART pool (HV02-01 / HV02-10 / HV02-14 / HV02-15)"
                   data={missedViewRows}
                   note={
                     missedLoading
                       ? "Loading per-facility values from KHIS…"
                       : missedOpportunityFacilities.length === 0
-                        ? "No facility reported a newly HIV+ ANC client or an ART start for this period/scope"
+                        ? "No facility reported an HIV+ ANC client or an ART value for this period/scope"
                         : missedFacilities.length === 0
-                          ? `No missed opportunities — all ${missedOpportunityFacilities.length} reporting facilit${missedOpportunityFacilities.length === 1 ? "y" : "ies"} also recorded an ART start`
+                          ? `No missed opportunities — all ${missedOpportunityFacilities.length} reporting facilit${missedOpportunityFacilities.length === 1 ? "y" : "ies"} recorded every HIV+ ANC client as on ART`
                           : undefined
                   }
                   detail={{
                     formula:
-                      "Missed = Newly HIV+ at ANC (MOH 731-2 HV02-10) − Started HAART at ANC (MOH 731-2 HV02-15), floored at 0 per facility",
+                      "Missed = HIV+ identified at ANC (KP HV02-01 + NP HV02-10) − On ART (HV02-14 + HV02-15), floored at 0 per facility. Same pool as the HIV Treatment Conversion Funnel, so the two cards reconcile.",
                     inputs: [
                       {
                         label:
-                          "Newly HIV+ at ANC — KHIS partner total (HV02-10)",
-                        value: live.newPos,
-                        source: nrOf(live.newPos) ? "n/r" : "live",
+                          "HIV+ identified at ANC — KHIS partner total (KP HV02-01 + NP HV02-10)",
+                        value: live.need,
+                        source: nrOf(live.need) ? "n/r" : "live",
                       },
                       {
                         label:
-                          "Started HAART at ANC — KHIS partner total (HV02-15)",
-                        value: value("pmtct_start_haart_anc"),
-                        source: nrOf(value("pmtct_start_haart_anc"))
-                          ? "n/r"
-                          : "live",
+                          "On ART at ANC — KHIS partner total (HV02-14 + HV02-15)",
+                        value: live.art,
+                        source: nrOf(live.art) ? "n/r" : "live",
                       },
                       {
                         label: "Net difference at partner level (KHIS totals)",
@@ -1924,13 +1950,13 @@ const Subtab2B = ({
                         source: "live",
                       },
                       {
-                        label: "Per-facility new positive, summed",
-                        value: missedNewPositiveTotal,
+                        label: "Per-facility HIV+ identified, summed",
+                        value: missedIdentifiedTotal,
                         source: "live",
                       },
                       {
-                        label: "Per-facility ART starts, summed",
-                        value: missedStartedTotal,
+                        label: "Per-facility on ART, summed",
+                        value: missedOnArtTotal,
                         source: "live",
                       },
                       {
@@ -1947,11 +1973,11 @@ const Subtab2B = ({
                       { label: "Period", value: peLabel },
                     ],
                     notes: [
-                      "One row per facility KHIS reported for either element — the two elements are read per facility and NOT summed together, so each facility's own gap stays visible.",
-                      "Facilities with a gap are listed first; when no facility has a gap the table lists every reporting facility (all with Missed = 0) so the check is auditable.",
-                      "Missed is floored at 0 per facility: a facility that started more clients on ART than it reported newly positive has no gap, and its surplus is not carried to another facility — so Σ per-facility gaps can exceed the partner-level net difference.",
+                      "One row per facility KHIS reported for any of the four elements — known HIV+ (HV02-01), newly HIV+ (HV02-10), on HAART at 1st ANC (HV02-14) and started HAART at ANC (HV02-15).",
+                      "The pool is KP + NP, matching the HIV Treatment Conversion Funnel exactly, so a gap here is a real HIV+ ANC client with no ART value recorded at that facility.",
+                      "Every reporting facility is listed (facilities with a gap first), not just the ones with a gap — so the check covers the whole roster scope rather than only the failing sites.",
+                      "Missed is floored at 0 per facility: a facility that recorded more clients on ART than HIV+ women at ANC has no gap, and its surplus is not carried to another facility — so Σ per-facility gaps can exceed the partner-level net difference.",
                       "n/r = KHIS did not report that element for this period/scope (never shown as a fabricated 0).",
-                      "HV02-14 (on HAART at 1st ANC) is deliberately excluded: those are known positives continuing treatment, not a missed ART start for a newly identified mother.",
                     ],
                   }}
                 />
@@ -1964,8 +1990,8 @@ const Subtab2B = ({
                 <div className="h-[200px] flex flex-col items-center justify-center rounded-md border-2 border-dashed border-slate-300 px-6 text-center text-xs font-medium text-slate-400">
                   <span>No data to compare for this period / scope.</span>
                   <span className="mt-1 font-normal">
-                    KHIS reported no newly HIV+ ANC client (HV02-10) and no ART
-                    start at ANC (HV02-15) for the facilities in scope.
+                    KHIS reported no HIV+ ANC client (HV02-01 / HV02-10) and no
+                    ART value (HV02-14 / HV02-15) for the facilities in scope.
                   </span>
                 </div>
               ) : missedFacilities.length === 0 ? (
@@ -1978,9 +2004,9 @@ const Subtab2B = ({
                     {missedOpportunityFacilities.length === 1
                       ? "y"
                       : "ies"}{" "}
-                    that reported a newly HIV+ ANC client also recorded an ART
-                    start ({missedNewPositiveTotal} identified →{" "}
-                    {missedStartedTotal} started).
+                    that reported an HIV+ ANC client recorded them as on ART (
+                    {missedIdentifiedTotal} identified → {missedOnArtTotal} on
+                    ART).
                   </span>
                 </div>
               ) : (
@@ -2012,14 +2038,14 @@ const Subtab2B = ({
                             item as
                               | {
                                   payload?: {
-                                    newPositive?: number;
-                                    startedOnArt?: number;
+                                    identified?: number;
+                                    onArt?: number;
                                   };
                                 }
                               | undefined
                           )?.payload;
                           return [
-                            `${String(val)} missed (${row?.newPositive ?? 0} new positive → ${row?.startedOnArt ?? 0} started on ART)`,
+                            `${String(val)} missed (${row?.identified ?? 0} HIV+ at ANC → ${row?.onArt ?? 0} on ART)`,
                             "Missed",
                           ];
                         }}
@@ -2032,14 +2058,16 @@ const Subtab2B = ({
                     </BarChart>
                   </ResponsiveContainer>
                   <p className="mt-2 text-xs text-gray-500">
-                    {missedTotal} ANC client
-                    {missedTotal === 1 ? "" : "s"} missed ART initiation across{" "}
-                    {missedFacilities.length} facilit
-                    {missedFacilities.length === 1 ? "y" : "ies"} — newly HIV+
-                    at ANC with no ART start recorded at that facility (
-                    {missedNewPositiveTotal} identified → {missedStartedTotal}{" "}
-                    started across {missedOpportunityFacilities.length}{" "}
-                    reporting facilities).
+                    {missedTotal} HIV+ ANC client
+                    {missedTotal === 1 ? "" : "s"} not on ART across{" "}
+                    {missedFacilities.length} of{" "}
+                    {missedOpportunityFacilities.length} reporting facilit
+                    {missedOpportunityFacilities.length === 1 ? "y" : "ies"} —
+                    HIV+ identified at ANC (KP + NP) with no ART value recorded
+                    at that facility ({missedIdentifiedTotal} identified →{" "}
+                    {missedOnArtTotal} on ART). Only facilities with a gap are
+                    charted; View Data lists all{" "}
+                    {missedOpportunityFacilities.length} reporting facilities.
                   </p>
                 </>
               )}
