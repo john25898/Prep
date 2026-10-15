@@ -26,6 +26,13 @@ export interface KhisResponse {
   asOf: string;
   indicators: KhisIndicatorValue[];
   facilities?: { name: string; value: number | null }[];
+  /**
+   * byFacilityDetail=1 — every facility with data, each with its per-dx
+   * values kept SEPARATE (not summed across dx). Used for facility tables
+   * that need two different measures side by side (e.g. newly HIV+ at ANC
+   * vs started on ART at ANC for the missed-opportunity list).
+   */
+  facilityDetail?: { name: string; values: Record<string, number> }[];
   counties?: { name: string; value: number | null }[];
   periods?: KhisPeriodSeries[];
   reporting?: { id: string; dx: string; facilities: number }[];
@@ -40,6 +47,7 @@ export interface UseKhisOptions {
   facility?: string;
   roster?: boolean;
   byFacility?: boolean;
+  byFacilityDetail?: boolean;
   byCounty?: boolean;
   byPeriod?: boolean;
   reporting?: boolean;
@@ -71,6 +79,7 @@ export function useKhis(opts: UseKhisOptions = {}) {
     if (opts.facility) q.set("facility", opts.facility);
     if (opts.roster) q.set("roster", "1");
     if (opts.byFacility) q.set("byFacility", "1");
+    if (opts.byFacilityDetail) q.set("byFacilityDetail", "1");
     if (opts.byCounty) q.set("byCounty", "1");
     if (opts.byPeriod) q.set("byPeriod", "1");
     if (opts.reporting) q.set("reporting", "1");
@@ -99,6 +108,7 @@ export function useKhis(opts: UseKhisOptions = {}) {
     opts.roster,
     indicatorsKey,
     opts.byFacility,
+    opts.byFacilityDetail,
     opts.byCounty,
     opts.byPeriod,
     opts.reporting,

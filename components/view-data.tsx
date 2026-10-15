@@ -13,7 +13,7 @@ import {
 export type DataRow = Record<string, unknown>;
 
 /** Where an input value came from — shown as a small chip next to it. */
-export type ViewSource = "live" | "est" | "demo" | "registry" | "n/r";
+export type ViewSource = "live" | "est" | "demo" | "registry" | "entry" | "n/r";
 
 /** One raw input that feeds a calculated chart value. */
 export type ViewInput = {
@@ -46,6 +46,7 @@ const SOURCE_STYLES: Record<ViewSource, string> = {
   est: "bg-amber-100 text-amber-700",
   demo: "bg-slate-100 text-slate-600",
   registry: "bg-sky-100 text-sky-700",
+  entry: "bg-sky-100 text-sky-700",
   "n/r": "bg-white text-slate-400 border border-dashed border-slate-300",
 };
 
@@ -54,6 +55,7 @@ const SOURCE_LABEL: Record<ViewSource, string> = {
   est: "estimate",
   demo: "demo",
   registry: "registry",
+  entry: "entry form",
   "n/r": "not reported",
 };
 

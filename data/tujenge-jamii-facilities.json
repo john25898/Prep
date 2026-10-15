@@ -3,1939 +3,1939 @@
     "uid": "NcCkDlIqJuM",
     "name": "Baringo County Referral Hospital",
     "county": "k7Rj54u6dMx",
-    "subCounty": "Kn2aiEXbw5B",
+    "subCounty": "Baringo Central",
     "ward": "NcCkDlIqJuM"
   },
   {
     "uid": "KzEBldPaRn1",
     "name": "Mogorwa Health Centre",
     "county": "k7Rj54u6dMx",
-    "subCounty": "l7Lt0CsaQGl",
+    "subCounty": "Baringo Central",
     "ward": "KzEBldPaRn1"
   },
   {
     "uid": "aA66k9wpWlD",
     "name": "Salawa Health Centre",
     "county": "k7Rj54u6dMx",
-    "subCounty": "Kn2aiEXbw5B",
+    "subCounty": "Baringo Central",
     "ward": "aA66k9wpWlD"
   },
   {
     "uid": "Ofg6EXpIiv1",
     "name": "Tenges Health Centre",
     "county": "k7Rj54u6dMx",
-    "subCounty": "l7Lt0CsaQGl",
+    "subCounty": "Baringo Central",
     "ward": "Ofg6EXpIiv1"
   },
   {
     "uid": "KilcfFNdFJA",
     "name": "Barwessa Health Centre",
     "county": "bqtTmWcikTN",
-    "subCounty": "OlKUTmnTY57",
+    "subCounty": "Baringo North",
     "ward": "KilcfFNdFJA"
   },
   {
     "uid": "kXKjaWPSN9N",
     "name": "Kabartonjo Referral Hospital",
     "county": "bqtTmWcikTN",
-    "subCounty": "hOymt7wmmCI",
+    "subCounty": "Baringo North",
     "ward": "kXKjaWPSN9N"
   },
   {
     "uid": "DKcRoNyzk0Z",
     "name": "Kipsaraman Dispensary",
     "county": "bqtTmWcikTN",
-    "subCounty": "PS4XNPha7bO",
+    "subCounty": "Baringo North",
     "ward": "DKcRoNyzk0Z"
   },
   {
     "uid": "vUatEiL3txf",
     "name": "Chemolingot Sub County Hospital",
     "county": "Mk4bMOSMRTB",
-    "subCounty": "XLsFzNATUQ2",
+    "subCounty": "Tiaty West",
     "ward": "vUatEiL3txf"
   },
   {
     "uid": "XcYVma2H5FV",
     "name": "Eldama Ravine Sub County Hospital",
     "county": "Yl9UDBnDvvW",
-    "subCounty": "ikiFHlCFCCq",
+    "subCounty": "Koibatek",
     "ward": "XcYVma2H5FV"
   },
   {
     "uid": "kNAqc0TjwXt",
     "name": "Esageri Health Centre",
     "county": "Yl9UDBnDvvW",
-    "subCounty": "NFMLHmkjDil",
+    "subCounty": "Koibatek",
     "ward": "kNAqc0TjwXt"
   },
   {
     "uid": "dcnhTpMFSDo",
     "name": "Mercy Hospital",
     "county": "Yl9UDBnDvvW",
-    "subCounty": "ikiFHlCFCCq",
+    "subCounty": "Koibatek",
     "ward": "dcnhTpMFSDo"
   },
   {
     "uid": "wbP8qyNnPJ2",
     "name": "Timboroa Health Centre",
     "county": "Yl9UDBnDvvW",
-    "subCounty": "KUL5AR13rwy",
+    "subCounty": "Koibatek",
     "ward": "wbP8qyNnPJ2"
   },
   {
     "uid": "KUMazbFEaf3",
     "name": "Torongo Health Centre",
     "county": "Yl9UDBnDvvW",
-    "subCounty": "KUL5AR13rwy",
+    "subCounty": "Koibatek",
     "ward": "KUMazbFEaf3"
   },
   {
     "uid": "MMyjIyiY3E9",
     "name": "Kampi Samaki Health Centre",
     "county": "dSLnPmNlm8Q",
-    "subCounty": "zI7CuvCQcos",
+    "subCounty": "Marigat",
     "ward": "MMyjIyiY3E9"
   },
   {
     "uid": "Dalv39I1sBS",
     "name": "Kimalel Health Centre",
     "county": "dSLnPmNlm8Q",
-    "subCounty": "bVD6U8Bf6As",
+    "subCounty": "Marigat",
     "ward": "Dalv39I1sBS"
   },
   {
     "uid": "vgvLvqu6Xfc",
     "name": "Marigat Catholic Mission Hospital",
     "county": "dSLnPmNlm8Q",
-    "subCounty": "bVD6U8Bf6As",
+    "subCounty": "Marigat",
     "ward": "vgvLvqu6Xfc"
   },
   {
     "uid": "TGSQz8SdKu1",
     "name": "Marigat Sub County Referral Hospital",
     "county": "dSLnPmNlm8Q",
-    "subCounty": "bVD6U8Bf6As",
+    "subCounty": "Marigat",
     "ward": "TGSQz8SdKu1"
   },
   {
     "uid": "hU0HsTvk8eo",
     "name": "Mochongoi Health Centre",
     "county": "dSLnPmNlm8Q",
-    "subCounty": "RUfWwfXjF1B",
+    "subCounty": "Marigat",
     "ward": "hU0HsTvk8eo"
   },
   {
     "uid": "kAkBi8gHlAu",
     "name": "Ol-Arabel Dispensary",
     "county": "dSLnPmNlm8Q",
-    "subCounty": "RUfWwfXjF1B",
+    "subCounty": "Marigat",
     "ward": "kAkBi8gHlAu"
   },
   {
     "uid": "NRBIFKo2GNh",
     "name": "Parkerra Medical Clinic",
     "county": "dSLnPmNlm8Q",
-    "subCounty": "bVD6U8Bf6As",
+    "subCounty": "Marigat",
     "ward": "NRBIFKo2GNh"
   },
   {
     "uid": "TeKLIwzizL1",
     "name": "Emining Health Centre",
     "county": "k5sxmlXAtIg",
-    "subCounty": "uhTYg7CLmOd",
+    "subCounty": "Mogotio",
     "ward": "TeKLIwzizL1"
   },
   {
     "uid": "yw1iloaDmPe",
     "name": "Kisanana Health Centre",
     "county": "k5sxmlXAtIg",
-    "subCounty": "LYDEE54oZAu",
+    "subCounty": "Mogotio",
     "ward": "yw1iloaDmPe"
   },
   {
     "uid": "TT8Rw8Ygikn",
     "name": "Mogotio Catholic Dispensary",
     "county": "k5sxmlXAtIg",
-    "subCounty": "duv5obCpRzb",
+    "subCounty": "Mogotio",
     "ward": "TT8Rw8Ygikn"
   },
   {
     "uid": "Dh04YKYYrWd",
     "name": "Mogotio Sub County Hospital (Baringo)",
     "county": "k5sxmlXAtIg",
-    "subCounty": "duv5obCpRzb",
+    "subCounty": "Mogotio",
     "ward": "Dh04YKYYrWd"
   },
   {
     "uid": "pDCYtQMYzkW",
     "name": "Bissil Health Centre",
     "county": "SZapM1R0Kti",
-    "subCounty": "quFXokobrnW",
+    "subCounty": "Kajiado Central",
     "ward": "pDCYtQMYzkW"
   },
   {
     "uid": "CliTX68kx8H",
     "name": "Emotoroki Dispensary",
     "county": "SZapM1R0Kti",
-    "subCounty": "quFXokobrnW",
+    "subCounty": "Kajiado Central",
     "ward": "CliTX68kx8H"
   },
   {
     "uid": "d96sBCgxXJv",
     "name": "Enkorika Health Centre",
     "county": "SZapM1R0Kti",
-    "subCounty": "oqGH96tt2v4",
+    "subCounty": "Kajiado Central",
     "ward": "d96sBCgxXJv"
   },
   {
     "uid": "E5KIT8GkN4q",
     "name": "Kajiado (AIC) Dispensary",
     "county": "SZapM1R0Kti",
-    "subCounty": "oqGH96tt2v4",
+    "subCounty": "Kajiado Central",
     "ward": "E5KIT8GkN4q"
   },
   {
     "uid": "tGLKciw2MGf",
     "name": "Kajiado County Referral Hospital",
     "county": "SZapM1R0Kti",
-    "subCounty": "yS9HZLzM3Ah",
+    "subCounty": "Kajiado Central",
     "ward": "tGLKciw2MGf"
   },
   {
     "uid": "NZvCs24o5N5",
     "name": "Kitengela Medical Services (Kajiado)",
     "county": "SZapM1R0Kti",
-    "subCounty": "yS9HZLzM3Ah",
+    "subCounty": "Kajiado Central",
     "ward": "NZvCs24o5N5"
   },
   {
     "uid": "NllZFLIZezD",
     "name": "Meto Dispensary",
     "county": "SZapM1R0Kti",
-    "subCounty": "PPE8hAClees",
+    "subCounty": "Kajiado Central",
     "ward": "NllZFLIZezD"
   },
   {
     "uid": "T8ykBEN4kyI",
     "name": "Namanga Health Centre",
     "county": "SZapM1R0Kti",
-    "subCounty": "PPE8hAClees",
+    "subCounty": "Kajiado Central",
     "ward": "T8ykBEN4kyI"
   },
   {
     "uid": "EqBjedvUM2y",
     "name": "Ngatataek Health Centre",
     "county": "SZapM1R0Kti",
-    "subCounty": "quFXokobrnW",
+    "subCounty": "Kajiado Central",
     "ward": "EqBjedvUM2y"
   },
   {
     "uid": "DlNyyqjfQud",
     "name": "St.Crispin Afya Hospital",
     "county": "SZapM1R0Kti",
-    "subCounty": "yS9HZLzM3Ah",
+    "subCounty": "Kajiado Central",
     "ward": "DlNyyqjfQud"
   },
   {
     "uid": "i9j0ml6TgJK",
     "name": "Fr andrian Heath Centre",
     "county": "g6gTzQ5nfYq",
-    "subCounty": "ZvbwkucYq4T",
+    "subCounty": "Kajiado East",
     "ward": "i9j0ml6TgJK"
   },
   {
     "uid": "zDGztuhkhx7",
     "name": "Isinya Health Centre",
     "county": "g6gTzQ5nfYq",
-    "subCounty": "BQ7G5kGe1Cv",
+    "subCounty": "Kajiado East",
     "ward": "zDGztuhkhx7"
   },
   {
     "uid": "PHJHqpSpfRc",
     "name": "Kitengela Medical Services",
     "county": "g6gTzQ5nfYq",
-    "subCounty": "L6v0cndEtYB",
+    "subCounty": "Kajiado East",
     "ward": "PHJHqpSpfRc"
   },
   {
     "uid": "AW4Fs3TsAtO",
     "name": "Kitengela Sub-County Hospital",
     "county": "g6gTzQ5nfYq",
-    "subCounty": "oXm4Fpl0iEr",
+    "subCounty": "Kajiado East",
     "ward": "AW4Fs3TsAtO"
   },
   {
     "uid": "RFhDgy6Fjq4",
     "name": "Mashuuru Sub County Hospital",
     "county": "g6gTzQ5nfYq",
-    "subCounty": "ZvbwkucYq4T",
+    "subCounty": "Kajiado East",
     "ward": "RFhDgy6Fjq4"
   },
   {
     "uid": "rsdEvozVRXa",
     "name": "Mawepi Medical and VCT Centre",
     "county": "g6gTzQ5nfYq",
-    "subCounty": "oXm4Fpl0iEr",
+    "subCounty": "Kajiado East",
     "ward": "rsdEvozVRXa"
   },
   {
     "uid": "ToCPzsCXUMU",
     "name": "Merueshi Village Community Health Centre",
     "county": "g6gTzQ5nfYq",
-    "subCounty": "KONREaUfSht",
+    "subCounty": "Kajiado East",
     "ward": "ToCPzsCXUMU"
   },
   {
     "uid": "YUW5s1vzY9q",
     "name": "Nairobi Women's Hospital (Kitengela)",
     "county": "g6gTzQ5nfYq",
-    "subCounty": "L6v0cndEtYB",
+    "subCounty": "Kajiado East",
     "ward": "YUW5s1vzY9q"
   },
   {
     "uid": "heqPEgGraSS",
     "name": "Simba Health Centre",
     "county": "g6gTzQ5nfYq",
-    "subCounty": "KONREaUfSht",
+    "subCounty": "Kajiado East",
     "ward": "heqPEgGraSS"
   },
   {
     "uid": "WrEPDZEo47O",
     "name": "St Paul's Hospital",
     "county": "g6gTzQ5nfYq",
-    "subCounty": "L6v0cndEtYB",
+    "subCounty": "Kajiado East",
     "ward": "WrEPDZEo47O"
   },
   {
     "uid": "zm8SMP2MmKm",
     "name": "St Therese Dispensary",
     "county": "g6gTzQ5nfYq",
-    "subCounty": "L6v0cndEtYB",
+    "subCounty": "Kajiado East",
     "ward": "zm8SMP2MmKm"
   },
   {
     "uid": "T1uXrFqADc3",
     "name": "Sucos Hospital",
     "county": "g6gTzQ5nfYq",
-    "subCounty": "BQ7G5kGe1Cv",
+    "subCounty": "Kajiado East",
     "ward": "T1uXrFqADc3"
   },
   {
     "uid": "WzkeCX9NJHS",
     "name": "Topcare Nursing Home",
     "county": "g6gTzQ5nfYq",
-    "subCounty": "oXm4Fpl0iEr",
+    "subCounty": "Kajiado East",
     "ward": "WzkeCX9NJHS"
   },
   {
     "uid": "oYvO4rVR6jz",
     "name": "Urafiki Medical Clinic",
     "county": "g6gTzQ5nfYq",
-    "subCounty": "BQ7G5kGe1Cv",
+    "subCounty": "Kajiado East",
     "ward": "oYvO4rVR6jz"
   },
   {
     "uid": "vG1iOKniT2c",
     "name": "Beacon of Hope Clinic (Ongata Rongai)",
     "county": "BLz1HkvvMkA",
-    "subCounty": "pp24Rb9gQ9W",
+    "subCounty": "Kajiado North",
     "ward": "vG1iOKniT2c"
   },
   {
     "uid": "WrPccSa6unz",
     "name": "Embulbul Catholic Dispensary",
     "county": "BLz1HkvvMkA",
-    "subCounty": "xvmwT1IuPuK",
+    "subCounty": "Kajiado North",
     "ward": "WrPccSa6unz"
   },
   {
     "uid": "j1cuuNQ8Ij7",
     "name": "Fatima Maternity Hospital",
     "county": "BLz1HkvvMkA",
-    "subCounty": "pp24Rb9gQ9W",
+    "subCounty": "Kajiado North",
     "ward": "j1cuuNQ8Ij7"
   },
   {
     "uid": "omgVSPJzHLT",
     "name": "Gataka Health Center",
     "county": "BLz1HkvvMkA",
-    "subCounty": "pp24Rb9gQ9W",
+    "subCounty": "Kajiado North",
     "ward": "omgVSPJzHLT"
   },
   {
     "uid": "CjFtrjWKuOg",
     "name": "Matasia Health Centre",
     "county": "BLz1HkvvMkA",
-    "subCounty": "RHwexebB7PD",
+    "subCounty": "Kajiado North",
     "ward": "CjFtrjWKuOg"
   },
   {
     "uid": "qXsAxUYj0Ji",
     "name": "Matasia Nursing Home",
     "county": "BLz1HkvvMkA",
-    "subCounty": "RHwexebB7PD",
+    "subCounty": "Kajiado North",
     "ward": "qXsAxUYj0Ji"
   },
   {
     "uid": "WzIfzN4cqMu",
     "name": "Ngong Sub-County Hospital",
     "county": "BLz1HkvvMkA",
-    "subCounty": "nioMzFVoQ7l",
+    "subCounty": "Kajiado North",
     "ward": "WzIfzN4cqMu"
   },
   {
     "uid": "oiAvsFTAUta",
     "name": "Ololua Dispensary",
     "county": "BLz1HkvvMkA",
-    "subCounty": "xvmwT1IuPuK",
+    "subCounty": "Kajiado North",
     "ward": "oiAvsFTAUta"
   },
   {
     "uid": "nTGZm5lNyzY",
     "name": "Ongata Rongai Sub County Hospital",
     "county": "BLz1HkvvMkA",
-    "subCounty": "pp24Rb9gQ9W",
+    "subCounty": "Kajiado North",
     "ward": "nTGZm5lNyzY"
   },
   {
     "uid": "zaf93JtSKuM",
     "name": "Wama Nursing Home",
     "county": "BLz1HkvvMkA",
-    "subCounty": "RZsWJRZ4mIG",
+    "subCounty": "Kajiado North",
     "ward": "zaf93JtSKuM"
   },
   {
     "uid": "eB08o18tqcY",
     "name": "Wananchi Jamii Hospital Limited",
     "county": "BLz1HkvvMkA",
-    "subCounty": "pp24Rb9gQ9W",
+    "subCounty": "Kajiado North",
     "ward": "eB08o18tqcY"
   },
   {
     "uid": "SzqNoANuTnl",
     "name": "Zam Zam Medical Services",
     "county": "BLz1HkvvMkA",
-    "subCounty": "nioMzFVoQ7l",
+    "subCounty": "Kajiado North",
     "ward": "SzqNoANuTnl"
   },
   {
     "uid": "KuftRocWEh1",
     "name": "Ajam Mission Health Centre",
     "county": "wYsCfCAUWNB",
-    "subCounty": "ZwZ7vxnP9WF",
+    "subCounty": "Kajiado West",
     "ward": "KuftRocWEh1"
   },
   {
     "uid": "lC6sEfdURfO",
     "name": "Entasopia Health Centre",
     "county": "wYsCfCAUWNB",
-    "subCounty": "bSdHZBeB5bQ",
+    "subCounty": "Kajiado West",
     "ward": "lC6sEfdURfO"
   },
   {
     "uid": "xxV4wmw5vPj",
     "name": "Ewuaso Kedong Health Centre",
     "county": "wYsCfCAUWNB",
-    "subCounty": "KHFGFujHwZA",
+    "subCounty": "Kajiado West",
     "ward": "xxV4wmw5vPj"
   },
   {
     "uid": "hnveIA9HE5L",
     "name": "Magadi Hospital",
     "county": "wYsCfCAUWNB",
-    "subCounty": "bSdHZBeB5bQ",
+    "subCounty": "Kajiado West",
     "ward": "hnveIA9HE5L"
   },
   {
     "uid": "QOKaVUPEWEt",
     "name": "Mile 46 Health Centre",
     "county": "wYsCfCAUWNB",
-    "subCounty": "MMPnyemUFot",
+    "subCounty": "Kajiado West",
     "ward": "QOKaVUPEWEt"
   },
   {
     "uid": "vi6T7toguA4",
     "name": "Mosiro Health Centre (Kajiado West)",
     "county": "wYsCfCAUWNB",
-    "subCounty": "gV7ZuBU4q7U",
+    "subCounty": "Kajiado West",
     "ward": "vi6T7toguA4"
   },
   {
     "uid": "k4AgISnt0Mx",
     "name": "Ol-Malaika Health Centre",
     "county": "wYsCfCAUWNB",
-    "subCounty": "ZwZ7vxnP9WF",
+    "subCounty": "Kajiado West",
     "ward": "k4AgISnt0Mx"
   },
   {
     "uid": "T8zNY6153DF",
     "name": "Oltepesi Health Centre",
     "county": "wYsCfCAUWNB",
-    "subCounty": "ZwZ7vxnP9WF",
+    "subCounty": "Kajiado West",
     "ward": "T8zNY6153DF"
   },
   {
     "uid": "hk7CLAgs5Hy",
     "name": "Shompole Health Centre",
     "county": "wYsCfCAUWNB",
-    "subCounty": "bSdHZBeB5bQ",
+    "subCounty": "Kajiado West",
     "ward": "hk7CLAgs5Hy"
   },
   {
     "uid": "HzKPLEISiy4",
     "name": "Amboseli Dispensary",
     "county": "eyADpAXM834",
-    "subCounty": "u3IXGUmWgZ2",
+    "subCounty": "Loitokitok",
     "ward": "HzKPLEISiy4"
   },
   {
     "uid": "iOaejculBnN",
     "name": "Entarara Health Centre",
     "county": "eyADpAXM834",
-    "subCounty": "Zk0ZFibhfaI",
+    "subCounty": "Loitokitok",
     "ward": "iOaejculBnN"
   },
   {
     "uid": "dIQa6MENmm5",
     "name": "Fatima Health Centre (Lenkism)",
     "county": "eyADpAXM834",
-    "subCounty": "u3IXGUmWgZ2",
+    "subCounty": "Loitokitok",
     "ward": "dIQa6MENmm5"
   },
   {
     "uid": "d6yR5ctjhLn",
     "name": "Illasit Medical Clinic",
     "county": "eyADpAXM834",
-    "subCounty": "Zk0ZFibhfaI",
+    "subCounty": "Loitokitok",
     "ward": "d6yR5ctjhLn"
   },
   {
     "uid": "eV4czbS709J",
     "name": "Iltilal Health Centre",
     "county": "eyADpAXM834",
-    "subCounty": "aLPl4YD1hzh",
+    "subCounty": "Loitokitok",
     "ward": "eV4czbS709J"
   },
   {
     "uid": "CHV0rH9hpGA",
     "name": "Imbirikani Sub county Hospital",
     "county": "eyADpAXM834",
-    "subCounty": "fBbEs297NMY",
+    "subCounty": "Loitokitok",
     "ward": "CHV0rH9hpGA"
   },
   {
     "uid": "TqbJEX1FuGA",
     "name": "Immurtot Health Centre",
     "county": "eyADpAXM834",
-    "subCounty": "u3IXGUmWgZ2",
+    "subCounty": "Loitokitok",
     "ward": "TqbJEX1FuGA"
   },
   {
     "uid": "xbZUlr9VgCK",
     "name": "Isinet Health Centre",
     "county": "eyADpAXM834",
-    "subCounty": "fBbEs297NMY",
+    "subCounty": "Loitokitok",
     "ward": "xbZUlr9VgCK"
   },
   {
     "uid": "Y9qucizTmZG",
     "name": "Kimana Health Centre",
     "county": "eyADpAXM834",
-    "subCounty": "REkEoX4PR5g",
+    "subCounty": "Loitokitok",
     "ward": "Y9qucizTmZG"
   },
   {
     "uid": "M3YycknfNBU",
     "name": "Langata Enkima Dispensary",
     "county": "eyADpAXM834",
-    "subCounty": "aLPl4YD1hzh",
+    "subCounty": "Loitokitok",
     "ward": "M3YycknfNBU"
   },
   {
     "uid": "Cx6s78Ev9QT",
     "name": "Loitokitok Sub County Hospital",
     "county": "eyADpAXM834",
-    "subCounty": "aLPl4YD1hzh",
+    "subCounty": "Loitokitok",
     "ward": "Cx6s78Ev9QT"
   },
   {
     "uid": "Nq0dWw681Qs",
     "name": "Namelok Health Centre",
     "county": "eyADpAXM834",
-    "subCounty": "REkEoX4PR5g",
+    "subCounty": "Loitokitok",
     "ward": "Nq0dWw681Qs"
   },
   {
     "uid": "aKb8dR8ywbt",
     "name": "Njukini Health Centre (Loitokitok)",
     "county": "eyADpAXM834",
-    "subCounty": "Zk0ZFibhfaI",
+    "subCounty": "Loitokitok",
     "ward": "aKb8dR8ywbt"
   },
   {
     "uid": "bfRSma3X46N",
     "name": "Nkama Dispensary",
     "county": "eyADpAXM834",
-    "subCounty": "aLPl4YD1hzh",
+    "subCounty": "Loitokitok",
     "ward": "bfRSma3X46N"
   },
   {
     "uid": "bBexKx5c69z",
     "name": "Olgulului Health Centre",
     "county": "eyADpAXM834",
-    "subCounty": "u3IXGUmWgZ2",
+    "subCounty": "Loitokitok",
     "ward": "bBexKx5c69z"
   },
   {
     "uid": "EumBiY0A93D",
     "name": "Rombo Health Centre",
     "county": "eyADpAXM834",
-    "subCounty": "Zk0ZFibhfaI",
+    "subCounty": "Loitokitok",
     "ward": "EumBiY0A93D"
   },
   {
     "uid": "k2uW9sXXhin",
     "name": "Tropical Medical Clinic",
     "county": "eyADpAXM834",
-    "subCounty": "aLPl4YD1hzh",
+    "subCounty": "Loitokitok",
     "ward": "k2uW9sXXhin"
   },
   {
     "uid": "iQ6VmkE6fvh",
     "name": "Tumaini Clinic",
     "county": "eyADpAXM834",
-    "subCounty": "Zk0ZFibhfaI",
+    "subCounty": "Loitokitok",
     "ward": "iQ6VmkE6fvh"
   },
   {
     "uid": "sVmlP6GIQmS",
     "name": "Kalalu Dispensary",
     "county": "pF6qPMIlHte",
-    "subCounty": "GpddBXmXl2i",
+    "subCounty": "Laikipia East",
     "ward": "sVmlP6GIQmS"
   },
   {
     "uid": "fJNY0XA8daw",
     "name": "Lamuria Sub County Hospital (Laikipia East)",
     "county": "pF6qPMIlHte",
-    "subCounty": "ccNXklFrzuP",
+    "subCounty": "Laikipia East",
     "ward": "fJNY0XA8daw"
   },
   {
     "uid": "EOwZKRgVff8",
     "name": "Likii Dispensary",
     "county": "pF6qPMIlHte",
-    "subCounty": "DpYpJ6E1vRc",
+    "subCounty": "Laikipia East",
     "ward": "EOwZKRgVff8"
   },
   {
     "uid": "FXOdrZAa7bo",
     "name": "Matanya Dispensary",
     "county": "pF6qPMIlHte",
-    "subCounty": "ccNXklFrzuP",
+    "subCounty": "Laikipia East",
     "ward": "FXOdrZAa7bo"
   },
   {
     "uid": "HHg9KLFF9cu",
     "name": "Nanyuki Cottage Hospital",
     "county": "pF6qPMIlHte",
-    "subCounty": "DpYpJ6E1vRc",
+    "subCounty": "Laikipia East",
     "ward": "HHg9KLFF9cu"
   },
   {
     "uid": "wZYYhq8qsZ0",
     "name": "Nanyuki Teaching and Referral Hospital",
     "county": "pF6qPMIlHte",
-    "subCounty": "DpYpJ6E1vRc",
+    "subCounty": "Laikipia East",
     "ward": "wZYYhq8qsZ0"
   },
   {
     "uid": "sKl99929tQX",
     "name": "Ngobit Dispensary",
     "county": "pF6qPMIlHte",
-    "subCounty": "pxHH7AAkfR6",
+    "subCounty": "Laikipia East",
     "ward": "sKl99929tQX"
   },
   {
     "uid": "oLzFlqMhNgg",
     "name": "Solio Dispensary",
     "county": "pF6qPMIlHte",
-    "subCounty": "ccNXklFrzuP",
+    "subCounty": "Laikipia East",
     "ward": "oLzFlqMhNgg"
   },
   {
     "uid": "DLI2moeSbCu",
     "name": "St Joseph Catholic Dispensary (Laikipia East)",
     "county": "pF6qPMIlHte",
-    "subCounty": "pxHH7AAkfR6",
+    "subCounty": "Laikipia East",
     "ward": "DLI2moeSbCu"
   },
   {
     "uid": "q9MTvNy4DVj",
     "name": "Chumvi Dispensary",
     "county": "RJyUfi5BQUm",
-    "subCounty": "qZ5JBQj1DxJ",
+    "subCounty": "Laikipia North",
     "ward": "q9MTvNy4DVj"
   },
   {
     "uid": "wm5jiU5wkdW",
     "name": "Doldol Sub County Hospital",
     "county": "RJyUfi5BQUm",
-    "subCounty": "qZ5JBQj1DxJ",
+    "subCounty": "Laikipia North",
     "ward": "wm5jiU5wkdW"
   },
   {
     "uid": "kkM65PEZPa8",
     "name": "East Laikipia Dispensary",
     "county": "RJyUfi5BQUm",
-    "subCounty": "qZ5JBQj1DxJ",
+    "subCounty": "Laikipia North",
     "ward": "kkM65PEZPa8"
   },
   {
     "uid": "LiYCnN4HH92",
     "name": "Kimanjo Dispensary",
     "county": "RJyUfi5BQUm",
-    "subCounty": "Zrkf6cQj2AP",
+    "subCounty": "Laikipia North",
     "ward": "LiYCnN4HH92"
   },
   {
     "uid": "h0Iego3IFFN",
     "name": "Muramati Dispensary",
     "county": "RJyUfi5BQUm",
-    "subCounty": "Kx1h1yqLZh9",
+    "subCounty": "Laikipia North",
     "ward": "h0Iego3IFFN"
   },
   {
     "uid": "c9pQgjJ0sqy",
     "name": "Naibor Dispensary",
     "county": "RJyUfi5BQUm",
-    "subCounty": "Kx1h1yqLZh9",
+    "subCounty": "Laikipia North",
     "ward": "c9pQgjJ0sqy"
   },
   {
     "uid": "cVFUPAB2b6Z",
     "name": "Powys Dispensary",
     "county": "RJyUfi5BQUm",
-    "subCounty": "Kx1h1yqLZh9",
+    "subCounty": "Laikipia North",
     "ward": "cVFUPAB2b6Z"
   },
   {
     "uid": "m9uOfQmxGGw",
     "name": "Segera Mission Dispensary",
     "county": "RJyUfi5BQUm",
-    "subCounty": "Kx1h1yqLZh9",
+    "subCounty": "Laikipia North",
     "ward": "m9uOfQmxGGw"
   },
   {
     "uid": "m1CfptepCVX",
     "name": "Bennedict Xvi Hospital",
     "county": "pXbWrnFPpKb",
-    "subCounty": "q38k1nKzsRS",
+    "subCounty": "Laikipia West",
     "ward": "m1CfptepCVX"
   },
   {
     "uid": "PuE4XHg3mFm",
     "name": "Maina Village Dispensary",
     "county": "pXbWrnFPpKb",
-    "subCounty": "q38k1nKzsRS",
+    "subCounty": "Laikipia West",
     "ward": "PuE4XHg3mFm"
   },
   {
     "uid": "R0DV22i3suI",
     "name": "Melwa Health Centre",
     "county": "pXbWrnFPpKb",
-    "subCounty": "OhvgVomhsMZ",
+    "subCounty": "Laikipia West",
     "ward": "R0DV22i3suI"
   },
   {
     "uid": "YRMeKjNXBab",
     "name": "Mutara Dispensary",
     "county": "pXbWrnFPpKb",
-    "subCounty": "vU9560o42tL",
+    "subCounty": "Laikipia West",
     "ward": "YRMeKjNXBab"
   },
   {
     "uid": "EbeqEfnzJsG",
     "name": "Mwenje Dispensary",
     "county": "pXbWrnFPpKb",
-    "subCounty": "pgF7Kz2WZPu",
+    "subCounty": "Laikipia West",
     "ward": "EbeqEfnzJsG"
   },
   {
     "uid": "DoHbN85NkUa",
     "name": "Ndindika Health Centre",
     "county": "pXbWrnFPpKb",
-    "subCounty": "pgF7Kz2WZPu",
+    "subCounty": "Laikipia West",
     "ward": "DoHbN85NkUa"
   },
   {
     "uid": "r874ehM9tS8",
     "name": "Ngarua Health Centre",
     "county": "pXbWrnFPpKb",
-    "subCounty": "OhvgVomhsMZ",
+    "subCounty": "Laikipia West",
     "ward": "r874ehM9tS8"
   },
   {
     "uid": "dAPS3WNKy1K",
     "name": "Nyahururu District Hospital",
     "county": "pXbWrnFPpKb",
-    "subCounty": "q38k1nKzsRS",
+    "subCounty": "Laikipia West",
     "ward": "dAPS3WNKy1K"
   },
   {
     "uid": "nN3Po5pIV4t",
     "name": "Oljabet Health Centre",
     "county": "pXbWrnFPpKb",
-    "subCounty": "OhvgVomhsMZ",
+    "subCounty": "Laikipia West",
     "ward": "nN3Po5pIV4t"
   },
   {
     "uid": "dxZgFuOryf4",
     "name": "Olmoran Health Centre",
     "county": "pXbWrnFPpKb",
-    "subCounty": "IZGBFhMdekx",
+    "subCounty": "Laikipia West",
     "ward": "dxZgFuOryf4"
   },
   {
     "uid": "OSC2ngoYEYM",
     "name": "Rumuruti District Hospital",
     "county": "pXbWrnFPpKb",
-    "subCounty": "JoGNwQRLIWT",
+    "subCounty": "Laikipia West",
     "ward": "OSC2ngoYEYM"
   },
   {
     "uid": "YpP6lxmMLxh",
     "name": "Salama Health Centre (Laikipia West)",
     "county": "pXbWrnFPpKb",
-    "subCounty": "vU9560o42tL",
+    "subCounty": "Laikipia West",
     "ward": "YpP6lxmMLxh"
   },
   {
     "uid": "Gp3mDe3mSdO",
     "name": "Sipili Health Centre",
     "county": "pXbWrnFPpKb",
-    "subCounty": "IZGBFhMdekx",
+    "subCounty": "Laikipia West",
     "ward": "Gp3mDe3mSdO"
   },
   {
     "uid": "NarNXRvCux6",
     "name": "Survey Dispensary",
     "county": "RJyUfi5BQUm",
-    "subCounty": "Dg8SGNnGQny",
+    "subCounty": "Laikipia North",
     "ward": "NarNXRvCux6"
   },
   {
     "uid": "xAelM1vCP0I",
     "name": "Thome Dispensary",
     "county": "pXbWrnFPpKb",
-    "subCounty": "vU9560o42tL",
+    "subCounty": "Laikipia West",
     "ward": "xAelM1vCP0I"
   },
   {
     "uid": "g21QmK3g2Hf",
     "name": "Unison Medical Clinic",
     "county": "pXbWrnFPpKb",
-    "subCounty": "JoGNwQRLIWT",
+    "subCounty": "Laikipia West",
     "ward": "g21QmK3g2Hf"
   },
   {
     "uid": "hHFDDKwv5UN",
     "name": "Bahati Rural Health Center",
     "county": "nwh9bXKykiS",
-    "subCounty": "oK2KwbL5Dzx",
+    "subCounty": "Nakuru North",
     "ward": "hHFDDKwv5UN"
   },
   {
     "uid": "cQa0PvCvbxM",
     "name": "Bahati Subcounty Hospital",
     "county": "nwh9bXKykiS",
-    "subCounty": "oK2KwbL5Dzx",
+    "subCounty": "Nakuru North",
     "ward": "cQa0PvCvbxM"
   },
   {
     "uid": "x2ByD5QP18B",
     "name": "Dundori Health Centre",
     "county": "nwh9bXKykiS",
-    "subCounty": "Ff1CJ0oXLRy",
+    "subCounty": "Nakuru North",
     "ward": "x2ByD5QP18B"
   },
   {
     "uid": "UzyDMLPCc1K",
     "name": "Engashura Health Centre",
     "county": "nwh9bXKykiS",
-    "subCounty": "wgKfulEq1ZH",
+    "subCounty": "Nakuru North",
     "ward": "UzyDMLPCc1K"
   },
   {
     "uid": "eRPHPaOmHQp",
     "name": "Esther Memorial Nursing Home",
     "county": "nwh9bXKykiS",
-    "subCounty": "wgKfulEq1ZH",
+    "subCounty": "Nakuru North",
     "ward": "eRPHPaOmHQp"
   },
   {
     "uid": "EQrX5OjiAns",
     "name": "Great Comm Medical Clinic",
     "county": "nwh9bXKykiS",
-    "subCounty": "Ff1CJ0oXLRy",
+    "subCounty": "Nakuru North",
     "ward": "EQrX5OjiAns"
   },
   {
     "uid": "h8gciTrB04j",
     "name": "Impact Health Care",
     "county": "nwh9bXKykiS",
-    "subCounty": "wgKfulEq1ZH",
+    "subCounty": "Nakuru North",
     "ward": "h8gciTrB04j"
   },
   {
     "uid": "ciJFdty24Uw",
     "name": "Kabatini Health Centre",
     "county": "nwh9bXKykiS",
-    "subCounty": "KYyRxF09EOm",
+    "subCounty": "Nakuru North",
     "ward": "ciJFdty24Uw"
   },
   {
     "uid": "WQRkoXjzOCr",
     "name": "Kiwamu Health Centre",
     "county": "nwh9bXKykiS",
-    "subCounty": "Ff1CJ0oXLRy",
+    "subCounty": "Nakuru North",
     "ward": "WQRkoXjzOCr"
   },
   {
     "uid": "GqV92emjJFN",
     "name": "Menengai Crater Dispensary",
     "county": "nwh9bXKykiS",
-    "subCounty": "wgKfulEq1ZH",
+    "subCounty": "Nakuru North",
     "ward": "GqV92emjJFN"
   },
   {
     "uid": "fw0sMEd371V",
     "name": "Nyonjoro Dispensary",
     "county": "nwh9bXKykiS",
-    "subCounty": "uojD9lkbubw",
+    "subCounty": "Nakuru North",
     "ward": "fw0sMEd371V"
   },
   {
     "uid": "kcLVit2V5s7",
     "name": "Ruguru Dispensary",
     "county": "nwh9bXKykiS",
-    "subCounty": "KYyRxF09EOm",
+    "subCounty": "Nakuru North",
     "ward": "kcLVit2V5s7"
   },
   {
     "uid": "SCNrVS57GNa",
     "name": "St Anthony Catholic Hospital",
     "county": "nwh9bXKykiS",
-    "subCounty": "wgKfulEq1ZH",
+    "subCounty": "Nakuru North",
     "ward": "SCNrVS57GNa"
   },
   {
     "uid": "ntFlGCG7dUY",
     "name": "Wesley Health Centre",
     "county": "nwh9bXKykiS",
-    "subCounty": "uojD9lkbubw",
+    "subCounty": "Nakuru North",
     "ward": "ntFlGCG7dUY"
   },
   {
     "uid": "ffIfsLKrhKK",
     "name": "Eburru Dispensary",
     "county": "hBU8B1KI12P",
-    "subCounty": "iIdFbrVody5",
+    "subCounty": "Gilgil",
     "ward": "ffIfsLKrhKK"
   },
   {
     "uid": "eDacu7icvAw",
     "name": "Gilgil Astu Dispensary",
     "county": "hBU8B1KI12P",
-    "subCounty": "mxshI67tMFJ",
+    "subCounty": "Gilgil",
     "ward": "eDacu7icvAw"
   },
   {
     "uid": "dx6XwBdUB2q",
     "name": "Gilgil Sub County Hospital",
     "county": "hBU8B1KI12P",
-    "subCounty": "xK7G5Lg2CEW",
+    "subCounty": "Gilgil",
     "ward": "dx6XwBdUB2q"
   },
   {
     "uid": "PhL3UV3upc0",
     "name": "GOK Farm (Nahrc) Dispensary",
     "county": "hBU8B1KI12P",
-    "subCounty": "xCH1F3gEsNr",
+    "subCounty": "Gilgil",
     "ward": "PhL3UV3upc0"
   },
   {
     "uid": "Q67hkAtmDDf",
     "name": "Holy Spirit Health Centre",
     "county": "hBU8B1KI12P",
-    "subCounty": "xK7G5Lg2CEW",
+    "subCounty": "Gilgil",
     "ward": "Q67hkAtmDDf"
   },
   {
     "uid": "TMUJ5UJprr0",
     "name": "Karati Health Centre",
     "county": "hBU8B1KI12P",
-    "subCounty": "xCH1F3gEsNr",
+    "subCounty": "Gilgil",
     "ward": "TMUJ5UJprr0"
   },
   {
     "uid": "kjk57sOcpCK",
     "name": "Karunga Health Centre",
     "county": "hBU8B1KI12P",
-    "subCounty": "mxshI67tMFJ",
+    "subCounty": "Gilgil",
     "ward": "kjk57sOcpCK"
   },
   {
     "uid": "lbze9EfO7qb",
     "name": "Kasarani Dispensary (Gilgil)",
     "county": "hBU8B1KI12P",
-    "subCounty": "xCH1F3gEsNr",
+    "subCounty": "Gilgil",
     "ward": "lbze9EfO7qb"
   },
   {
     "uid": "KQKx6gpqt19",
     "name": "Kiambogo Health Centre",
     "county": "hBU8B1KI12P",
-    "subCounty": "RSps1nz09HH",
+    "subCounty": "Gilgil",
     "ward": "KQKx6gpqt19"
   },
   {
     "uid": "zL3Qd7vqd0O",
     "name": "Kikopey Dispensary",
     "county": "hBU8B1KI12P",
-    "subCounty": "xK7G5Lg2CEW",
+    "subCounty": "Gilgil",
     "ward": "zL3Qd7vqd0O"
   },
   {
     "uid": "Kx6at9voElM",
     "name": "Kiptangwanyi Health Center",
     "county": "hBU8B1KI12P",
-    "subCounty": "RSps1nz09HH",
+    "subCounty": "Gilgil",
     "ward": "Kx6at9voElM"
   },
   {
     "uid": "KjOAVjy74vd",
     "name": "Mbaruk Dispensary",
     "county": "hBU8B1KI12P",
-    "subCounty": "iIdFbrVody5",
+    "subCounty": "Gilgil",
     "ward": "KjOAVjy74vd"
   },
   {
     "uid": "MtTTYN36PIJ",
     "name": "Stejon health care services",
     "county": "hBU8B1KI12P",
-    "subCounty": "RSps1nz09HH",
+    "subCounty": "Gilgil",
     "ward": "MtTTYN36PIJ"
   },
   {
     "uid": "nQDoBi1L8SS",
     "name": "Nys Dispensary (Gilgil)",
     "county": "hBU8B1KI12P",
-    "subCounty": "xK7G5Lg2CEW",
+    "subCounty": "Gilgil",
     "ward": "nQDoBi1L8SS"
   },
   {
     "uid": "kWww1M8MQU0",
     "name": "Ol-Jorai Health Center",
     "county": "hBU8B1KI12P",
-    "subCounty": "iIdFbrVody5",
+    "subCounty": "Gilgil",
     "ward": "kWww1M8MQU0"
   },
   {
     "uid": "SezKPZmA70j",
     "name": "North-Lake Rocco Medical Centre",
     "county": "hBU8B1KI12P",
-    "subCounty": "xCH1F3gEsNr",
+    "subCounty": "Gilgil",
     "ward": "SezKPZmA70j"
   },
   {
     "uid": "Ohe5HjRN8PF",
     "name": "St Mary's Hospital (Gilgil)",
     "county": "hBU8B1KI12P",
-    "subCounty": "xK7G5Lg2CEW",
+    "subCounty": "Gilgil",
     "ward": "Ohe5HjRN8PF"
   },
   {
     "uid": "Y9rLWFzWrme",
     "name": "Ikumbi Health Centre",
     "county": "QBwORnYdu0e",
-    "subCounty": "jWX4knhb96j",
+    "subCounty": "Kuresoi North",
     "ward": "Y9rLWFzWrme"
   },
   {
     "uid": "ebuf0Ix1pYu",
     "name": "Kamara Dispensary",
     "county": "QBwORnYdu0e",
-    "subCounty": "lkMaj1oAFk0",
+    "subCounty": "Kuresoi North",
     "ward": "ebuf0Ix1pYu"
   },
   {
     "uid": "GSFOhB8UjqY",
     "name": "Kimeswon Health Centre",
     "county": "QBwORnYdu0e",
-    "subCounty": "ZHKOkipqYxf",
+    "subCounty": "Kuresoi North",
     "ward": "GSFOhB8UjqY"
   },
   {
     "uid": "ZQBkmrdOpuC",
     "name": "Kuresoi Health Centre",
     "county": "QBwORnYdu0e",
-    "subCounty": "ZHKOkipqYxf",
+    "subCounty": "Kuresoi North",
     "ward": "ZQBkmrdOpuC"
   },
   {
     "uid": "gFBAFcueFtr",
     "name": "Murindoku Dispensary",
     "county": "QBwORnYdu0e",
-    "subCounty": "jWX4knhb96j",
+    "subCounty": "Kuresoi North",
     "ward": "gFBAFcueFtr"
   },
   {
     "uid": "moNxIyAOwb9",
     "name": "Neema Medical Home Limited",
     "county": "QBwORnYdu0e",
-    "subCounty": "lkMaj1oAFk0",
+    "subCounty": "Kuresoi North",
     "ward": "moNxIyAOwb9"
   },
   {
     "uid": "hHHNQYQj75L",
     "name": "St Joseph Nursing Home",
     "county": "QBwORnYdu0e",
-    "subCounty": "aGRpaeG5ziX",
+    "subCounty": "Kuresoi North",
     "ward": "hHHNQYQj75L"
   },
   {
     "uid": "iedHXbya752",
     "name": "St Martin De Porres (Static)",
     "county": "QBwORnYdu0e",
-    "subCounty": "lkMaj1oAFk0",
+    "subCounty": "Kuresoi North",
     "ward": "iedHXbya752"
   },
   {
     "uid": "JsyNWojvXgf",
     "name": "Total Health Centre",
     "county": "QBwORnYdu0e",
-    "subCounty": "lkMaj1oAFk0",
+    "subCounty": "Kuresoi North",
     "ward": "JsyNWojvXgf"
   },
   {
     "uid": "oz97tgFhT7B",
     "name": "Tulwet Dispensary (Kuresoi)",
     "county": "QBwORnYdu0e",
-    "subCounty": "ZHKOkipqYxf",
+    "subCounty": "Kuresoi North",
     "ward": "oz97tgFhT7B"
   },
   {
     "uid": "B0KOi4no3Iy",
     "name": "Keringet Nursing Home LTD",
     "county": "QwGkDS0DNls",
-    "subCounty": "ZSBD8btR2UC",
+    "subCounty": "Kuresoi South",
     "ward": "B0KOi4no3Iy"
   },
   {
     "uid": "lqtFpfrMOcJ",
     "name": "Keringet Sub County Hospital",
     "county": "QwGkDS0DNls",
-    "subCounty": "ZSBD8btR2UC",
+    "subCounty": "Kuresoi South",
     "ward": "lqtFpfrMOcJ"
   },
   {
     "uid": "J5tDCMSXCSy",
     "name": "Kiptagich Model Health Centre",
     "county": "QwGkDS0DNls",
-    "subCounty": "wKz9Uw8QczF",
+    "subCounty": "Kuresoi South",
     "ward": "J5tDCMSXCSy"
   },
   {
     "uid": "DwR7zhYqoyK",
     "name": "Korao Health Centre",
     "county": "QwGkDS0DNls",
-    "subCounty": "fi569D0zk8J",
+    "subCounty": "Kuresoi South",
     "ward": "DwR7zhYqoyK"
   },
   {
     "uid": "qc3yUukscvt",
     "name": "Olenguruone Sub County Hospital",
     "county": "QwGkDS0DNls",
-    "subCounty": "okaRgHkp8W5",
+    "subCounty": "Kuresoi South",
     "ward": "qc3yUukscvt"
   },
   {
     "uid": "hsgVQyr21gH",
     "name": "Tonymed Medical Centre",
     "county": "QwGkDS0DNls",
-    "subCounty": "wKz9Uw8QczF",
+    "subCounty": "Kuresoi South",
     "ward": "hsgVQyr21gH"
   },
   {
     "uid": "agm4CQgIwuf",
     "name": "Elburgon Sub County Hospital",
     "county": "RJ4LGJiSHFg",
-    "subCounty": "X5bxxQN8nP5",
+    "subCounty": "Molo",
     "ward": "agm4CQgIwuf"
   },
   {
     "uid": "LRl9e3LWbrt",
     "name": "GSU Dispensary",
     "county": "RJ4LGJiSHFg",
-    "subCounty": "STQIvkltmOp",
+    "subCounty": "Molo",
     "ward": "LRl9e3LWbrt"
   },
   {
     "uid": "ZgoaGXYlUAa",
     "name": "Mariashoni Health Centre",
     "county": "RJ4LGJiSHFg",
-    "subCounty": "BbJmtHW0518",
+    "subCounty": "Molo",
     "ward": "ZgoaGXYlUAa"
   },
   {
     "uid": "cSzox9dcQlU",
     "name": "Molo Sub County Hospital",
     "county": "RJ4LGJiSHFg",
-    "subCounty": "STQIvkltmOp",
+    "subCounty": "Molo",
     "ward": "cSzox9dcQlU"
   },
   {
     "uid": "D3gE54sbiH8",
     "name": "Nyakiambi Health Centre",
     "county": "RJ4LGJiSHFg",
-    "subCounty": "X5bxxQN8nP5",
+    "subCounty": "Molo",
     "ward": "D3gE54sbiH8"
   },
   {
     "uid": "bEj9l0dUUQD",
     "name": "Sachangwan Health Centre",
     "county": "RJ4LGJiSHFg",
-    "subCounty": "STQIvkltmOp",
+    "subCounty": "Molo",
     "ward": "bEj9l0dUUQD"
   },
   {
     "uid": "j7SMeC3Y1bU",
     "name": "St Clare Health Centre",
     "county": "RJ4LGJiSHFg",
-    "subCounty": "X5bxxQN8nP5",
+    "subCounty": "Molo",
     "ward": "j7SMeC3Y1bU"
   },
   {
     "uid": "hZqDvGaLiEr",
     "name": "Turi PCEA Dispensary",
     "county": "RJ4LGJiSHFg",
-    "subCounty": "PBAbBC0gDLA",
+    "subCounty": "Molo",
     "ward": "hZqDvGaLiEr"
   },
   {
     "uid": "EqHuyV3yh0M",
     "name": "ASN Upendo Village Dispensary",
     "county": "yZJJPoSGhY6",
-    "subCounty": "xbHueeSJ4j8",
+    "subCounty": "Naivasha",
     "ward": "EqHuyV3yh0M"
   },
   {
     "uid": "BlfBnS88vK8",
     "name": "Flamingo Medical Centre",
     "county": "yZJJPoSGhY6",
-    "subCounty": "CTX9LIAvrFK",
+    "subCounty": "Naivasha",
     "ward": "BlfBnS88vK8"
   },
   {
     "uid": "UZIrITrlw2Y",
     "name": "Holy Trinity Health Centre (Maai Mahiu)",
     "county": "yZJJPoSGhY6",
-    "subCounty": "l7oNy9qaqWe",
+    "subCounty": "Naivasha",
     "ward": "UZIrITrlw2Y"
   },
   {
     "uid": "ITJntrnFN4A",
     "name": "Kabati Dispensary",
     "county": "yZJJPoSGhY6",
-    "subCounty": "quIiSx3L8OJ",
+    "subCounty": "Naivasha",
     "ward": "ITJntrnFN4A"
   },
   {
     "uid": "QMdjmr0246S",
     "name": "Karagita Health Centre",
     "county": "yZJJPoSGhY6",
-    "subCounty": "ZphUbBMB5yv",
+    "subCounty": "Naivasha",
     "ward": "QMdjmr0246S"
   },
   {
     "uid": "OQ9TVd3E10r",
     "name": "Kijani (Mirera) Dispensary",
     "county": "yZJJPoSGhY6",
-    "subCounty": "ZphUbBMB5yv",
+    "subCounty": "Naivasha",
     "ward": "OQ9TVd3E10r"
   },
   {
     "uid": "gUOKmMHTKm8",
     "name": "Kipkonyo Health Centre",
     "county": "yZJJPoSGhY6",
-    "subCounty": "fRDUt04TIg5",
+    "subCounty": "Naivasha",
     "ward": "gUOKmMHTKm8"
   },
   {
     "uid": "uMDi68kHRVl",
     "name": "Lake View Hospital",
     "county": "yZJJPoSGhY6",
-    "subCounty": "ZphUbBMB5yv",
+    "subCounty": "Naivasha",
     "ward": "uMDi68kHRVl"
   },
   {
     "uid": "D1MRmsEeJs8",
     "name": "Mai Mahiu Health Centre",
     "county": "yZJJPoSGhY6",
-    "subCounty": "l7oNy9qaqWe",
+    "subCounty": "Naivasha",
     "ward": "D1MRmsEeJs8"
   },
   {
     "uid": "fdUe86MgnlP",
     "name": "Maiela Health Centre",
     "county": "yZJJPoSGhY6",
-    "subCounty": "fRDUt04TIg5",
+    "subCounty": "Naivasha",
     "ward": "fdUe86MgnlP"
   },
   {
     "uid": "MMuiOe71sYx",
     "name": "Maraigushu Dispensary",
     "county": "yZJJPoSGhY6",
-    "subCounty": "A20qmlqFi5D",
+    "subCounty": "Naivasha",
     "ward": "MMuiOe71sYx"
   },
   {
     "uid": "I3B5p98nl4j",
     "name": "Moi Ndabi Dispensary",
     "county": "yZJJPoSGhY6",
-    "subCounty": "fRDUt04TIg5",
+    "subCounty": "Naivasha",
     "ward": "I3B5p98nl4j"
   },
   {
     "uid": "lwbc4eSg2lz",
     "name": "Nacoharg Medical Centre",
     "county": "yZJJPoSGhY6",
-    "subCounty": "ZphUbBMB5yv",
+    "subCounty": "Naivasha",
     "ward": "lwbc4eSg2lz"
   },
   {
     "uid": "RU2jRqYCp2E",
     "name": "Naivasha Sub County Refferal Hospital",
     "county": "yZJJPoSGhY6",
-    "subCounty": "quIiSx3L8OJ",
+    "subCounty": "Naivasha",
     "ward": "RU2jRqYCp2E"
   },
   {
     "uid": "ohJAsPklBdW",
     "name": "Ndabibi Health Centre",
     "county": "yZJJPoSGhY6",
-    "subCounty": "fRDUt04TIg5",
+    "subCounty": "Naivasha",
     "ward": "ohJAsPklBdW"
   },
   {
     "uid": "Ousi4WCKTgU",
     "name": "Ngondi Dispensary",
     "county": "yZJJPoSGhY6",
-    "subCounty": "fRDUt04TIg5",
+    "subCounty": "Naivasha",
     "ward": "Ousi4WCKTgU"
   },
   {
     "uid": "teVXsmXLymF",
     "name": "Northstar Alliance Wellness Centre (Maai Mahiu)",
     "county": "yZJJPoSGhY6",
-    "subCounty": "l7oNy9qaqWe",
+    "subCounty": "Naivasha",
     "ward": "teVXsmXLymF"
   },
   {
     "uid": "knd7eyfdN8X",
     "name": "Nyamathi Health Centre",
     "county": "yZJJPoSGhY6",
-    "subCounty": "ZphUbBMB5yv",
+    "subCounty": "Naivasha",
     "ward": "knd7eyfdN8X"
   },
   {
     "uid": "AZDZb77G5ui",
     "name": "NYS Karate Dispensary",
     "county": "yZJJPoSGhY6",
-    "subCounty": "lW5g42Bv4Rk",
+    "subCounty": "Naivasha",
     "ward": "AZDZb77G5ui"
   },
   {
     "uid": "inB3jgbNJ8W",
     "name": "Oserian Health Centre",
     "county": "yZJJPoSGhY6",
-    "subCounty": "CTX9LIAvrFK",
+    "subCounty": "Naivasha",
     "ward": "inB3jgbNJ8W"
   },
   {
     "uid": "HphzGAoeGVF",
     "name": "Polyclinic Hospital",
     "county": "yZJJPoSGhY6",
-    "subCounty": "quIiSx3L8OJ",
+    "subCounty": "Naivasha",
     "ward": "HphzGAoeGVF"
   },
   {
     "uid": "ibF75Bbksrx",
     "name": "Wangu Community Dispensary",
     "county": "yZJJPoSGhY6",
-    "subCounty": "lW5g42Bv4Rk",
+    "subCounty": "Naivasha",
     "ward": "ibF75Bbksrx"
   },
   {
     "uid": "ibvMGwFMVKC",
     "name": "Wayside Clinic",
     "county": "yZJJPoSGhY6",
-    "subCounty": "ZphUbBMB5yv",
+    "subCounty": "Naivasha",
     "ward": "ibvMGwFMVKC"
   },
   {
     "uid": "jaCs4CR5ZDN",
     "name": "Algadir Center Limited",
     "county": "FBJ9Y11esHS",
-    "subCounty": "BA2zKL0pmeI",
+    "subCounty": "Nakuru East",
     "ward": "jaCs4CR5ZDN"
   },
   {
     "uid": "vPGUu3uwSan",
     "name": "Bondeni Dispensary (Nakuru Central)",
     "county": "FBJ9Y11esHS",
-    "subCounty": "BA2zKL0pmeI",
+    "subCounty": "Nakuru East",
     "ward": "vPGUu3uwSan"
   },
   {
     "uid": "BxIp7V5DU9D",
     "name": "Bondeni Sub County Hospital",
     "county": "FBJ9Y11esHS",
-    "subCounty": "BA2zKL0pmeI",
+    "subCounty": "Nakuru East",
     "ward": "BxIp7V5DU9D"
   },
   {
     "uid": "MJLwj5XS8dr",
     "name": "Dr Karania Medical Clinic",
     "county": "FBJ9Y11esHS",
-    "subCounty": "BA2zKL0pmeI",
+    "subCounty": "Nakuru East",
     "ward": "MJLwj5XS8dr"
   },
   {
     "uid": "dGGuPEx55Jl",
     "name": "Family Care Medical Centre (FHOK) Nakuru",
     "county": "FBJ9Y11esHS",
-    "subCounty": "BA2zKL0pmeI",
+    "subCounty": "Nakuru East",
     "ward": "dGGuPEx55Jl"
   },
   {
     "uid": "ye4fzfF4kAx",
     "name": "Fountain Medical Centre Nakuru",
     "county": "FBJ9Y11esHS",
-    "subCounty": "W1Kv7kfFzub",
+    "subCounty": "Nakuru East",
     "ward": "ye4fzfF4kAx"
   },
   {
     "uid": "sZNadfmGApR",
     "name": "Hekima Dispensary",
     "county": "FBJ9Y11esHS",
-    "subCounty": "OFGHDVtVGOl",
+    "subCounty": "Nakuru East",
     "ward": "sZNadfmGApR"
   },
   {
     "uid": "zjJzSV10XnR",
     "name": "Kiti Dispensary",
     "county": "FBJ9Y11esHS",
-    "subCounty": "sJ50zpy9iBV",
+    "subCounty": "Nakuru East",
     "ward": "zjJzSV10XnR"
   },
   {
     "uid": "xMrLIAS6Y17",
     "name": "Lanet Health Centre",
     "county": "FBJ9Y11esHS",
-    "subCounty": "W1Kv7kfFzub",
+    "subCounty": "Nakuru East",
     "ward": "xMrLIAS6Y17"
   },
   {
     "uid": "dPEyAJaDVPX",
     "name": "Langalanga Sub County Hospital",
     "county": "FBJ9Y11esHS",
-    "subCounty": "QIMIjxzpGyb",
+    "subCounty": "Nakuru East",
     "ward": "dPEyAJaDVPX"
   },
   {
     "uid": "iuldhpF2IHo",
     "name": "Menengai Dispensary",
     "county": "FBJ9Y11esHS",
-    "subCounty": "sJ50zpy9iBV",
+    "subCounty": "Nakuru East",
     "ward": "iuldhpF2IHo"
   },
   {
     "uid": "SEvEw5XSNVr",
     "name": "Our Lady Of Mercy Mission Hospital",
     "county": "FBJ9Y11esHS",
-    "subCounty": "BA2zKL0pmeI",
+    "subCounty": "Nakuru East",
     "ward": "SEvEw5XSNVr"
   },
   {
     "uid": "h01C8P5M7cJ",
     "name": "Mirugi Kariuki Sub County Hospital",
     "county": "FBJ9Y11esHS",
-    "subCounty": "W1Kv7kfFzub",
+    "subCounty": "Nakuru East",
     "ward": "h01C8P5M7cJ"
   },
   {
     "uid": "nl2kqo2gbGi",
     "name": "New Canaan Idp Dispensary",
     "county": "FBJ9Y11esHS",
-    "subCounty": "W1Kv7kfFzub",
+    "subCounty": "Nakuru East",
     "ward": "nl2kqo2gbGi"
   },
   {
     "uid": "CcLG7lrb0Oe",
     "name": "St. Elizabeth Medical Centre",
     "county": "FBJ9Y11esHS",
-    "subCounty": "BA2zKL0pmeI",
+    "subCounty": "Nakuru East",
     "ward": "CcLG7lrb0Oe"
   },
   {
     "uid": "hTB7MRoMKMg",
     "name": "Valley Hospital Limited",
     "county": "FBJ9Y11esHS",
-    "subCounty": "BA2zKL0pmeI",
+    "subCounty": "Nakuru East",
     "ward": "hTB7MRoMKMg"
   },
   {
     "uid": "ETYKLHaZtuG",
     "name": "Annex Hospital (Nakuru)",
     "county": "KTayLusaU5I",
-    "subCounty": "LdShr7Egg6N",
+    "subCounty": "Nakuru West",
     "ward": "ETYKLHaZtuG"
   },
   {
     "uid": "icSyYdS2PaS",
     "name": "Barut Dispensary",
     "county": "KTayLusaU5I",
-    "subCounty": "pfFWXloU0jC",
+    "subCounty": "Nakuru West",
     "ward": "icSyYdS2PaS"
   },
   {
     "uid": "P97vatycAS3",
     "name": "Bethsaida (AIC) Dispensary (Nakuru)",
     "county": "KTayLusaU5I",
-    "subCounty": "lTh2MSvx02l",
+    "subCounty": "Nakuru West",
     "ward": "P97vatycAS3"
   },
   {
     "uid": "obZQ6vqwYzN",
     "name": "Fitc Dispensary",
     "county": "KTayLusaU5I",
-    "subCounty": "LdShr7Egg6N",
+    "subCounty": "Nakuru West",
     "ward": "obZQ6vqwYzN"
   },
   {
     "uid": "d01gae2jWRL",
     "name": "Industrial Area Dispensary",
     "county": "KTayLusaU5I",
-    "subCounty": "LdShr7Egg6N",
+    "subCounty": "Nakuru West",
     "ward": "d01gae2jWRL"
   },
   {
     "uid": "BsRAEfmFfM3",
     "name": "Kapkures Health Centre (Nakuru West)",
     "county": "KTayLusaU5I",
-    "subCounty": "pZuA4cJd4bl",
+    "subCounty": "Nakuru West",
     "ward": "BsRAEfmFfM3"
   },
   {
     "uid": "yvtU4Sy1I2k",
     "name": "Kimsaw Medical Clinic",
     "county": "KTayLusaU5I",
-    "subCounty": "pfFWXloU0jC",
+    "subCounty": "Nakuru West",
     "ward": "yvtU4Sy1I2k"
   },
   {
     "uid": "g8sLqIUGHtU",
     "name": "Lalwet Dispensary",
     "county": "KTayLusaU5I",
-    "subCounty": "pZuA4cJd4bl",
+    "subCounty": "Nakuru West",
     "ward": "g8sLqIUGHtU"
   },
   {
     "uid": "SmQcSZLlAoL",
     "name": "Milimani Nakuru dispensary",
     "county": "KTayLusaU5I",
-    "subCounty": "LdShr7Egg6N",
+    "subCounty": "Nakuru West",
     "ward": "SmQcSZLlAoL"
   },
   {
     "uid": "V5geBYzVbgD",
     "name": "Mother Kevin Hospital (Catholic)",
     "county": "KTayLusaU5I",
-    "subCounty": "q6DoWWo1dCR",
+    "subCounty": "Nakuru West",
     "ward": "V5geBYzVbgD"
   },
   {
     "uid": "JXpVEligTbk",
     "name": "Nakuru Heart Centre",
     "county": "KTayLusaU5I",
-    "subCounty": "lTh2MSvx02l",
+    "subCounty": "Nakuru West",
     "ward": "JXpVEligTbk"
   },
   {
     "uid": "OCkGCPhF8Gs",
     "name": "Nakuru County Referral and Teaching Hospital",
     "county": "KTayLusaU5I",
-    "subCounty": "LdShr7Egg6N",
+    "subCounty": "Nakuru West",
     "ward": "OCkGCPhF8Gs"
   },
   {
     "uid": "tlcvZ4jzPwM",
     "name": "Nakuru West (PCEA) Health Centre",
     "county": "KTayLusaU5I",
-    "subCounty": "lTh2MSvx02l",
+    "subCounty": "Nakuru West",
     "ward": "tlcvZ4jzPwM"
   },
   {
     "uid": "DIvySewPpEf",
     "name": "Nakuru West Health Centre",
     "county": "KTayLusaU5I",
-    "subCounty": "lTh2MSvx02l",
+    "subCounty": "Nakuru West",
     "ward": "DIvySewPpEf"
   },
   {
     "uid": "XIIEtZGP1iY",
     "name": "Rhonda Health Centre",
     "county": "KTayLusaU5I",
-    "subCounty": "eQNgjFoG2ct",
+    "subCounty": "Nakuru West",
     "ward": "XIIEtZGP1iY"
   },
   {
     "uid": "AuR0eEaEqAw",
     "name": "Sunrise Evans Hospital",
     "county": "KTayLusaU5I",
-    "subCounty": "lTh2MSvx02l",
+    "subCounty": "Nakuru West",
     "ward": "AuR0eEaEqAw"
   },
   {
     "uid": "nUv7TS3z7kp",
     "name": "Benmac Medical Center",
     "county": "gSJXzH1DM75",
-    "subCounty": "rb2nGblpg8l",
+    "subCounty": "Njoro",
     "ward": "nUv7TS3z7kp"
   },
   {
     "uid": "Sbo33DobMUY",
     "name": "Egerton University",
     "county": "gSJXzH1DM75",
-    "subCounty": "rb2nGblpg8l",
+    "subCounty": "Njoro",
     "ward": "Sbo33DobMUY"
   },
   {
     "uid": "S1Uc7ezgbo8",
     "name": "Our Lady Star of the Sea Huruma Health Centre",
     "county": "gSJXzH1DM75",
-    "subCounty": "TaCopZQ4jLn",
+    "subCounty": "Njoro",
     "ward": "S1Uc7ezgbo8"
   },
   {
     "uid": "cB3jILiAmZd",
     "name": "Kihingo Dispensary (CDF)",
     "county": "gSJXzH1DM75",
-    "subCounty": "rb2nGblpg8l",
+    "subCounty": "Njoro",
     "ward": "cB3jILiAmZd"
   },
   {
     "uid": "QPi8HppUeQL",
     "name": "Lare Health Centre",
     "county": "gSJXzH1DM75",
-    "subCounty": "BB9s4d9DV70",
+    "subCounty": "Njoro",
     "ward": "QPi8HppUeQL"
   },
   {
     "uid": "FJLwPzKpxiy",
     "name": "Mau Narok Health Centre",
     "county": "gSJXzH1DM75",
-    "subCounty": "DSk12NKnyRR",
+    "subCounty": "Njoro",
     "ward": "FJLwPzKpxiy"
   },
   {
     "uid": "Cm3cjBE7D8g",
     "name": "Taita Mauche HC",
     "county": "gSJXzH1DM75",
-    "subCounty": "KHWDXyBa4i6",
+    "subCounty": "Njoro",
     "ward": "Cm3cjBE7D8g"
   },
   {
     "uid": "hWr7kmALfeT",
     "name": "Neissuit Dispensary",
     "county": "gSJXzH1DM75",
-    "subCounty": "KqMw0Knznhu",
+    "subCounty": "Njoro",
     "ward": "hWr7kmALfeT"
   },
   {
     "uid": "pLq3t6aiqUC",
     "name": "Njoro Sub County Hospital",
     "county": "gSJXzH1DM75",
-    "subCounty": "TaCopZQ4jLn",
+    "subCounty": "Njoro",
     "ward": "pLq3t6aiqUC"
   },
   {
     "uid": "L7y9KrqaVNc",
     "name": "Piave Health Centre",
     "county": "gSJXzH1DM75",
-    "subCounty": "TaCopZQ4jLn",
+    "subCounty": "Njoro",
     "ward": "L7y9KrqaVNc"
   },
   {
     "uid": "ZPzsPFkWXwc",
     "name": "Teret Dispensary",
     "county": "gSJXzH1DM75",
-    "subCounty": "KHWDXyBa4i6",
+    "subCounty": "Njoro",
     "ward": "ZPzsPFkWXwc"
   },
   {
     "uid": "l6jqUUJvImb",
     "name": "Kabarak Health Centre",
     "county": "OK0hW8DFHq3",
-    "subCounty": "PL9Y6PrB2oV",
+    "subCounty": "Rongai",
     "ward": "l6jqUUJvImb"
   },
   {
     "uid": "NHKbAon0B4b",
     "name": "Kipsyenan Dispensary",
     "county": "OK0hW8DFHq3",
-    "subCounty": "RLv6Wg2Eo8m",
+    "subCounty": "Rongai",
     "ward": "NHKbAon0B4b"
   },
   {
     "uid": "oLr9KIEtFxV",
     "name": "Lower Solai health Centre",
     "county": "OK0hW8DFHq3",
-    "subCounty": "qjDeBQFEB19",
+    "subCounty": "Rongai",
     "ward": "oLr9KIEtFxV"
   },
   {
     "uid": "krbDCPlJYbp",
     "name": "Maji Tamu Health Centre",
     "county": "OK0hW8DFHq3",
-    "subCounty": "qjDeBQFEB19",
+    "subCounty": "Rongai",
     "ward": "krbDCPlJYbp"
   },
   {
     "uid": "atkeK7ODMj3",
     "name": "North Star Alliance VCT",
     "county": "OK0hW8DFHq3",
-    "subCounty": "bKCcKfnNznJ",
+    "subCounty": "Rongai",
     "ward": "atkeK7ODMj3"
   },
   {
     "uid": "BEJwbly8xZS",
     "name": "Nyamamithi Health Centre",
     "county": "OK0hW8DFHq3",
-    "subCounty": "qjDeBQFEB19",
+    "subCounty": "Rongai",
     "ward": "BEJwbly8xZS"
   },
   {
     "uid": "IZ78jKxuNvk",
     "name": "Rongai Health Centre",
     "county": "OK0hW8DFHq3",
-    "subCounty": "bKCcKfnNznJ",
+    "subCounty": "Rongai",
     "ward": "IZ78jKxuNvk"
   },
   {
     "uid": "jzItff279sZ",
     "name": "Sisto Mazoldi Dispensary (Rongai)",
     "county": "OK0hW8DFHq3",
-    "subCounty": "bKCcKfnNznJ",
+    "subCounty": "Rongai",
     "ward": "jzItff279sZ"
   },
   {
     "uid": "XMu4DpnN95t",
     "name": "Soin Sub County Hospital",
     "county": "OK0hW8DFHq3",
-    "subCounty": "RLv6Wg2Eo8m",
+    "subCounty": "Rongai",
     "ward": "XMu4DpnN95t"
   },
   {
     "uid": "kjaG0y8s2NK",
     "name": "Kabazi Sub County Hospital",
     "county": "zQEuNRaPYgE",
-    "subCounty": "JwFjLbUSxbO",
+    "subCounty": "Subukia",
     "ward": "kjaG0y8s2NK"
   },
   {
     "uid": "UiuRqwz4EGL",
     "name": "Mbogoini Health Centre",
     "county": "zQEuNRaPYgE",
-    "subCounty": "DCV7v4zjEnm",
+    "subCounty": "Subukia",
     "ward": "UiuRqwz4EGL"
   },
   {
     "uid": "ACI6a4LUYnA",
     "name": "Simboiyon Dispensary",
     "county": "zQEuNRaPYgE",
-    "subCounty": "DCV7v4zjEnm",
+    "subCounty": "Subukia",
     "ward": "ACI6a4LUYnA"
   },
   {
     "uid": "v0GRG4yvnRW",
     "name": "Subukia Sub County Hospital",
     "county": "zQEuNRaPYgE",
-    "subCounty": "obOP2eWg8EX",
+    "subCounty": "Subukia",
     "ward": "v0GRG4yvnRW"
   },
   {
     "uid": "Ty7UTI6ULgR",
     "name": "Upper Solai Health Centre",
     "county": "zQEuNRaPYgE",
-    "subCounty": "JwFjLbUSxbO",
+    "subCounty": "Subukia",
     "ward": "Ty7UTI6ULgR"
   },
   {
     "uid": "TfCypqHv4yJ",
     "name": "Wei Health Centre",
     "county": "zQEuNRaPYgE",
-    "subCounty": "DCV7v4zjEnm",
+    "subCounty": "Subukia",
     "ward": "TfCypqHv4yJ"
   },
   {
     "uid": "t2EKhTeMUOr",
     "name": "Kisima Health Centre",
     "county": "EmQRGVtvWy3",
-    "subCounty": "PRuQd7VjO3x",
+    "subCounty": "Samburu Central",
     "ward": "t2EKhTeMUOr"
   },
   {
     "uid": "nHx2YyYSuQi",
     "name": "Longewan Health Centre",
     "county": "EmQRGVtvWy3",
-    "subCounty": "i5te7PTlUjg",
+    "subCounty": "Samburu Central",
     "ward": "nHx2YyYSuQi"
   },
   {
     "uid": "T31nW3EJMLj",
     "name": "Loosuk Health Centre",
     "county": "EmQRGVtvWy3",
-    "subCounty": "cZkc98eBxNL",
+    "subCounty": "Samburu Central",
     "ward": "T31nW3EJMLj"
   },
   {
     "uid": "eHOUYVBmO5E",
     "name": "Maralal Catholic Dispensary",
     "county": "EmQRGVtvWy3",
-    "subCounty": "IEBWo4HwEfq",
+    "subCounty": "Samburu Central",
     "ward": "eHOUYVBmO5E"
   },
   {
     "uid": "GrY2IDpso5W",
     "name": "Samburu County Referral Hospital",
     "county": "EmQRGVtvWy3",
-    "subCounty": "IEBWo4HwEfq",
+    "subCounty": "Samburu Central",
     "ward": "GrY2IDpso5W"
   },
   {
     "uid": "MEn5F2lVDln",
     "name": "Seketet Health Centre",
     "county": "EmQRGVtvWy3",
-    "subCounty": "b4HPJJEYEsS",
+    "subCounty": "Samburu Central",
     "ward": "MEn5F2lVDln"
   },
   {
     "uid": "Kw9qM5jwrK7",
     "name": "Suguta Marmar Sub County Hospital",
     "county": "EmQRGVtvWy3",
-    "subCounty": "i5te7PTlUjg",
+    "subCounty": "Samburu Central",
     "ward": "Kw9qM5jwrK7"
   },
   {
     "uid": "Ssbkr9jzWWk",
     "name": "Archers Post Catholic Health Centre",
     "county": "ldZ10N9unC9",
-    "subCounty": "l2uOoW4cwIa",
+    "subCounty": "Samburu East",
     "ward": "Ssbkr9jzWWk"
   },
   {
     "uid": "RMbgDUBLgFM",
     "name": "Archers Post Sub-County Hospital",
     "county": "ldZ10N9unC9",
-    "subCounty": "l2uOoW4cwIa",
+    "subCounty": "Samburu East",
     "ward": "RMbgDUBLgFM"
   },
   {
     "uid": "HOvK1bxRsNF",
     "name": "Catholic Hospital Wamba",
     "county": "ldZ10N9unC9",
-    "subCounty": "WieLheAfLdw",
+    "subCounty": "Samburu East",
     "ward": "HOvK1bxRsNF"
   },
   {
     "uid": "GWVN2FkSrlB",
     "name": "Lodungokwe Health Centre",
     "county": "ldZ10N9unC9",
-    "subCounty": "KnKoadZgQjY",
+    "subCounty": "Samburu East",
     "ward": "GWVN2FkSrlB"
   },
   {
     "uid": "MunV7umpzIH",
     "name": "Ngilai Health Centre",
     "county": "ldZ10N9unC9",
-    "subCounty": "p2OJcxIoP6e",
+    "subCounty": "Samburu East",
     "ward": "MunV7umpzIH"
   },
   {
     "uid": "eDXfcHuxGxb",
     "name": "Sereolipi Health Centre",
     "county": "ldZ10N9unC9",
-    "subCounty": "l2uOoW4cwIa",
+    "subCounty": "Samburu East",
     "ward": "eDXfcHuxGxb"
   },
   {
     "uid": "qC7HoduXy9L",
     "name": "Swari Model Health Centre",
     "county": "ldZ10N9unC9",
-    "subCounty": "p2OJcxIoP6e",
+    "subCounty": "Samburu East",
     "ward": "qC7HoduXy9L"
   },
   {
     "uid": "mz7QyEwYs6W",
     "name": "Wamba Sub County Hospital",
     "county": "ldZ10N9unC9",
-    "subCounty": "WieLheAfLdw",
+    "subCounty": "Samburu East",
     "ward": "mz7QyEwYs6W"
   },
   {
     "uid": "gFZWGPYDPW5",
     "name": "Baragoi Sub County Hospital",
     "county": "E2DGjZRlwbY",
-    "subCounty": "x8gYdLEuy5Y",
+    "subCounty": "Samburu North",
     "ward": "gFZWGPYDPW5"
   },
   {
     "uid": "nO53AbCWvrS",
     "name": "Barsaloi Health Centre",
     "county": "EmQRGVtvWy3",
-    "subCounty": "O57e90leR9M",
+    "subCounty": "Samburu Central",
     "ward": "nO53AbCWvrS"
   },
   {
     "uid": "AkUsg6s89rA",
     "name": "Latakweny Health Centre",
     "county": "E2DGjZRlwbY",
-    "subCounty": "w6u8SoSKkmn",
+    "subCounty": "Samburu North",
     "ward": "AkUsg6s89rA"
   },
   {
     "uid": "MDoP17LtqAC",
     "name": "Lesirikan Health Centre",
     "county": "E2DGjZRlwbY",
-    "subCounty": "w6u8SoSKkmn",
+    "subCounty": "Samburu North",
     "ward": "MDoP17LtqAC"
   },
   {
     "uid": "Bo7f1Y4HRqL",
     "name": "Marti Health Centre",
     "county": "E2DGjZRlwbY",
-    "subCounty": "hV1NZb8gSOe",
+    "subCounty": "Samburu North",
     "ward": "Bo7f1Y4HRqL"
   },
   {
     "uid": "vY8MIki2v3v",
     "name": "South Horr Health Centre",
     "county": "E2DGjZRlwbY",
-    "subCounty": "UpMVKpuABHz",
+    "subCounty": "Samburu North",
     "ward": "vY8MIki2v3v"
   }
 ]

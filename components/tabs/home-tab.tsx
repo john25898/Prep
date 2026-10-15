@@ -39,11 +39,19 @@ import { useHeiOutcomes } from "@/lib/use-hei-outcomes";
 import { aggregateVtpEntries } from "@/lib/vtp-entry";
 import { aggregateHeiOutcomes } from "@/lib/hei-outcome";
 import { AIAssistant, type ChartInsight } from "@/components/ai-assistant";
-import { PARTNERS, getPartner, type Partner } from "@/lib/geo";
+import { ChartActions } from "@/components/chart-actions";
+import {
+  PARTNERS,
+  applyGeoFilter,
+  getPartner,
+  type GeoFilter,
+  type Partner,
+} from "@/lib/geo";
 import {
   PARTNER_COUNTIES,
   PARTNER_FACILITIES,
   hasFacilityRoster,
+  partnerFacilities,
 } from "@/lib/partners";
 import {
   ViewDataButton,
@@ -51,7 +59,7 @@ import {
   type ViewDetail,
   type ViewInput,
 } from "@/components/view-data";
-import { assessmentScore } from "@/lib/assessment";
+import { assessmentScore, itemScore } from "@/lib/assessment";
 import {
   BAR_SERIES,
   CADENCE,
@@ -66,7 +74,6 @@ import {
   VTP_QOC,
   readinessForCounties,
   scoreTone,
-  seededJitter,
   targetTone,
 } from "./home/shared";
 import { PartnerIndicatorChart } from "./home/indicator-chart";
@@ -97,8 +104,10 @@ export function HomeTab({
   // (roster=1) — partner-only. The dropout indicator is a DHIS2 % that
   // would be summed per facility → garbage, so it is nulled at roster
   // scopes; ANC uses the count-based anc4/anc1 ratio, SBA uses MOH 711
-  // skilled-delivery counts ÷ ANC1 attendance, PNC uses MOH 711 PNC ≤48h
-  // counts ÷ deliveries / live births, and MMR/NMR/SBR use raw counts.
+  // skilled-delivery counts ÷ Estimated Deliveries (the denominator KHIS's
+  // own SBA % indicator uses — but ANNUAL, so converted to a monthly
+  // equivalent first), PNC uses MOH 711 PNC ≤48h counts ÷ deliveries
+  // / live births, and MMR/NMR/SBR use raw counts.
   // -----------------------------------------------------------------------
   const pillarScopes = useMemo(() => {
     if (filter.facility) {
@@ -170,6 +179,8 @@ export function HomeTab({
       nd?: number;
       sb?: number;
       md?: number;
+      sk?: number;
+      ed?: number;
     }
   > | null>(null);
 
@@ -189,7 +200,7 @@ export function HomeTab({
                 )}&partner=${encodeURIComponent(filter.partner)}`
               : `facility=${s.uid}`;
         return fetch(
-          `/api/khis?${q}&pe=${pe}&indicators=pmtct_anc1_visits,anc4_visits,anc1_4_dropout,deliv_normal,deliv_assisted_vaginal,deliv_breach,deliv_caesarian,pnc_48h_mother_care,pnc_48h_infant_care,mmr,maternal_deaths_reported,moh711_live_births,neonatal_deaths,stillbirths`,
+          `/api/khis?${q}&pe=${pe}&indicators=pmtct_anc1_visits,anc4_visits,anc1_4_dropout,deliv_normal,deliv_assisted_vaginal,deliv_breach,deliv_caesarian,estimated_deliveries,pnc_48h_mother_care,pnc_48h_infant_care,mmr,maternal_deaths_reported,moh711_live_births,neonatal_deaths,stillbirths`,
         )
           .then((r) => (r.ok ? r.json() : null))
           .catch(() => null);
@@ -210,6 +221,8 @@ export function HomeTab({
           nd?: number;
           sb?: number;
           md?: number;
+          sk?: number;
+          ed?: number;
         }
       > = {};
       results.forEach((res, i) => {
@@ -276,19 +289,36 @@ export function HomeTab({
             : undefined
           : r1(ind("mmr"));
         // SBA % — computed locally: skilled deliveries (sum of the MOH 711
-        // delivery modes) ÷ ANC1 attendance (the expected-pregnancies proxy
-        // chosen over KHIS's Estimated Deliveries, which many facilities
-        // don't report). A count/count ratio, so it sums correctly at every
-        // scope and no longer needs nulling at multi-OU scopes.
+        // delivery modes — the exact numerator of KHIS's own SBA % indicator)
+        // ÷ Estimated Deliveries (the exact denominator of KHIS's own SBA %
+        // indicator, verified from /indicators/sAWX6GB722p.json). This is the
+        // only populated "deliveries" element on KHIS. Count/count, so it
+        // sums correctly at every scope and never needs nulling at multi-OU
+        // scopes (and can no longer exceed 100% from a wrong denominator).
         const sbaCount = [
           "deliv_normal",
           "deliv_assisted_vaginal",
           "deliv_breach",
           "deliv_caesarian",
         ].reduce((acc, k) => acc + (ind(k) ?? 0), 0);
+        // KHIS stores "Estimated Deliveries" (tmlMpIqHimf) as an ANNUAL
+        // catchment figure even when pe is a single month — verified against
+        // KHIS's own SBA % indicator (sAWX6GB722p), May 2025:
+        //   Kakamega County General Hospital 67 ÷ (1,779 ÷ 12) = 45.2%
+        //     vs KHIS 44.34%
+        //   AP Line Dispensary                1 ÷ (1,116 ÷ 12) =  1.1%
+        //     vs KHIS 1.06%
+        // Using the raw annual figure makes the denominator ~12x too large
+        // and collapses SBA (Nuru Ya Mtoto 4.9%, AP Line 0.1%). ÷12 always
+        // holds: a multi-month pe SUMs the annual value once per month, and
+        // the numerator grows the same way. The MOH 711 count elements are
+        // genuine monthly counts and are NOT rescaled.
+        const expectedRaw = ind("estimated_deliveries");
+        const expected =
+          expectedRaw != null && expectedRaw > 0 ? expectedRaw / 12 : null;
         const sba =
-          anc1 != null && anc1 > 0 && sbaCount > 0
-            ? Math.round((sbaCount / anc1) * 1000) / 10
+          expected != null && expected > 0 && sbaCount > 0
+            ? Math.round((sbaCount / expected) * 1000) / 10
             : undefined;
         // PNC % — computed locally from MOH 711 counts (count/count, so it
         // sums correctly at every scope): Early PNC = mothers with PNC ≤48h
@@ -317,6 +347,8 @@ export function HomeTab({
           nd: nd ?? undefined,
           sb: sb ?? undefined,
           md: md ?? undefined,
+          sk: sbaCount > 0 ? sbaCount : undefined,
+          ed: expected != null && expected > 0 ? expected : undefined,
         };
       });
       if (!cancelled) setPillarByCounty(map);
@@ -383,9 +415,22 @@ export function HomeTab({
       rows.length > 1 && lbMd > 0 && md > 0
         ? Math.round((md / lbMd) * 100000 * 10) / 10
         : avg("mmr");
+    // SBA % at multi-county scope: pooled as Σskilled ÷ ΣEstimated Deliveries
+    // (already ÷12 to a monthly equivalent at fetch time) across the counties
+    // that actually reported the denominator — averaging per-county ratios
+    // would let a small county with a huge ratio dominate.
+    // Single-county / sub-county / facility scope is already one catchment,
+    // so its own ratio is used as-is.
+    const edRows = rows.filter((r) => r.ed != null && r.ed > 0);
+    const sk = edRows.reduce((a, r) => a + (r.sk ?? 0), 0);
+    const ed = edRows.reduce((a, r) => a + (r.ed as number), 0);
+    const sba =
+      rows.length > 1 && ed > 0 && sk > 0
+        ? Math.round((sk / ed) * 1000) / 10
+        : avg("sba");
     const res = {
       anc: avg("anc"),
-      sba: avg("sba"),
+      sba,
       pncM: avg("pncM"),
       pncI: avg("pncI"),
       mmr,
@@ -404,14 +449,23 @@ export function HomeTab({
   // domains with no KHIS value this period show blank (no baseline constants).
   // Domain 3 (Readiness) is always computed from entered assessments.
   // -----------------------------------------------------------------------
+  // Raw-count elements only. Every domain ratio here is count ÷ count so the
+  // server-side SUM across the partner's whole roster is arithmetically
+  // correct — summing a KHIS % indicator across facilities is meaningless.
+  //   d1  tested ÷ 1st ANC visits · ART ÷ need
+  //   d2  mothers PNC ≤48h ÷ total deliveries (4 MOH 711 delivery modes)
+  //   d4  (maternal + neonatal audited) ÷ (maternal + neonatal reported)
+  //   d5  facilities reporting ÷ roster size
   const KHIS_DOMAIN_DX =
-    "pmtct_anc1_visits,pmtct_initial_test,pmtct_anc1_known_pos,pmtct_new_positive,pmtct_anc1_on_haart,pmtct_start_haart_anc,pnc_48h_coverage,maternal_deaths_reported,maternal_deaths_audited,neonatal_deaths,neonatal_deaths_audited";
+    "pmtct_anc1_visits,pmtct_initial_test,pmtct_anc1_known_pos,pmtct_new_positive,pmtct_anc1_on_haart,pmtct_start_haart_anc,pnc_48h_mother_care,deliv_normal,deliv_assisted_vaginal,deliv_breach,deliv_caesarian,maternal_deaths_reported,maternal_deaths_audited,neonatal_deaths,neonatal_deaths_audited";
 
   interface LiveDomainScores {
     d1?: number; // PMTCT/VTP QoC — blend of testing coverage & ART initiation
-    d2?: number; // Coverage — PNC within 48h (KHIS %)
-    d4?: number; // MPDSR — % of reported deaths audited
+    d2?: number; // Coverage — early PNC (mothers ≤48h ÷ deliveries)
+    d4?: number; // MPDSR — audited ÷ reported deaths (pooled counts)
     d5?: number; // Data systems — % of scoped facilities reporting
+    d2Raw?: { mothers: number; deliveries: number }; // raw d2 ingredients
+    d4Raw?: { reported: number; audited: number }; // raw d4 ingredients
     d5Raw?: { reporting: number; ouCount: number }; // raw d5 ingredients
     testedPct?: number; // HIV testing coverage for PBFW
     artPct?: number; // ART initiation for HIV+ PBFW
@@ -462,7 +516,15 @@ export function HomeTab({
           onHaart != null || startHaart != null
             ? (onHaart ?? 0) + (startHaart ?? 0)
             : null;
-        const pnc = ind("pnc_48h_coverage");
+        const pncMothers = ind("pnc_48h_mother_care");
+        // Total deliveries = the four MOH 711 delivery modes (same proxy the
+        // pillar cards use for SBA/early-PNC).
+        const deliveries = [
+          "deliv_normal",
+          "deliv_assisted_vaginal",
+          "deliv_breach",
+          "deliv_caesarian",
+        ].reduce((acc, k) => acc + (ind(k) ?? 0), 0);
         const matRep = ind("maternal_deaths_reported");
         const matAud = ind("maternal_deaths_audited");
         const neoRep = ind("neonatal_deaths");
@@ -488,19 +550,27 @@ export function HomeTab({
             d1Parts.reduce((a, b) => a + b, 0) / d1Parts.length,
           );
         }
-        // pnc_48h_coverage is a % per facility; summed across a roster it
-        // exceeds 100 and is meaningless — only trust it as a live score when
-        // the scoped rollup is a genuine 0–100 value (county-level scope).
-        if (pnc != null && pnc >= 0 && pnc <= 100) s.d2 = Math.round(pnc);
-        const audited: number[] = [];
-        if (matRep != null && matRep > 0 && matAud != null)
-          audited.push(clampPct((matAud / matRep) * 100));
-        if (neoRep != null && neoRep > 0 && neoAud != null)
-          audited.push(clampPct((neoAud / neoRep) * 100));
-        if (audited.length > 0) {
-          s.d4 = Math.round(
-            audited.reduce((a, b) => a + b, 0) / audited.length,
-          );
+        // d2 — early PNC from RAW counts: mothers with PNC ≤48h ÷ total
+        // deliveries, summed over the whole scoped roster. (The KHIS
+        // pnc_48h_coverage % indicator is per-facility, so summing it across
+        // a roster exceeded 100 and used to blank the entire column.)
+        if (pncMothers != null && deliveries > 0) {
+          s.d2 = Math.round(clampPct((pncMothers / deliveries) * 100));
+          s.d2Raw = { mothers: pncMothers, deliveries };
+        }
+        // d4 — audited ÷ reported, pooling the RAW counts of every scoped
+        // facility (maternal + neonatal together). Averaging per-facility
+        // audit ratios would let a single 1/1 case distort the partner score
+        // (e.g. one audited death masking nine unaudited ones).
+        const deathsReported = (matRep ?? 0) + (neoRep ?? 0);
+        const deathsAudited = (matAud ?? 0) + (neoAud ?? 0);
+        if (
+          (matRep != null || neoRep != null) &&
+          deathsReported > 0 &&
+          (matAud != null || neoAud != null)
+        ) {
+          s.d4 = Math.round(clampPct((deathsAudited / deathsReported) * 100));
+          s.d4Raw = { reported: deathsReported, audited: deathsAudited };
         }
         const reportingRow = res.reporting?.find(
           (x: { id: string; facilities: number }) =>
@@ -560,8 +630,13 @@ export function HomeTab({
       partners.map((p) => {
         const l = liveByPartner[p.id] ?? {};
         const d3 = readinessByPartner[p.id];
-        // Per-county KHIS averages (same per-county VTP fetch) are preferred;
-        // the roster-scope live value is the fallback. No baseline constants.
+        // D1/D2/D4 are POOLED ratios: sum the raw counts over every facility
+        // the partner supports, then divide once. The partner-scope KHIS fetch
+        // (liveByPartner) rolls the whole roster up server-side, so it is the
+        // primary source. Averaging the per-county scores is only a fallback
+        // when that call returned nothing — and it is methodologically
+        // different (mean of ratios, not ratio of sums), which is why it is
+        // no longer the default. No baseline constants anywhere.
         const countyAvg = (key: "d1" | "d2" | "d4"): number | null => {
           const vals = p.counties
             .map((c) => countyDomains?.[c]?.[key])
@@ -570,23 +645,18 @@ export function HomeTab({
             ? vals.reduce((a, b) => a + b, 0) / vals.length
             : null;
         };
-        // Nuru Ya Mtoto has no facility roster yet — a KHIS county-level scope
-        // would overstate support because they do not serve every facility in
-        // the county. Mark the row PENDING and default all domains to 0 until
-        // the facility list is loaded.
-        const pending = p.id === "nuru-ya-mtoto";
-        const d1 = countyAvg("d1");
-        const d2 = countyAvg("d2");
-        const d4 = countyAvg("d4");
+        // A partner is "pending" only while it has NO facility roster at all —
+        // a KHIS county-level scope would overstate support because a partner
+        // does not serve every facility in the county. Every supported partner
+        // now HAS a roster (Nuru Ya Mtoto's 319 supported sites included), so
+        // this is a guard for a future roster-less partner, not a hardcoded id.
+        const pending = !hasFacilityRoster(p.id);
+        const d1 = l.d1 ?? countyAvg("d1");
+        const d2 = l.d2 ?? countyAvg("d2");
+        const d4 = l.d4 ?? countyAvg("d4");
         const domains: (number | null)[] = pending
           ? [0, 0, 0, 0, 0]
-          : [
-              d1 ?? l.d1 ?? null,
-              d2 ?? l.d2 ?? null,
-              d3.avg,
-              d4 ?? l.d4 ?? null,
-              l.d5 ?? null,
-            ];
+          : [d1, d2, d3.avg, d4, l.d5 ?? null];
         const live: boolean[] = pending
           ? [false, false, false, false, false]
           : [d1 != null, d2 != null, false, d4 != null, l.d5 != null];
@@ -652,7 +722,7 @@ export function HomeTab({
   const countyRows = useMemo(
     () =>
       scorePartners.map((p) => {
-        const pending = p.id === "nuru-ya-mtoto";
+        const pending = !hasFacilityRoster(p.id);
         const scopeCounties = filter.county ? [filter.county] : p.counties;
         return {
           partner: p,
@@ -695,9 +765,16 @@ export function HomeTab({
       scorePartners.map((p) => {
         if (filter.facility) return { partner: p, units: [filter.facility] };
         if (filter.subCounty) {
-          const facs = (PARTNER_FACILITIES[p.id] ?? [])
-            .filter((f) => f.subCounty === filter.subCounty)
-            .slice(0, 12);
+          // partnerFacilities() resolves the roster's sub-county value to the
+          // SAME normalised name the filter bar emits (it strips the trailing
+          // "Sub County"/"Subcounty" suffix), so a raw string compare against
+          // the roster column silently matches nothing and the scoreboard
+          // would draw zero bars. Draw the first 12 to keep the chart legible.
+          const facs = partnerFacilities(
+            p.id,
+            filter.county || undefined,
+            filter.subCounty,
+          ).slice(0, 12);
           return { partner: p, units: facs.map((f) => f.name) };
         }
         if (filter.county) return { partner: p, units: [filter.county] };
@@ -706,12 +783,31 @@ export function HomeTab({
     [scorePartners, filter.county, filter.subCounty, filter.facility],
   );
 
-  // Which county a scoreboard unit belongs to (for scaling the baseline).
+  // Total roster facilities inside the selected sub-county (the scoreboards
+  // draw only the first 12) so the subtitle reports the real scope size.
+  const subCountyFacilityCount = useMemo(
+    () =>
+      filter.subCounty
+        ? partnerFacilities(
+            filter.partner,
+            filter.county || undefined,
+            filter.subCounty,
+          ).length
+        : 0,
+    [filter.partner, filter.county, filter.subCounty],
+  );
+
+  // Which county a scoreboard unit belongs to. The roster's raw `county`
+  // column holds a KHIS UID for some partners (e.g. ampath-uzima stores
+  // sub-county UIDs), so resolve through `partnerFacilities()` — otherwise
+  // every score lookup misses and the form data is silently ignored.
   const vtpUnitCounty = (p: Partner, unit: string): string => {
     if (filter.county) return filter.county;
     if (filter.subCounty || filter.facility) {
-      const fac = (PARTNER_FACILITIES[p.id] ?? []).find((f) => f.name === unit);
-      return fac?.county ?? p.counties[0] ?? "Embu";
+      const fac = partnerFacilities(p.id).find((f) => f.name === unit);
+      // No county name resolved → "" so callers render blank, never a
+      // hardcoded stand-in county.
+      return fac?.county ?? "";
     }
     return unit;
   };
@@ -744,8 +840,8 @@ export function HomeTab({
         if (num == null || den == null || den <= 0) return null;
         return Math.round((num / den) * 1000) / 10;
       };
-      const activePartners = scopePartners.filter(
-        (p) => p.id !== "nuru-ya-mtoto",
+      const activePartners = scopePartners.filter((p) =>
+        hasFacilityRoster(p.id),
       );
       const lv = (id: string) => liveByPartner[id] ?? {};
       const inScope = (county: string) => scopeCounties.has(county);
@@ -789,43 +885,68 @@ export function HomeTab({
         const out: ViewInput[] = [];
         if (l.testedPct != null)
           out.push({
-            label: `${p.name} — testing coverage (tested ÷ 1st ANC)`,
+            label: `${p.name} — testing coverage (Σ tested ÷ Σ 1st ANC)`,
             value: `${l.testedPct}%`,
             source: "live",
           });
         if (l.artPct != null)
           out.push({
-            label: `${p.name} — ART initiation (ART ÷ need)`,
+            label: `${p.name} — ART initiation (Σ ART ÷ Σ need)`,
             value: `${l.artPct}%`,
             source: "live",
           });
         if (l.d1 != null)
           out.push({
-            label: `${p.name} — d1 score (average of the two)`,
+            label: `${p.name} — d1 score (mean of the two pooled ratios)`,
             value: `${l.d1.toFixed(1)}%`,
             source: "live",
           });
         return out;
       });
 
-      // d2 — Coverage: per-facility PNC within 48h (mother %).
+      // d2 — Coverage: early PNC from raw MOH 711 counts, per facility.
       const d2Rows: DataRow[] = Object.keys(domainFacilitiesByCounty)
         .filter(inScope)
         .sort((a, b) => a.localeCompare(b))
         .flatMap((county) =>
-          facsOf(county).map((f) => ({
-            County: county,
-            Facility: f.name,
-            "PNC within 48h — mother %": f.values["pnc_48h_mother"] ?? null,
-          })),
-        )
-        .filter((r) => r["PNC within 48h — mother %"] != null);
+          facsOf(county)
+            .map((f) => ({
+              name: f.name,
+              mothers: f.values["pnc_48h_mother_care"],
+              deliveries: [
+                "deliv_normal",
+                "deliv_assisted_vaginal",
+                "deliv_breach",
+                "deliv_caesarian",
+              ].reduce((acc, k) => acc + (f.values[k] ?? 0), 0),
+            }))
+            .filter((r) => r.mothers != null || r.deliveries > 0)
+            .map((r) => ({
+              County: county,
+              Facility: r.name,
+              "Mothers with PNC ≤48h": r.mothers ?? null,
+              Deliveries: r.deliveries,
+              "Early PNC %": pct(r.mothers ?? null, r.deliveries),
+            })),
+        );
       const d2Inputs: ViewInput[] = activePartners.flatMap((p) => {
         const l = lv(p.id);
         const out: ViewInput[] = [];
+        if (l.d2Raw) {
+          out.push({
+            label: `${p.name} — mothers with PNC ≤48h (Σ across roster)`,
+            value: String(l.d2Raw.mothers),
+            source: "live",
+          });
+          out.push({
+            label: `${p.name} — total deliveries (Σ across roster)`,
+            value: String(l.d2Raw.deliveries),
+            source: "live",
+          });
+        }
         if (l.d2 != null)
           out.push({
-            label: `${p.name} — d2 score (PNC 48h %)`,
+            label: `${p.name} — d2 score (Σ mothers ÷ Σ deliveries)`,
             value: `${l.d2.toFixed(1)}%`,
             source: "live",
           });
@@ -900,9 +1021,21 @@ export function HomeTab({
       const d4Inputs: ViewInput[] = activePartners.flatMap((p) => {
         const l = lv(p.id);
         const out: ViewInput[] = [];
+        if (l.d4Raw) {
+          out.push({
+            label: `${p.name} — deaths reported (maternal + neonatal, Σ)`,
+            value: String(l.d4Raw.reported),
+            source: "live",
+          });
+          out.push({
+            label: `${p.name} — deaths audited (maternal + neonatal, Σ)`,
+            value: String(l.d4Raw.audited),
+            source: "live",
+          });
+        }
         if (l.d4 != null)
           out.push({
-            label: `${p.name} — d4 score (avg audit %)`,
+            label: `${p.name} — d4 score (Σ audited ÷ Σ reported)`,
             value: `${l.d4.toFixed(1)}%`,
             source: "live",
           });
@@ -941,7 +1074,7 @@ export function HomeTab({
           data: d1Rows,
           detail: {
             formula:
-              "Tested % = pmtct_initial_test ÷ pmtct_anc1_visits × 100; ART % = (on HAART at 1st ANC + started HAART at ANC) ÷ (KP at 1st ANC + newly HIV+ at ANC) × 100; d1 = average of both (each clamped 0–100). Testing/ART elements are MOH 731-2 EMTCT Rev 2023 (HV02-02, HV02-10, HV02-14, HV02-15).",
+              "Tested % = Σ pmtct_initial_test ÷ Σ pmtct_anc1_visits × 100; ART % = Σ(on HAART at 1st ANC + started HAART at ANC) ÷ Σ(KP at 1st ANC + newly HIV+ at ANC) × 100; d1 = average of both (each clamped 0–100). Both ratios pool RAW COUNTS across every scoped facility. Testing/ART elements are MOH 731-2 EMTCT Rev 2023 (HV02-02, HV02-10, HV02-14, HV02-15).",
             inputs: d1Inputs,
             notes: [
               "Facility rows come from the per-county KHIS fetch (byFacilityDetail) — no extra requests.",
@@ -951,15 +1084,15 @@ export function HomeTab({
         },
         {
           title: `${titlePrefix}Coverage 90:90:80:80 (d2) — tallied data`,
-          note: "per facility — PNC within 48h (mother %)",
+          note: "per facility — mothers with PNC ≤48h & deliveries",
           data: d2Rows,
           detail: {
             formula:
-              "d2 = PNC within 48h coverage (KHIS %) — trusted only when the scoped rollup is a genuine 0–100 value",
+              "d2 = Σ mothers with PNC ≤48h ÷ Σ total deliveries × 100, summed over every facility in scope. Deliveries = normal + assisted vaginal + breach + caesarian (MOH 711). Count ÷ count, so the partner total is the true pooled early-PNC coverage.",
             inputs: d2Inputs,
             notes: [
-              "Only facilities reporting a PNC-within-48h value are listed.",
-              "Roster-scope sums of per-facility % are meaningless — the score uses county-level values.",
+              "Raw counts only — the KHIS pnc_48h_coverage % indicator is per facility and cannot be summed across a roster.",
+              "Blank means nothing was reported for this scope in the selected period.",
             ],
           },
         },
@@ -979,15 +1112,15 @@ export function HomeTab({
         },
         {
           title: `${titlePrefix}MPDSR & Accountability (d4) — tallied data`,
-          note: "per facility — deaths reported & audited",
+          note: "per facility — deaths reported & audited (raw counts)",
           data: d4Rows,
           detail: {
             formula:
-              "Audit % = (maternal audited + neonatal audited) ÷ (reported + reported) × 100; d4 = average of maternal & neonatal audit %",
+              "d4 = (Σ maternal audited + Σ neonatal audited) ÷ (Σ maternal reported + Σ neonatal reported) × 100 — ONE pooled ratio over every scoped facility's raw counts, not the mean of the maternal and neonatal ratios.",
             inputs: d4Inputs,
             notes: [
+              "Pooling the counts stops a single audited death (e.g. 1/1) from masking an unaudited backlog elsewhere in the partner's facilities.",
               "Only facilities reporting any death this period are listed.",
-              "d4 uses county-level values when available; the partner roster value is the fallback.",
             ],
           },
         },
@@ -1066,10 +1199,10 @@ export function HomeTab({
       data,
       detail: {
         formula:
-          "d1 = avg(testing %, ART %) · d2 = PNC 48h · d3 = readiness mean · d4 = avg audit % · d5 = reporting %. Overall = mean of available domains.",
+          "d1 = mean(Σ tested ÷ Σ 1st ANC visits, Σ on-ART ÷ Σ need) · d2 = Σ mothers PNC ≤48h ÷ Σ deliveries · d3 = readiness mean · d4 = Σ audited ÷ Σ reported deaths · d5 = facilities reporting ÷ roster size. Every KHIS ratio pools RAW COUNTS across all the partner's facilities (never an average of facility percentages). Overall = mean of available domains.",
         inputs: allViews.flatMap((d) => d.detail.inputs ?? []),
         notes: [
-          "Nuru Ya Mtoto shows 0.0% — no facility list loaded yet (pending).",
+          "A partner shows 0.0% only while it has no facility roster loaded (pending); every supported partner now has one.",
           "Domains with no KHIS value this period show blank (—); no baseline constants are displayed.",
         ],
       },
@@ -1103,7 +1236,11 @@ export function HomeTab({
     "maternal_deaths_audited", // Safe bar 5 — MPDSR audits
     "neonatal_deaths", // Safe bar 5 — MPDSR audits
     "neonatal_deaths_audited", // Safe bar 5 — MPDSR audits
-    "pnc_48h_mother", // domain d2 — PNC within 48h (county %)
+    "pnc_48h_mother_care", // domain d2 num — mothers with PNC ≤48h (raw count)
+    "deliv_normal", // domain d2 den — deliveries (4 MOH 711 modes)
+    "deliv_assisted_vaginal", // domain d2 den
+    "deliv_breach", // domain d2 den
+    "deliv_caesarian", // domain d2 den
     "pmtct_anc1_tested", // ANC chart — 1st ANC tested (KHIS fallback)
     "anc8_visits", // ANC chart — 8th ANC attended (KHIS fallback)
   ].join(",");
@@ -1240,36 +1377,47 @@ export function HomeTab({
         const matAud = ind("maternal_deaths_audited");
         const neoRep = ind("neonatal_deaths");
         const neoAud = ind("neonatal_deaths_audited");
-        // MPDSR audit coverage — audited deaths ÷ reported deaths, where both
-        // maternal and neonatal figures are reported.
+        // MPDSR audit coverage — audited deaths ÷ reported deaths, pooling the
+        // raw maternal + neonatal counts reported by the county's roster.
+        const deathsReported = (matRep ?? 0) + (neoRep ?? 0);
+        const deathsAudited = (matAud ?? 0) + (neoAud ?? 0);
         const audited =
-          (matRep != null && matRep > 0 && matAud != null) ||
-          (neoRep != null && neoRep > 0 && neoAud != null)
-            ? pct((matAud ?? 0) + (neoAud ?? 0), (matRep ?? 0) + (neoRep ?? 0))
+          (matRep != null || neoRep != null) &&
+          deathsReported > 0 &&
+          (matAud != null || neoAud != null)
+            ? pct(deathsAudited, deathsReported)
             : null;
         // County-level domain scores (d1/d2/d4) derived from this same fetch —
         // feeds the domain matrix + county comparison with real KHIS only.
+        // Every ratio is count ÷ count so it stays correct after the SUM over
+        // the county's facilities.
         const testedPct = pct(tested, anc1);
         const artPct = pct(art, need);
-        const matA =
-          matRep != null && matRep > 0 && matAud != null
-            ? pct(matAud, matRep)
-            : null;
-        const neoA =
-          neoRep != null && neoRep > 0 && neoAud != null
-            ? pct(neoAud, neoRep)
-            : null;
         const d1Parts = [testedPct, artPct].filter(
           (v): v is number => v != null,
         );
-        const d4Parts = [matA, neoA].filter((v): v is number => v != null);
-        const pncM = ind("pnc_48h_mother");
+        const pncMothers = ind("pnc_48h_mother_care");
+        const deliveries = [
+          "deliv_normal",
+          "deliv_assisted_vaginal",
+          "deliv_breach",
+          "deliv_caesarian",
+        ].reduce((acc, k) => acc + (ind(k) ?? 0), 0);
         const dm: LiveDomainScores = {};
         if (d1Parts.length > 0)
           dm.d1 = d1Parts.reduce((a, b) => a + b, 0) / d1Parts.length;
-        if (!roster && pncM != null && pncM >= 0) dm.d2 = Math.min(100, pncM); // KHIS >100% → clamp (double-counted)
-        if (d4Parts.length > 0)
-          dm.d4 = d4Parts.reduce((a, b) => a + b, 0) / d4Parts.length;
+        // d2 — early PNC from raw counts (mothers ≤48h ÷ deliveries).
+        if (pncMothers != null && deliveries > 0) {
+          dm.d2 = pct(pncMothers, deliveries) ?? undefined;
+          dm.d2Raw = { mothers: pncMothers, deliveries };
+        }
+        // d4 — ONE pooled ratio (maternal + neonatal audited ÷ reported), not
+        // the mean of the two separate ratios: a lone audited 1/1 maternal
+        // death must not outweigh a county's neonatal audit gap.
+        if (audited != null) {
+          dm.d4 = audited;
+          dm.d4Raw = { reported: deathsReported, audited: deathsAudited };
+        }
         domMap[county] = dm;
         map[county] = [
           // bar 1 ATT% — 4th ANC attended ÷ 1st ANC attended (count-based,
@@ -1340,7 +1488,11 @@ export function HomeTab({
           "gmaBILMqfJ8", // pmtct_new_positive (need comp, HV02-10)
           "O9Wyf1FMHcM", // pmtct_anc1_on_haart (ART comp, HV02-14)
           "diGK4TSNrR5", // pmtct_start_haart_anc (ART comp, HV02-15)
-          "KXOpQO6bxoU", // pnc_48h_mother
+          "qahRo2120r8", // pnc_48h_mother_care — d2 num (mothers ≤48h)
+          "jaPrPmor6WV", // deliv_normal — d2 den (deliveries)
+          "Kx64gGqaFVq", // deliv_assisted_vaginal — d2 den
+          "sMqM8DwiAaj", // deliv_breach — d2 den
+          "rAZBTMa7Jy3", // deliv_caesarian — d2 den
           "RIvynmrUFRZ", // maternal_deaths_reported
           "sEmbbCR882p", // maternal_deaths_audited
           "GAr6xu6f1n7", // neonatal_deaths
@@ -1387,7 +1539,11 @@ export function HomeTab({
           "uM0kppDX04I", // hei_negative_18m — bar 7 num
           "xHufJhG2OJx", // hei_cohort_24m — bar 7 den
           "lcNiLGUuIHs", // retention_rate — bar 8
-          "KXOpQO6bxoU", // pnc_48h_mother — d2 county %
+          "qahRo2120r8", // pnc_48h_mother_care — d2 num (mothers ≤48h)
+          "jaPrPmor6WV", // deliv_normal — d2 den
+          "Kx64gGqaFVq", // deliv_assisted_vaginal — d2 den
+          "sMqM8DwiAaj", // deliv_breach — d2 den
+          "rAZBTMa7Jy3", // deliv_caesarian — d2 den
           "cKr5133RFuN", // anc8_visits — ANC chart 8th ANC
         ]);
         vtpFacilityMap[county] = (res.facilityDetail ?? [])
@@ -1465,7 +1621,7 @@ export function HomeTab({
   const vtpByPartner = useMemo(
     () =>
       scoreScope.map(({ partner: p, units }) => {
-        const pending = p.id === "nuru-ya-mtoto";
+        const pending = !hasFacilityRoster(p.id);
         return {
           partner: p,
           pending,
@@ -1514,32 +1670,15 @@ export function HomeTab({
               if (real == null) {
                 return { county: unit, value: 0, notReported: true };
               }
-              // Real KHIS value — jittered per facility at sub-county scope
-              // so each facility bar differs while staying in range.
-              return {
-                county: unit,
-                value: filter.subCounty
-                  ? Math.max(
-                      0,
-                      Math.min(
-                        100,
-                        Math.round(real + seededJitter(`${unit}:v${idx}`, 5)),
-                      ),
-                    )
-                  : real,
-                live: true,
-              };
+              // Real KHIS value for this county + indicator + period — shown
+              // exactly as KHIS reports it (no jitter, no rounding tricks) so
+              // facility bars always reconcile back to KHIS.
+              return { county: unit, value: real, live: true };
             }),
           })),
         };
       }),
-    [
-      scoreScope,
-      filter.subCounty,
-      vtpLiveByCounty,
-      vtpEntryAggByCounty,
-      heiOutcomeByCounty,
-    ],
+    [scoreScope, vtpLiveByCounty, vtpEntryAggByCounty, heiOutcomeByCounty],
   );
 
   // ANC testing coverage per partner — (Total X ANC tested) ÷ (Total X ANC
@@ -1626,6 +1765,13 @@ export function HomeTab({
               const hivDel = v["hiv_deliveries"] ?? null;
               const neg18 = v["hei_negative_18m"] ?? null;
               const cohort = v["hei_cohort_24m"] ?? null;
+              const pncMothers = v["pnc_48h_mother_care"] ?? null;
+              const deliveries = [
+                "deliv_normal",
+                "deliv_assisted_vaginal",
+                "deliv_breach",
+                "deliv_caesarian",
+              ].reduce((acc, k) => acc + (v[k] ?? 0), 0);
               return {
                 County: county,
                 Facility: f.name,
@@ -1645,7 +1791,9 @@ export function HomeTab({
                 "Cohort 24m": cohort,
                 "Outcome 18–24m %": pct(neg18, cohort),
                 "Retention %": v["retention_rate"] ?? null,
-                "PNC 48h mother %": v["pnc_48h_mother"] ?? null,
+                "Mothers PNC ≤48h": pncMothers,
+                Deliveries: deliveries,
+                "Early PNC %": pct(pncMothers, deliveries),
               };
             }),
         );
@@ -1677,6 +1825,7 @@ export function HomeTab({
             notes: [
               "Only facilities that reported at least one of these elements appear — a facility missing from a column simply didn't report that element this month.",
               "Tested % = tested at 1st ANC ÷ 1st ANC visits · ART % = on ART ÷ PMTCT need · Outcome 18–24m % = HEI AB−18m ÷ cohort 24m.",
+              "Early PNC % = mothers with PNC ≤48h ÷ deliveries (normal + assisted vaginal + breach + caesarian) — the same pooled raw-count ratio behind domain d2, so only counts are ever summed.",
               "Testing & ART elements are MOH 731-2 EMTCT Rev 2023 (HV02-01..15): KP at 1st ANC, ANC initial test, newly HIV+ at ANC, on HAART at 1st ANC, started HAART at ANC.",
               "1st ANC visits now use the MOH 711 'New ANC clients' element; 8th ANC contacts use the MOH 711 Rev 2020 element — both match the facility's ANC register tallies.",
             ],
@@ -1687,79 +1836,64 @@ export function HomeTab({
   );
 
   // §5.4 — Safe systems per partner, each enabler compared across the CURRENT
-  // filter scope. Values scale the baseline by the scope's readiness ratio.
+  // filter scope. Bars 1–4 are the Domain-3 questionnaire items 3.1–3.4 taken
+  // from the Facility Readiness Assessment entry form; bar 5 is live KHIS MPDSR
+  // audit coverage. There is NO baseline fallback and NO synthetic jitter: if
+  // the scope has no assessment (or no KHIS MPDSR report) the bar is blank.
   const safeByPartner = useMemo(
     () =>
       scoreScope.map(({ partner: p, units }) => {
-        const pD3 = readinessByPartner[p.id].avg;
-        const pending = p.id === "nuru-ya-mtoto";
+        const pending = !hasFacilityRoster(p.id);
         return {
           partner: p,
           pending,
           units,
-          rows: SAFE_SYSTEMS.map((ind, idx) => ({
+          rows: SAFE_SYSTEMS.map((ind) => ({
             label: ind.short,
             full: ind.label,
             target: ind.target,
             values: units.map((unit) => {
               const county = vtpUnitCounty(p, unit);
-              const cD3 = readinessForCounties(allAssessments, [county]).avg;
-              // MPDSR audits (idx 4) are live per county from KHIS where the
-              // deaths and audits are reported; the other four enablers have
-              // no monthly KHIS source (LMIS/HFA-QOC/assessments) and keep
-              // the baseline scaled by the readiness ratio.
-              const realAudited = vtpLiveByCounty?.[county]?.[8];
-              let value: number;
-              let live = false;
-              if (pending) {
-                value = 0;
-              } else if (idx === 4 && realAudited != null) {
-                live = true;
-                value = filter.subCounty
-                  ? Math.max(
-                      0,
-                      Math.min(
-                        100,
-                        Math.round(
-                          realAudited + seededJitter(`${unit}:s${idx}`, 5),
-                        ),
-                      ),
-                    )
-                  : realAudited;
-              } else if (pD3 !== null && cD3 !== null && pD3 > 0) {
-                value = Math.max(
-                  0,
-                  Math.min(
-                    100,
-                    Math.round(
-                      ind.current * (cD3 / pD3) +
-                        seededJitter(`${unit}:s${idx}`, 6),
-                    ),
-                  ),
-                );
-              } else {
-                value = Math.max(
-                  0,
-                  Math.min(
-                    100,
-                    Math.round(
-                      ind.current + seededJitter(`${unit}:s${idx}`, 14),
-                    ),
-                  ),
-                );
+              // No roster loaded → nothing to show for this partner.
+              if (pending) return { county: unit, value: 0, notReported: true };
+              // Bar 5 — MPDSR audits, live KHIS only.
+              if (ind.khis) {
+                const real = county
+                  ? (vtpLiveByCounty?.[county]?.[8] ?? null)
+                  : null;
+                if (real == null)
+                  return { county: unit, value: 0, notReported: true };
+                return { county: unit, value: real, live: true };
               }
-              return { county: unit, value, live };
+              // Bars 1–4 — the assessment form item behind this enabler.
+              // Scope the saved assessments with the SAME geo matcher the
+              // filter bar and Assessment tab use. The form records county
+              // and sub-county through dropdowns but facilityName as free
+              // text, so the rollup is county- (or sub-county-) level and no
+              // facility-name matching is attempted.
+              const unitFilter: GeoFilter = {
+                ...filter,
+                county: county || filter.county,
+                subCounty: filter.subCounty,
+                ward: "",
+                facility: "",
+              };
+              const scoped = county
+                ? applyGeoFilter(allAssessments, unitFilter)
+                : [];
+              const avg = itemScore(scoped, ind.itemId ?? "");
+              if (avg == null)
+                return { county: unit, value: 0, notReported: true };
+              return {
+                county: unit,
+                value: Math.round(avg * 10) / 10,
+                entered: true,
+              };
             }),
           })),
         };
       }),
-    [
-      scoreScope,
-      readinessByPartner,
-      allAssessments,
-      vtpLiveByCounty,
-      filter.subCounty,
-    ],
+    [scoreScope, allAssessments, vtpLiveByCounty, filter],
   );
 
   return (
@@ -1832,6 +1966,18 @@ export function HomeTab({
             <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-rose-50 text-rose-700 border border-rose-200">
               Presidential Launch · 28 May 2026
             </span>
+            <ChartActions
+              chart={{
+                id: "home-core-impact",
+                title: "Core Impact Indicators — MMR / NMR / Stillbirth Rate",
+                summary:
+                  "The three mortality outcomes the entire EWENE 2026–2028 framework is designed to move — MMR, NMR and stillbirth rate vs target.",
+                prompt:
+                  "Summarize the mortality signal and flag the main risk.",
+              }}
+              onAskAi={setActiveChart}
+              onSaveToPlayground={addChartToPlayground}
+            />
             <ViewDataButton
               title="Core Impact Indicators — MMR / NMR / Stillbirth Rate"
               data={[
@@ -2017,6 +2163,18 @@ export function HomeTab({
                 ? `Live · KHIS ${peLabel} · ${getPartner(filter.partner)?.shortName ?? filter.partner}${filter.county ? ` · ${filter.county}` : ""}`
                 : "Baseline (national)"}
             </span>
+            <ChartActions
+              chart={{
+                id: "home-pillars",
+                title: "EWENE 90:90:80:80 Pillar Status",
+                summary:
+                  "Four coverage pillars — current reported vs the 2028 target (§5.2).",
+                prompt:
+                  "Which pillar is furthest from target and what should we act on?",
+              }}
+              onAskAi={setActiveChart}
+              onSaveToPlayground={addChartToPlayground}
+            />
             <ViewDataButton
               title="EWENE 90:90:80:80 Pillar Status"
               data={[
@@ -2060,7 +2218,7 @@ export function HomeTab({
               note="live KHIS % per pillar where reported · displayed value clamped at 100"
               detail={{
                 formula:
-                  "ANC coverage = 100 − ANC1→4 dropout rate (or ANC4 ÷ ANC1 × 100 when dropout is unreported) · SBA = MOH 711 skilled deliveries ÷ ANC1 attendance (× 100) · Early PNC = mothers with PNC ≤48h ÷ total deliveries (× 100) · Continuity = infants with PNC ≤48h ÷ live births (× 100)",
+                  "ANC coverage = 100 − ANC1→4 dropout rate (or ANC4 ÷ ANC1 × 100 when dropout is unreported) · SBA = MOH 711 skilled deliveries (normal + assisted vaginal + breech + caesarean) ÷ (Estimated Deliveries ÷ 12) × 100 · Early PNC = mothers with PNC ≤48h ÷ total deliveries (× 100) · Continuity = infants with PNC ≤48h ÷ live births (× 100)",
                 inputs: pillarScopeLabels.flatMap<ViewInput>((c) => {
                   const r = pillarByCounty?.[c];
                   if (!r)
@@ -2099,9 +2257,9 @@ export function HomeTab({
                   ];
                 }),
                 notes: [
-                  "Percentages are averaged across counties — summing facility-level % across a roster would exceed 100 and be meaningless.",
+                  "Percentages are averaged across counties — summing facility-level % across a roster would exceed 100 and be meaningless. SBA is instead pooled as Σskilled deliveries ÷ (ΣEstimated Deliveries ÷ 12) — KHIS stores that denominator annually, so it is converted to a monthly equivalent first.",
                   "KHIS occasionally reports >100% (e.g. Turkana PNC 103.76) — the bar is clamped to 100 and flagged with *.",
-                  "SBA uses ANC1 attendance as the denominator — where a facility reports more deliveries than ANC1 clients the % exceeds 100 and is clamped (e.g. Meru TRH 417).",
+                  "SBA denominator = 'Estimated Deliveries' (KHIS tmlMpIqHimf) — the same element KHIS's own 'Skilled Birth Attendants %' indicator divides by, except that KHIS stores it as an ANNUAL catchment figure and the app converts it to a monthly equivalent (÷ 12) before dividing. Verified May 2025: Kakamega County General 67 ÷ (1,779 ÷ 12) = 45.2% vs KHIS 44.34%; AP Line Dispensary 1 ÷ (1,116 ÷ 12) = 1.1% vs KHIS 1.06%. Facilities that do not report it are excluded from the SBA ratio.",
                   `Scope: ${scopeLabel} · ${peLabel}.`,
                 ],
               }}
@@ -2228,13 +2386,20 @@ export function HomeTab({
                     : filter.facility
                       ? `${filter.facility} · 8 VTP indicators vs ≥95% target`
                       : filter.subCounty
-                        ? `${filter.subCounty} · ${rows[0]?.values.length ?? 0} facilities · 8 VTP indicators vs ≥95% target`
+                        ? `${filter.subCounty} · ${
+                            (rows[0]?.values.length ?? 0) <
+                            subCountyFacilityCount
+                              ? `first ${rows[0]?.values.length ?? 0} of ${subCountyFacilityCount}`
+                              : `${subCountyFacilityCount}`
+                          } facilities · 8 VTP indicators vs ≥95% target`
                         : filter.county
                           ? `${filter.county} County · 8 VTP indicators vs ≥95% target`
                           : `${partner.counties.length} counties · 8 VTP indicators vs ≥95% target`
                 }
                 rows={rows}
                 counties={units}
+                onAskAi={setActiveChart}
+                onSaveToPlayground={addChartToPlayground}
               />
               {/* Per-facility tallies behind the VTP bars — the same "View
                   Data" the domain cards expose, per facility. */}{" "}
@@ -2244,7 +2409,19 @@ export function HomeTab({
                 );
                 if (!vv || vv.data.length === 0) return null;
                 return (
-                  <div className="flex justify-end">
+                  <div className="flex justify-end flex-wrap gap-2">
+                    <ChartActions
+                      chart={{
+                        id: `home-vtp-tallies-${partner.id}`,
+                        title: `VTP tallies — ${partner.name}`,
+                        summary:
+                          "Per-facility tallies behind the eight VTP quality-of-care indicators.",
+                        prompt:
+                          "Which facilities lag on the VTP quality-of-care indicators?",
+                      }}
+                      onAskAi={setActiveChart}
+                      onSaveToPlayground={addChartToPlayground}
+                    />
                     <ViewDataButton
                       title={`VTP tallies — ${partner.name}`}
                       data={vv.data}
@@ -2339,6 +2516,8 @@ export function HomeTab({
                     )!.rows
                   }
                   counties={units}
+                  onAskAi={setActiveChart}
+                  onSaveToPlayground={addChartToPlayground}
                 />
               )}
             </div>
@@ -2357,8 +2536,10 @@ export function HomeTab({
             <p className="text-sm text-gray-500 mt-0.5">
               Five systemic enablers per partner — each enabler compared across
               the partner's supported counties (§5.4, EWENE Pillar 8 &amp; GHSD
-              guidance). MPDSR audits are live KHIS where reported; the other
-              enablers use baseline scaled by facility-readiness.
+              guidance). The first four come from the Facility Readiness
+              Assessment form (Domain 3 items 3.1–3.4); MPDSR audits are live
+              KHIS. Nothing is shown where no assessment or KHIS report exists —
+              there is deliberately no estimated fallback.
             </p>
           </div>
           <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
@@ -2372,17 +2553,23 @@ export function HomeTab({
               title={partner.name}
               subtitle={
                 pending
-                  ? "facility list not yet loaded — readiness scores default to 0"
+                  ? "facility list not yet loaded — no enabler data"
                   : filter.facility
                     ? `${filter.facility} · 5 systemic enablers vs ≥60–100% targets`
                     : filter.subCounty
-                      ? `${filter.subCounty} · ${rows[0]?.values.length ?? 0} facilities · 5 systemic enablers vs ≥60–100% targets`
+                      ? `${filter.subCounty} · ${
+                          (rows[0]?.values.length ?? 0) < subCountyFacilityCount
+                            ? `first ${rows[0]?.values.length ?? 0} of ${subCountyFacilityCount}`
+                            : `${subCountyFacilityCount}`
+                        } facilities · 5 systemic enablers vs ≥60–100% targets`
                       : filter.county
                         ? `${filter.county} County · 5 systemic enablers vs ≥60–100% targets`
                         : `${partner.counties.length} counties · 5 systemic enablers vs ≥60–100% targets`
               }
               rows={rows}
               counties={units}
+              onAskAi={setActiveChart}
+              onSaveToPlayground={addChartToPlayground}
             />
           ))}
         </div>
@@ -2431,7 +2618,20 @@ export function HomeTab({
                 All {rows.filter((r) => !r.pending).length} active partners ·
                 average of partner scores
               </p>
-              <div className="mt-3">
+              <div className="mt-3 flex flex-wrap gap-2">
+                <ChartActions
+                  chart={{
+                    id: `home-domain-avg-${col.key}`,
+                    title: view.title,
+                    summary:
+                      view.note ??
+                      "Average domain score across active partners.",
+                    prompt:
+                      "Which domain average needs attention across partners?",
+                  }}
+                  onAskAi={setActiveChart}
+                  onSaveToPlayground={addChartToPlayground}
+                />
                 <ViewDataButton
                   title={view.title}
                   data={view.data}
@@ -2453,16 +2653,29 @@ export function HomeTab({
             </h3>
             <p className="text-sm text-gray-500 mt-1">
               Green ≥ 80% (on track) · Amber 60–79% (needs attention) · Red &lt;
-              60% (off track) · Gray — no data. Amber “Pending” rows default to
-              0 until their facility list is loaded.
+              60% (off track) · Gray — no data. A “Pending” row only appears for
+              a partner with no facility roster loaded yet.
             </p>
           </div>
-          <ViewDataButton
-            title={matrixViewData.title}
-            data={matrixViewData.data}
-            note={matrixViewData.note}
-            detail={matrixViewData.detail}
-          />
+          <div className="flex items-center gap-2 flex-wrap">
+            <ChartActions
+              chart={{
+                id: "home-matrix",
+                title: matrixViewData.title,
+                summary:
+                  matrixViewData.note ?? "Partner scores by domain matrix.",
+                prompt: "Which partner–domain combinations need attention?",
+              }}
+              onAskAi={setActiveChart}
+              onSaveToPlayground={addChartToPlayground}
+            />
+            <ViewDataButton
+              title={matrixViewData.title}
+              data={matrixViewData.data}
+              note={matrixViewData.note}
+              detail={matrixViewData.detail}
+            />
+          </div>
         </div>
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-slate-200">
@@ -2496,7 +2709,7 @@ export function HomeTab({
                         </p>
                         {r.pending && (
                           <span
-                            title="No facility list loaded yet — KHIS county totals would overstate support because Nuru Ya Mtoto does not serve every facility in the county. Scores default to 0 until the roster is added."
+                            title="No facility list loaded yet — KHIS county totals would overstate support because the partner does not serve every facility in the county. Scores default to 0 until the roster is added."
                             className="px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200 text-[10px] font-bold uppercase tracking-wide"
                           >
                             Pending
@@ -2587,15 +2800,15 @@ export function HomeTab({
         </div>
         <div className="px-6 pb-5 pt-2 text-xs text-gray-500">
           <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5 align-middle" />
-          live from national KHIS ({peLabel}) where reported — per-county values
-          averaged for % indicators (PNC, testing, ART, MPDSR audits). Domains
-          with no KHIS value this period show blank (—) — no baseline constants
-          are displayed. Domain 3 (Readiness) is computed live from entered
-          facility assessments (N/A excluded) and is never sourced from KHIS.
-          {!liveLoaded && " Loading live KHIS domain scores…"} Nuru Ya Mtoto is{" "}
-          <span className="font-semibold text-amber-600">pending</span> — no
-          facility list is loaded yet, so its scores default to 0 until the
-          roster is added.
+          live from national KHIS ({peLabel}) where reported — raw counts
+          (testing, ART, deliveries, PNC ≤48h, reported/audited deaths) are
+          summed over every facility the partner supports, then each ratio is
+          taken once, so the partner figure is the true pooled value (never an
+          average of facility percentages). Domains with no KHIS value this
+          period show blank (—) — no baseline constants are displayed. Domain 3
+          (Readiness) is computed live from entered facility assessments (N/A
+          excluded) and is never sourced from KHIS.
+          {!liveLoaded && " Loading live KHIS domain scores…"}
         </div>
       </div>
 
@@ -2647,11 +2860,24 @@ export function HomeTab({
                       : `${group.counties.length === 1 ? group.counties[0].name : `${group.counties.length} counties`} · 5 domains compared per county`}
                   </p>
                 </div>
-                <ViewDataButton
-                  title={`${group.partner.name} — Domain Scores by County`}
-                  data={data}
-                  note="% per domain per county (— = no data). Domains 1, 2 & 4 are live KHIS where reported; Domain 3 is live from entered assessments; Domain 5 has no county-scope KHIS source — shown blank."
-                />
+                <div className="flex items-center gap-2 flex-wrap">
+                  <ChartActions
+                    chart={{
+                      id: `home-county-${group.partner.id}`,
+                      title: `${group.partner.name} — Domain Scores by County`,
+                      summary:
+                        "Each domain compared across the partner's supported counties.",
+                      prompt: "Where is this partner weakest by county?",
+                    }}
+                    onAskAi={setActiveChart}
+                    onSaveToPlayground={addChartToPlayground}
+                  />
+                  <ViewDataButton
+                    title={`${group.partner.name} — Domain Scores by County`}
+                    data={data}
+                    note="% per domain per county (— = no data). Domains 1, 2 & 4 are computed from raw KHIS counts summed over the county's roster facilities (one pooled ratio, not an average of facility %); Domain 3 is live from entered assessments; Domain 5 has no county-scope KHIS source — shown blank."
+                  />
+                </div>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
                 {BAR_SERIES.map((s, sIdx) => {
@@ -2671,7 +2897,19 @@ export function HomeTab({
                           {s.name}
                         </p>
                         {view && (
-                          <span className="ml-auto">
+                          <span className="ml-auto flex items-center gap-2">
+                            <ChartActions
+                              chart={{
+                                id: `home-county-${group.partner.id}-${s.key}`,
+                                title: view.title,
+                                summary:
+                                  view.note ??
+                                  `${s.name} per county — domain comparison.`,
+                                prompt: `Compare ${s.name} across counties and flag the laggards.`,
+                              }}
+                              onAskAi={setActiveChart}
+                              onSaveToPlayground={addChartToPlayground}
+                            />
                             <ViewDataButton
                               title={view.title}
                               data={view.data}
@@ -2736,85 +2974,6 @@ export function HomeTab({
             </div>
           );
         })}
-      </div>
-
-      {/* Overall score by partner */}
-      <div className="bg-white rounded-lg p-6 border border-slate-200">
-        <div className="flex flex-wrap items-start justify-between gap-3 mb-1">
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900">
-              Overall 5-Domain Score by Partner
-            </h3>
-            <p className="text-sm text-gray-500">
-              Average of the five domain scores per implementing partner.
-            </p>
-          </div>
-          <ViewDataButton
-            title="Overall 5-Domain Score by Partner"
-            data={overallChartData}
-            note="overall % = average of available domain scores"
-            detail={{
-              formula:
-                "overall % = mean of the five domain scores (domains with no data are excluded from the average)",
-              notes: [
-                "Domains with no KHIS value this period show no bar — no baseline constants are displayed.",
-                "Domain 3 (Readiness) is always computed live from entered facility assessments (N/A excluded) — never from KHIS.",
-              ],
-            }}
-          />
-        </div>
-        <ResponsiveContainer width="100%" height={300}>
-          <BarChart
-            data={overallChartData}
-            margin={{ top: 20, right: 16, left: 0, bottom: 8 }}
-          >
-            <CartesianGrid strokeDasharray="3 3" vertical={false} />
-            <XAxis
-              dataKey="name"
-              interval={0}
-              tick={{ fontSize: 11, angle: -30, textAnchor: "end" }}
-              tickLine={false}
-            />
-            <YAxis
-              domain={[0, 100]}
-              width={40}
-              tick={{ fontSize: 11 }}
-              tickLine={false}
-              axisLine={false}
-            />
-            <Tooltip
-              formatter={(v) => [`${v}%`, "Overall"]}
-              cursor={{ fill: "rgba(148,163,184,0.12)" }}
-            />
-            <Bar
-              dataKey="overall"
-              name="Overall"
-              radius={[6, 6, 0, 0]}
-              maxBarSize={48}
-            >
-              {overallChartData.map((entry, idx) => (
-                <Cell
-                  key={`cell-${idx}`}
-                  fill={
-                    entry.overall == null
-                      ? "#e2e8f0"
-                      : entry.overall >= 80
-                        ? "#10b981"
-                        : entry.overall >= 60
-                          ? "#f59e0b"
-                          : "#ef4444"
-                  }
-                />
-              ))}
-              <LabelList
-                dataKey="overall"
-                position="top"
-                formatter={(v) => (v == null ? "" : `${Number(v).toFixed(0)}%`)}
-                style={{ fontSize: 10, fill: "#475569" }}
-              />
-            </Bar>
-          </BarChart>
-        </ResponsiveContainer>
       </div>
 
       {/* Expected Outcomes — §9 */}

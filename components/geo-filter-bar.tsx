@@ -196,9 +196,7 @@ export function GeoFilterBar() {
           onChange={(e) => setFilter({ ward: e.target.value, facility: "" })}
           disabled={wards.length === 0}
         >
-          <option value="">
-            {wards.length === 0 ? "All Wards" : "All Wards"}
-          </option>
+          <option value="">All Wards</option>
           {wards.map((w) => (
             <option key={w} value={w}>
               {w}
@@ -206,7 +204,7 @@ export function GeoFilterBar() {
           ))}
         </select>
         <p className="mt-0.5 text-[10px] text-gray-400">
-          UI only — for picking KHIS facilities, not a data filter
+          UI only — narrows the facility list, not the charts
         </p>
       </div>
 

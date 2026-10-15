@@ -35,6 +35,7 @@ import {
   COUNTY_OUS,
   PARTNER_FACILITIES,
 } from "@/lib/partners";
+import { getPartner } from "@/lib/geo";
 import ouCountyMap from "@/data/ou-county-map.json";
 import { khisAnalyticsChunked, sumFor } from "@/lib/khis";
 import { peToLabel } from "@/lib/period";
@@ -44,6 +45,9 @@ export const dynamic = "force-dynamic";
 export async function GET(req: NextRequest) {
   const params = req.nextUrl.searchParams;
   const partner = params.get("partner") ?? "jamii-tekelezi";
+  // Display name for scope labels — the raw id ("jamii-tekelezi") leaks into
+  // the UI badge otherwise.
+  const partnerName = getPartner(partner)?.shortName ?? partner;
   const pe = params.get("pe") ?? "202506";
   const indicatorParam = params.get("indicators");
   const county = params.get("county");
@@ -102,7 +106,7 @@ export async function GET(req: NextRequest) {
       );
     }
     ouIds = scUids;
-    scopeLabel = `${partner} · ${subcounty} (${ouIds.length} facilities)`;
+    scopeLabel = `${partnerName} · ${subcounty} (${ouIds.length} facilities)`;
   } else if (county) {
     // roster=1 (home tab): restrict to the partner's roster facilities in
     // this county — partner-only values. Falls back to the county rollup
@@ -112,7 +116,7 @@ export async function GET(req: NextRequest) {
       const rosterUids = partnerFacilityOUsFor(partner, county);
       if (rosterUids.length > 0) {
         ouIds = rosterUids;
-        scopeLabel = `${county} County · ${partner} (${ouIds.length} facilities)`;
+        scopeLabel = `${county} County · ${partnerName} (${ouIds.length} facilities)`;
       } else {
         const ou = COUNTY_OUS[county];
         if (!ou) {
@@ -138,11 +142,11 @@ export async function GET(req: NextRequest) {
   } else if (hasFacilityRoster(partner)) {
     // Facility-level precision: ONLY the partner's facilities.
     ouIds = partnerFacilityOUs(partner);
-    scopeLabel = `${partner} (${ouIds.length} facilities)`;
+    scopeLabel = `${partnerName} (${ouIds.length} facilities)`;
   } else {
     // Fallback: county-level rollup for partners without a roster yet.
     ouIds = partnerCountyOUs(partner);
-    scopeLabel = `${partner} (${ouIds.length} counties)`;
+    scopeLabel = `${partnerName} (${ouIds.length} counties)`;
   }
 
   if (ouIds.length === 0) {

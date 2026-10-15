@@ -92,6 +92,7 @@ import stawishaRoster from "@/data/stawisha-pwani-facilities.json";
 import nuruRoster from "@/data/nuru-ya-mtoto-facilities.json";
 import ouCountyMap from "@/data/ou-county-map.json";
 import ouSubCountyMap from "@/data/ou-subcounty-map.json";
+import ouWardMap from "@/data/khis-ou-ward-map.json";
 
 export const JAMII_TEKELEZI_FACILITIES: PartnerFacility[] =
   jtRoster as PartnerFacility[];
@@ -201,19 +202,40 @@ export function hasFacilityRoster(partnerId: string): boolean {
 
 const OU_COUNTY_MAP = ouCountyMap as Record<string, string>;
 const OU_SUBCOUNTY_MAP = ouSubCountyMap as Record<string, string>;
+// { facilityUid: wardName } — extracted from the KHIS org-unit registry and
+// trimmed to the roster facility UIDs by `scripts/build-ward-map.cjs`, so the
+// map ships inside the repo (~57 KB) instead of referencing a 3 MB dump that
+// lives outside the deployment.
+const OU_WARD_MAP = new Map(
+  Object.entries(ouWardMap as Record<string, string>),
+);
 
 /**
- * Resolve a roster sub-county value to its display name. Rosters extracted
- * from KHIS (Stawisha, Tujenge, Dumisha, Imarisha, AMPATH) store the KHIS
- * org-unit UID (usually a ward-level OU); names are resolved from
- * ou-subcounty-map.json. The original Jamii Tekelezi roster already stores
- * plain names, so those pass through unchanged.
+ * Resolve a roster sub-county value to its display name.
+ *
+ * Some extracted rosters store a ward-level UID in the `subCounty` field, and
+ * the static map resolves those IDs to names like "Keiyo Ward" or "Kwanza
+ * Ward". Those labels are still the semantic parent region of the facility,
+ * but the UI should display the sub-county name, not the ward label. Strip the
+ * trailing ward suffix when the value comes from the ward map so the dropdown
+ * shows the actual sub-county value instead of the ward name.
  */
+function normalizeDisplayName(value?: string): string {
+  if (!value) return "";
+  return value
+    .trim()
+    .replace(/\s+Ward\s*$/i, "")
+    .replace(/\s+Sub County\s*$/i, "")
+    .replace(/\s+Subcounty\s*$/i, "")
+    .trim();
+}
+
 function resolveSubCountyName(value?: string): string {
   if (!value) return "";
-  return /^[A-Za-z0-9]{11}$/.test(value)
+  const resolved = /^[A-Za-z0-9]{11}$/.test(value)
     ? (OU_SUBCOUNTY_MAP[value] ?? "")
     : value;
+  return normalizeDisplayName(resolved);
 }
 
 /**
@@ -223,7 +245,7 @@ function resolveSubCountyName(value?: string): string {
  * the Facility select lists the partner's real facilities and cascades with
  * the County select. Roster entries whose `county`/`subCounty` fields are
  * already names (e.g. the original Jamii Tekelezi roster) are used as-is.
- * `wardName` is a UI-only filter — it never affects KHIS queries.
+ * Ward names narrow only the visible facility list; they never affect KHIS queries.
  */
 export function partnerFacilities(
   partnerId: string,
@@ -240,9 +262,12 @@ export function partnerFacilities(
           ? (OU_COUNTY_MAP[f.county] ?? "")
           : (f.county ?? ""),
       subCounty: resolveSubCountyName(f.subCounty),
-      // Some extracted rosters copy the facility UID into the ward column
-      // (an extraction artifact) — keep only real ward names.
-      ward: f.ward && /^[A-Za-z0-9]{11}$/.test(f.ward) ? "" : (f.ward ?? ""),
+      // Some extracted rosters copy the facility UID into the ward column.
+      // Resolve those UIDs from the KHIS facility registry for the UI guide.
+      ward:
+        f.ward && /^[A-Za-z0-9]{11}$/.test(f.ward)
+          ? (OU_WARD_MAP.get(f.uid) ?? "")
+          : (f.ward ?? ""),
     }))
     .filter((f) => !countyName || f.county === countyName)
     .filter((f) => !subCountyName || f.subCounty === subCountyName)

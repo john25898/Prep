@@ -424,3 +424,24 @@ export function averageReadiness(assessments: FacilityAssessment[]): number {
   );
   return sum / assessments.length;
 }
+
+/**
+ * Score % for a SINGLE questionnaire item across assessments
+ * (Yes = 2, Partial = 1, No = 0, N/A excluded from the denominator).
+ * Returns null when no assessment answered the item — callers must render a
+ * blank bar rather than inventing a fallback value.
+ */
+export function itemScore(
+  assessments: FacilityAssessment[],
+  itemId: string,
+): number | null {
+  let total = 0;
+  let possible = 0;
+  for (const a of assessments) {
+    const v = a.items[itemId];
+    if (!v || v.response === "na") continue;
+    total += itemPoints(v.response) ?? 0;
+    possible += 2;
+  }
+  return possible > 0 ? (total / possible) * 100 : null;
+}

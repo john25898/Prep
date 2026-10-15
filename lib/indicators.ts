@@ -343,18 +343,20 @@ export const KHIS_INDICATORS: KhisIndicator[] = [
       "RRI_Ver_2026_(%) of Deliveries conducted by Skilled Birth Attendants",
     domain: "2",
   },
+  // NOTE: empty on KHIS — 0 rows at facility, sub-county, county and partner
+  // scope for 202505. Kept only so the UID is documented; do not use it.
   {
     id: "deliveries",
-    label: "Deliveries (MOH 711 12.2.5)",
+    label: "Deliveries (MOH 711 12.2.5) — not populated",
     dx: "I3YYLhq8FwF",
     isIndicator: false,
     khisName: "12.2.5 Deliveries",
     domain: "2",
   },
   // MOH 711 delivery-mode elements — summed to give the skilled-deliveries
-  // COUNT (numerator of the SBA % indicators). Used to compute SBA % locally
-  // with ANC1 attendance as the denominator (the facility may not report
-  // "Estimated Deliveries", which the KHIS % indicator requires).
+  // COUNT (exactly the numerator of KHIS's own SBA % indicators, which are
+  // defined as #{jaPrPmor6WV}+#{Kx64gGqaFVq}+#{sMqM8DwiAaj}+#{rAZBTMa7Jy3}).
+  // SBA % is computed locally as that count ÷ Estimated Deliveries.
   {
     id: "deliv_normal",
     label: "Normal Deliveries (MOH 711)",
@@ -388,6 +390,25 @@ export const KHIS_INDICATORS: KhisIndicator[] = [
     dx: "rAZBTMa7Jy3",
     isIndicator: false,
     khisName: "MOH 711 Caesarian Sections",
+    verified: true,
+    domain: "2",
+  },
+  // SBA % denominator. This is the element KHIS's OWN skilled-birth-attendance
+  // indicators use as denominator (`#{tmlMpIqHimf.NhSoXUMPK2K}`), verified via
+  // /indicators/sAWX6GB722p.json numerator+denominator and via includeNumDen
+  // (Embu County 202505: num 1166 = the 4 modes, den 17057 = this element).
+  // It is the ONLY populated "deliveries" element on KHIS — "12.2.5 Deliveries"
+  // (I3YYLhq8FwF), "Deliveries" (JvjczkbdPTy) and "RRI_Ver_2026_Total
+  // deliveries in facilities" (i1VX3922306) all return ZERO rows for 202505.
+  // Aggregation: AVERAGE_SUM_ORG_UNIT, so only SUM it across a roster of LEAF
+  // org units (never divide by a rolled-up parent value).
+  {
+    id: "estimated_deliveries",
+    label:
+      "Estimated Deliveries (expected deliveries in catchment — ANNUAL: divide by 12 for a monthly denominator)",
+    dx: "tmlMpIqHimf",
+    isIndicator: false,
+    khisName: "Estimated Deliveries",
     verified: true,
     domain: "2",
   },

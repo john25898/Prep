@@ -37,6 +37,8 @@ import { StatusBadge } from "@/components/status-badge";
 import { useAssessments } from "@/lib/use-assessments";
 import { useGeoFilter } from "@/lib/geo-filter-context";
 import { applyGeoFilter, geoScopeLabel } from "@/lib/geo";
+import { AIAssistant, type ChartInsight } from "@/components/ai-assistant";
+import { ChartActions } from "@/components/chart-actions";
 import { ViewDataButton } from "@/components/view-data";
 import {
   assessmentScore,
@@ -450,8 +452,12 @@ function EquipmentHeatmap({
 /** Item availability: for each specific item, in how many facilities it was ticked. */
 function ItemAvailabilityChart({
   assessments,
+  onAskAi,
+  onSaveToPlayground,
 }: {
   assessments: FacilityAssessment[];
+  onAskAi?: (chart: ChartInsight) => void;
+  onSaveToPlayground?: (chart: ChartInsight) => void;
 }) {
   const groups = QUESTIONNAIRE_ITEMS.filter((i) => i.checklist).map((i) => ({
     id: i.id,
@@ -473,6 +479,18 @@ function ItemAvailabilityChart({
         <h3 className="text-lg font-semibold text-gray-900">
           Item Availability Across Facilities
         </h3>
+        <ChartActions
+          chart={{
+            id: "item-availability",
+            title: "Item Availability Across Facilities",
+            summary:
+              "For each specific commodity / equipment / signal function: how many in-scope facilities ticked it as present.",
+            prompt:
+              "Which items are missing in most facilities — procurement gaps?",
+          }}
+          onAskAi={onAskAi}
+          onSaveToPlayground={onSaveToPlayground}
+        />
         <ViewDataButton
           title="Item Availability Across Facilities"
           data={itemRows}
@@ -548,8 +566,12 @@ function facilityCategoryScores(
 /** Grid of small radars — one per facility; shape shows strong/weak categories. */
 function FacilityRadarGrid({
   assessments,
+  onAskAi,
+  onSaveToPlayground,
 }: {
   assessments: FacilityAssessment[];
+  onAskAi?: (chart: ChartInsight) => void;
+  onSaveToPlayground?: (chart: ChartInsight) => void;
 }) {
   const rows = assessments.map((a) => {
     const scores = facilityCategoryScores(a);
@@ -565,6 +587,17 @@ function FacilityRadarGrid({
         <h3 className="text-lg font-semibold text-gray-900">
           Per-Facility Readiness Shape
         </h3>
+        <ChartActions
+          chart={{
+            id: "facility-readiness-shape",
+            title: "Per-Facility Readiness Shape",
+            summary:
+              "One radar per facility: % of items ticked in each of the 8 checklist categories.",
+            prompt: "Which facilities are weakest and in which categories?",
+          }}
+          onAskAi={onAskAi}
+          onSaveToPlayground={onSaveToPlayground}
+        />
         <ViewDataButton
           title="Per-Facility Readiness Shape"
           data={rows}
@@ -789,9 +822,14 @@ function FacilityCategoryMatrix({
   );
 }
 
-export function AssessmentTab() {
+export function AssessmentTab({
+  onSaveToPlayground,
+}: {
+  onSaveToPlayground?: (chart: ChartInsight) => void;
+}) {
   const allAssessments = useAssessments();
   const { filter, resetFilter } = useGeoFilter();
+  const [activeChart, setActiveChart] = useState<ChartInsight | null>(null);
   const assessments = useMemo(
     () => applyGeoFilter(allAssessments, filter),
     [allAssessments, filter],
@@ -1007,11 +1045,25 @@ export function AssessmentTab() {
             <h3 className="text-lg font-semibold text-gray-900">
               Facility Readiness Scores
             </h3>
-            <ViewDataButton
-              title="Facility Readiness Scores"
-              data={chartData}
-              note="% readiness per facility — computed live from assessment entries"
-            />
+            <div className="flex items-center gap-2 flex-wrap">
+              <ChartActions
+                chart={{
+                  id: "facility-readiness-scores",
+                  title: "Facility Readiness Scores",
+                  summary:
+                    "% readiness per facility — computed live from the entered assessment entries.",
+                  prompt:
+                    "Which facilities score below 60% and what gaps should we close first?",
+                }}
+                onAskAi={setActiveChart}
+                onSaveToPlayground={onSaveToPlayground}
+              />
+              <ViewDataButton
+                title="Facility Readiness Scores"
+                data={chartData}
+                note="% readiness per facility — computed live from assessment entries"
+              />
+            </div>
           </div>
           <ResponsiveContainer width="100%" height={280}>
             <BarChart data={chartData} margin={{ left: 0, right: 12 }}>
@@ -1049,11 +1101,25 @@ export function AssessmentTab() {
             <h3 className="text-lg font-semibold text-gray-900">
               Readiness Status Distribution
             </h3>
-            <ViewDataButton
-              title="Readiness Status Distribution"
-              data={statusData}
-              note="number of facilities per readiness tier — from assessments"
-            />
+            <div className="flex items-center gap-2 flex-wrap">
+              <ChartActions
+                chart={{
+                  id: "readiness-status-distribution",
+                  title: "Readiness Status Distribution",
+                  summary:
+                    "Number of facilities per readiness tier (Ready / Partial / Not Ready) — from assessments.",
+                  prompt:
+                    "How many facilities are not ready and what is the priority?",
+                }}
+                onAskAi={setActiveChart}
+                onSaveToPlayground={onSaveToPlayground}
+              />
+              <ViewDataButton
+                title="Readiness Status Distribution"
+                data={statusData}
+                note="number of facilities per readiness tier — from assessments"
+              />
+            </div>
           </div>
           <div className="flex flex-col sm:flex-row items-center gap-6">
             <ResponsiveContainer width="100%" height={240}>
@@ -1099,11 +1165,24 @@ export function AssessmentTab() {
           <h3 className="text-lg font-semibold text-gray-900">
             Average Domain 3 Performance by Item
           </h3>
-          <ViewDataButton
-            title="Average Domain 3 Performance by Item"
-            data={radarData}
-            note="avg % of facilities fully compliant per questionnaire item (N/A excluded)"
-          />
+          <div className="flex items-center gap-2 flex-wrap">
+            <ChartActions
+              chart={{
+                id: "domain3-avg-item",
+                title: "Average Domain 3 Performance by Item",
+                summary:
+                  "Average % of facilities fully compliant (answered Yes) per questionnaire item, N/A excluded.",
+                prompt: "Which questionnaire items have the lowest compliance?",
+              }}
+              onAskAi={setActiveChart}
+              onSaveToPlayground={onSaveToPlayground}
+            />
+            <ViewDataButton
+              title="Average Domain 3 Performance by Item"
+              data={radarData}
+              note="avg % of facilities fully compliant per questionnaire item (N/A excluded)"
+            />
+          </div>
         </div>
         <p className="text-sm text-gray-500 mb-4">
           Average % of facilities fully compliant (answered Yes) per
@@ -1167,11 +1246,24 @@ export function AssessmentTab() {
               <h3 className="text-lg font-semibold text-gray-900">
                 BEmONC Signal Functions
               </h3>
-              <ViewDataButton
-                title="BEmONC Signal Functions"
-                data={bemoncRadar}
-                note="% of facilities ticking each of the 7 signal functions — from assessments"
-              />
+              <div className="flex items-center gap-2 flex-wrap">
+                <ChartActions
+                  chart={{
+                    id: "bemonc-signal-functions",
+                    title: "BEmONC Signal Functions",
+                    summary:
+                      "% of facilities ticking each of the 7 BEmONC signal functions — from assessments.",
+                    prompt: "Which signal function is most often missing?",
+                  }}
+                  onAskAi={setActiveChart}
+                  onSaveToPlayground={onSaveToPlayground}
+                />
+                <ViewDataButton
+                  title="BEmONC Signal Functions"
+                  data={bemoncRadar}
+                  note="% of facilities ticking each of the 7 signal functions — from assessments"
+                />
+              </div>
             </div>
             <p className="text-sm text-gray-500 mb-4">
               % of facilities that ticked each of the 7 signal functions
@@ -1197,11 +1289,24 @@ export function AssessmentTab() {
               <h3 className="text-lg font-semibold text-gray-900">
                 CEmONC Signal Functions
               </h3>
-              <ViewDataButton
-                title="CEmONC Signal Functions"
-                data={emonc.cemonc}
-                note="% of facilities ticking each of the 9 signal functions — from assessments"
-              />
+              <div className="flex items-center gap-2 flex-wrap">
+                <ChartActions
+                  chart={{
+                    id: "cemonc-signal-functions",
+                    title: "CEmONC Signal Functions",
+                    summary:
+                      "% of facilities ticking each of the 9 CEmONC signal functions — from assessments.",
+                    prompt: "Which CEmONC function is most often missing?",
+                  }}
+                  onAskAi={setActiveChart}
+                  onSaveToPlayground={onSaveToPlayground}
+                />
+                <ViewDataButton
+                  title="CEmONC Signal Functions"
+                  data={emonc.cemonc}
+                  note="% of facilities ticking each of the 9 signal functions — from assessments"
+                />
+              </div>
             </div>
             <p className="text-sm text-gray-500 mb-4">
               % of facilities that ticked each of the 9 signal functions
@@ -1344,10 +1449,18 @@ export function AssessmentTab() {
       <EquipmentHeatmap assessments={assessments} />
 
       {/* ============ Item availability ============ */}
-      <ItemAvailabilityChart assessments={assessments} />
+      <ItemAvailabilityChart
+        assessments={assessments}
+        onAskAi={setActiveChart}
+        onSaveToPlayground={onSaveToPlayground}
+      />
 
       {/* ============ Per-facility radar grid ============ */}
-      <FacilityRadarGrid assessments={assessments} />
+      <FacilityRadarGrid
+        assessments={assessments}
+        onAskAi={setActiveChart}
+        onSaveToPlayground={onSaveToPlayground}
+      />
 
       {/* ============ Per-facility category matrix ============ */}
       <FacilityCategoryMatrix assessments={assessments} />
@@ -1367,6 +1480,10 @@ export function AssessmentTab() {
           ))}
         </div>
       </div>
+      <AIAssistant
+        chartContext={activeChart}
+        onSaveToPlayground={onSaveToPlayground}
+      />
     </div>
   );
 }

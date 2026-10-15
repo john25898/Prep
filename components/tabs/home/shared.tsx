@@ -24,59 +24,12 @@ export const JT_COVERAGE_COUNTIES = [
 // Home — 5-Domain summary across the 7 implementing partners
 // ---------------------------------------------------------------------------
 
-// Illustrative KHIS/EMR baselines per partner (Domains 1, 2, 4 & 5).
-// Domain 3 (Readiness) is computed live from entered facility assessments.
-export const PARTNER_DOMAIN_SCORES: Record<
-  string,
-  { d1: number; d2: number; d4: number; d5: number }
-> = {
-  "jamii-tekelezi": { d1: 87.7, d2: 63, d4: 67, d5: 62 },
-  "stawisha-pwani": { d1: 84.2, d2: 58, d4: 71, d5: 58 },
-  "imarisha-jamii": { d1: 76.5, d2: 51, d4: 62, d5: 54 },
-  "ampath-uzima": { d1: 89.1, d2: 66, d4: 74, d5: 66 },
-  "tujenge-jamii": { d1: 81.0, d2: 55, d4: 60, d5: 57 },
-  "dumisha-afya": { d1: 79.8, d2: 54, d4: 64, d5: 52 },
-  "nuru-ya-mtoto": { d1: 86.3, d2: 61, d4: 69, d5: 60 },
-};
+// NOTE: there are deliberately NO illustrative/"baseline" domain constants in
+// this file. Every domain value comes from live KHIS or an in-app entry form,
+// or renders blank — nothing is invented.
 
-// Illustrative per-county scores (Domains 1, 2, 4 & 5) for the county
-// distribution view. Domain 3 (Readiness) is computed live per county.
-export const COUNTY_DOMAIN_SCORES: Record<
-  string,
-  { d1: number; d2: number; d4: number; d5: number }
-> = {
-  // Jamii Tekelezi
-  Embu: { d1: 89, d2: 65, d4: 70, d5: 64 },
-  "Tharaka-Nithi": { d1: 86, d2: 60, d4: 64, d5: 60 },
-  Meru: { d1: 88, d2: 64, d4: 68, d5: 63 },
-  Nyandarua: { d1: 87, d2: 62, d4: 66, d5: 61 },
-  // Stawisha Pwani
-  Kilifi: { d1: 83, d2: 56, d4: 70, d5: 57 },
-  Kwale: { d1: 82, d2: 55, d4: 69, d5: 55 },
-  Mombasa: { d1: 87, d2: 63, d4: 75, d5: 62 },
-  "Taita-Taveta": { d1: 85, d2: 58, d4: 70, d5: 58 },
-  // Imarisha Jamii
-  Turkana: { d1: 76.5, d2: 51, d4: 62, d5: 54 },
-  // AMPATH Uzima
-  "Uasin Gishu": { d1: 91, d2: 68, d4: 76, d5: 68 },
-  "West Pokot": { d1: 87, d2: 63, d4: 71, d5: 63 },
-  "Elgeyo-Marakwet": { d1: 89, d2: 66, d4: 74, d5: 66 },
-  "Trans-Nzoia": { d1: 90, d2: 67, d4: 75, d5: 67 },
-  // Tujenge Jamii
-  Nakuru: { d1: 84, d2: 58, d4: 63, d5: 60 },
-  Baringo: { d1: 80, d2: 54, d4: 59, d5: 56 },
-  Samburu: { d1: 75, d2: 48, d4: 55, d5: 52 },
-  Laikipia: { d1: 82, d2: 56, d4: 61, d5: 58 },
-  Kajiado: { d1: 83, d2: 57, d4: 62, d5: 59 },
-  // Dumisha Afya
-  Bungoma: { d1: 80, d2: 55, d4: 65, d5: 53 },
-  Busia: { d1: 79, d2: 53, d4: 63, d5: 51 },
-  // Nuru Ya Mtoto
-  Kakamega: { d1: 85, d2: 60, d4: 68, d5: 59 },
-  Kisumu: { d1: 89, d2: 64, d4: 72, d5: 63 },
-  Nyamira: { d1: 87, d2: 62, d4: 70, d5: 61 },
-  Vihiga: { d1: 84, d2: 58, d4: 66, d5: 57 },
-};
+// (removed: the old per-county illustrative score map — county values now come
+// from the same live sources as everything else, or render blank.)
 
 export const DOMAIN_COLUMNS: {
   key: "d1" | "d2" | "d3" | "d4" | "d5";
@@ -339,42 +292,61 @@ export const VTP_QOC = [
 ];
 
 // §5.4 — Facility Readiness & Safe Systems (five systemic enablers)
-export const SAFE_SYSTEMS = [
+//
+// Bars 1–4 (itemId 3.1–3.4) come straight from the Facility Readiness
+// Assessment entry form (Domain 3 questionnaire, `lib/assessment.ts`).
+// Bar 5 (`khis: true`) is the only live KHIS measure: MPDSR audit coverage.
+// There is deliberately NO baseline/`current` fallback — an enabler with no
+// assessment entered (or no KHIS MPDSR report) renders blank.
+export type SafeSystem = {
+  label: string;
+  short: string;
+  detail: string;
+  source: string;
+  freq: string;
+  target: number;
+  /** Domain-3 questionnaire item supplying this bar (entry form). */
+  itemId?: string;
+  /** True when the bar is a live KHIS measure rather than a form item. */
+  khis?: boolean;
+};
+
+export const SAFE_SYSTEMS: SafeSystem[] = [
   {
     label: "Zero stockout of tracer MNH commodities",
     short: "No stockouts",
     detail: "oxytocin · carbetocin · MgSO₄ · TXA · benzyl penicillin",
-    source: "LMIS/KHIS",
+    source: "Facility assessment (3.1)",
     freq: "Monthly",
     target: 100,
-    current: 72,
+    itemId: "3.1",
   },
   {
     label: "Functional blood transfusion services",
     short: "Blood svcs.",
     detail: "Level 4 facilities",
-    source: "HFA-QOC",
+    source: "Facility assessment (3.2)",
     freq: "Quarterly",
     target: 75,
-    current: 66,
+    itemId: "3.2",
   },
   {
     label: "Functional oxygen/CPAP for neonates",
     short: "Oxygen/CPAP",
     detail: "Level 4 facilities",
-    source: "HFA-QOC",
+    source: "Facility assessment (3.3)",
     freq: "Quarterly",
     target: 60,
-    current: 20,
+    itemId: "3.3",
   },
   {
     label: "Procured equipment functional & in use",
     short: "Equipment",
     detail: "six months post-delivery",
-    source: "Facility assessment",
+    source: "Facility assessment (3.4)",
     freq: "Semi-annual",
     target: 90,
-    current: 88,
+    itemId: "3.4",
   },
   {
     label: "Maternal & neonatal deaths audited (MPDSR)",
@@ -383,19 +355,9 @@ export const SAFE_SYSTEMS = [
     source: "KHIS",
     freq: "Monthly",
     target: 100,
-    current: 81,
+    khis: true,
   },
 ];
-
-// Deterministic pseudo-variation so every county gets its own value.
-export function seededJitter(key: string, spread: number): number {
-  let h = 2166136261;
-  for (let i = 0; i < key.length; i++) {
-    h ^= key.charCodeAt(i);
-    h = Math.imul(h, 16777619);
-  }
-  return (((h >>> 0) % (spread * 2 + 1)) - spread) / 2;
-}
 
 // County series palette for the per-partner indicator charts (max 5 counties).
 export const COUNTY_COLORS = [
@@ -405,25 +367,6 @@ export const COUNTY_COLORS = [
   "#10b981",
   "#f43f5e",
 ];
-
-/** VTP QoC value for one county, scaled by the county's D1 vs the partner's D1. */
-export function countyVtpValue(
-  base: number,
-  county: string,
-  partnerId: string,
-  idx: number,
-): number {
-  const partnerD1 = PARTNER_DOMAIN_SCORES[partnerId]?.d1 ?? base;
-  const countyD1 = COUNTY_DOMAIN_SCORES[county]?.d1 ?? partnerD1;
-  const factor = countyD1 / partnerD1;
-  return Math.max(
-    0,
-    Math.min(
-      100,
-      Math.round(base * factor + seededJitter(`${county}:v${idx}`, 6)),
-    ),
-  );
-}
 
 // Theory of Change (document §2 — if / then / resulting in)
 export const TOC_STEPS = [

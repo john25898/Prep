@@ -19,7 +19,11 @@ import {
 import { Sparkles, Save } from "lucide-react";
 import { useGeoFilter } from "@/lib/geo-filter-context";
 import { useKhis } from "@/lib/use-khis";
-import { PARTNER_FACILITIES } from "@/lib/partners";
+import { PARTNER_FACILITIES, partnerFacilities } from "@/lib/partners";
+import { getKhisIndicator } from "@/lib/indicators";
+import { useVtpEidHeiEntries } from "@/lib/use-vtp-entries";
+import { useHeiOutcomes } from "@/lib/use-hei-outcomes";
+import { aggregateHeiOutcomes } from "@/lib/hei-outcome";
 import { AIAssistant, type ChartInsight } from "@/components/ai-assistant";
 import { ViewDataButton } from "@/components/view-data";
 import { captureChartImage } from "@/lib/capture-chart";
@@ -33,6 +37,13 @@ import { captureChartImage } from "@/lib/capture-chart";
 // fallbacks anywhere. Indicators KHIS does not report for the selected
 // period/scope show zeros or n/r (not reported), never fabricated values.
 // ---------------------------------------------------------------------------
+
+// KHIS dx UIDs for the "missed opportunity" pair, resolved from the
+// indicator registry so the element ids have a single source of truth:
+//   New Positive  = MOH 731-2 EMTCT HV02-10 (newly HIV+ at ANC)
+//   Initiated ART = MOH 731-2 EMTCT HV02-15 (started HAART at ANC)
+const NEW_POSITIVE_DX = getKhisIndicator("pmtct_new_positive")?.dx ?? "";
+const START_HAART_ANC_DX = getKhisIndicator("pmtct_start_haart_anc")?.dx ?? "";
 
 function Kpi({
   title,
@@ -256,6 +267,15 @@ const Subtab2A = ({
 
   // Bar chart: 1st ANC vs HIV Tested, per county (zeros when KHIS has no value).
   const ancVsTestedData = useMemo(() => {
+    if (filter.subCounty || filter.facility) {
+      return [
+        {
+          name: filter.subCounty || filter.facility || "Selected scope",
+          "ANC Visits": live.anc1 ?? 0,
+          "HIV Tested": live.tested ?? 0,
+        },
+      ];
+    }
     const a = ancByCounty.data?.counties ?? [];
     const t = testedByCounty.data?.counties ?? [];
     if (a.length === 0 && t.length === 0)
@@ -271,7 +291,15 @@ const Subtab2A = ({
       "ANC Visits": a.find((c) => c.name === name)?.value ?? 0,
       "HIV Tested": t.find((c) => c.name === name)?.value ?? 0,
     }));
-  }, [ancByCounty.data, testedByCounty.data, filter.county]);
+  }, [
+    ancByCounty.data,
+    testedByCounty.data,
+    filter.county,
+    filter.subCounty,
+    filter.facility,
+    live.anc1,
+    live.tested,
+  ]);
 
   // Donut: HIV testing coverage (live pct when both values are live).
   const hivTestingData = useMemo(
@@ -291,6 +319,15 @@ const Subtab2A = ({
   // NP vs KP per county — MOH 731-2 reports newly HIV+ (Positive Results
   // ANC, HV02-10) and known positive (HV02-01) directly.
   const npKpData = useMemo(() => {
+    if (filter.subCounty || filter.facility) {
+      return [
+        {
+          name: filter.subCounty || filter.facility || "Selected scope",
+          "Newly HIV+ (NP)": live.newPos ?? 0,
+          "Known HIV+ (KP)": live.kp ?? 0,
+        },
+      ];
+    }
     const np = newPosByCounty.data?.counties ?? [];
     const kp = kpByCounty.data?.counties ?? [];
     if (np.length === 0 && kp.length === 0)
@@ -314,7 +351,15 @@ const Subtab2A = ({
         "Known HIV+ (KP)": k,
       };
     });
-  }, [newPosByCounty.data, kpByCounty.data, filter.county]);
+  }, [
+    newPosByCounty.data,
+    kpByCounty.data,
+    filter.county,
+    filter.subCounty,
+    filter.facility,
+    live.newPos,
+    live.kp,
+  ]);
 
   const p = useMemo(
     () => ({
@@ -400,11 +445,11 @@ const Subtab2A = ({
             }
           />
           <DomainKpi
-            title="PBFW with known status"
+            title="PBFW with known HIV status"
             value={live.tested != null ? p.tested.toLocaleString() : "0"}
             sub={
               knownStatusPct != null
-                ? `${knownStatusPct}% of ${p.anc1.toLocaleString()} 1st ANC attendees`
+                ? `${knownStatusPct}% tested at 1st ANC`
                 : "not reported on KHIS this period"
             }
             tone="on"
@@ -799,12 +844,14 @@ function CascadeBar({
   note,
   unit = "of PBFW",
   reported = true,
+  missingLabel = "n/r",
 }: {
   stage: string;
   count: number;
   max: number;
   note?: string;
   unit?: string;
+  missingLabel?: string;
   // false = KHIS did not report this stage this period while other stages
   // ARE live — render "n/r" instead of a misleading 0 bar.
   reported?: boolean;
@@ -816,7 +863,7 @@ function CascadeBar({
       <div className="flex justify-between items-baseline gap-2 mb-1">
         <p className="text-sm font-medium text-gray-700">{stage}</p>
         <p className="text-sm font-bold text-gray-900 whitespace-nowrap">
-          {reported ? count.toLocaleString() : "n/r"}
+          {reported ? count.toLocaleString() : missingLabel}
           {note && (
             <span className="text-xs font-medium text-gray-400 ml-2">
               {note}
@@ -848,6 +895,8 @@ const Subtab2B = ({
 }: ClinicalSubtabProps) => {
   const { filter, pe, peLabel, periodFuture } = useGeoFilter();
   const partner = filter.partner || "jamii-tekelezi";
+  const vtpEntries = useVtpEidHeiEntries();
+  const heiOutcomes = useHeiOutcomes();
 
   const facilityUid = useMemo(() => {
     if (!filter.facility) return undefined;
@@ -858,6 +907,45 @@ const Subtab2B = ({
   }, [filter.facility, partner]);
   const countyScope = filter.county || undefined;
   const subCountyScope = filter.subCounty || undefined;
+
+  const formScope = useMemo(() => {
+    const facilities = partnerFacilities(partner, countyScope, subCountyScope);
+    const facilityNames = new Set(facilities.map((f) => f.name));
+    const matches = (row: { facilityName: string; pe: string }) =>
+      row.pe === pe &&
+      (filter.facility
+        ? row.facilityName === filter.facility
+        : facilityNames.has(row.facilityName));
+    const vtp = vtpEntries.filter(matches);
+    const hei = heiOutcomes.filter(matches);
+    const hei24 = aggregateHeiOutcomes(hei);
+    return {
+      hasVtp: vtp.length > 0,
+      hasHei: hei.some((row) => row.cohort === "24m"),
+      eidSamples02: vtp.reduce((sum, row) => sum + (row.eidSamples02 ?? 0), 0),
+      eidSamples312: vtp.reduce(
+        (sum, row) => sum + (row.eidSamples312 ?? 0),
+        0,
+      ),
+      pcrPos: vtp.reduce(
+        (sum, row) => sum + (row.pcrPos02 ?? 0) + (row.pcrPos312 ?? 0),
+        0,
+      ),
+      artInit: vtp.reduce(
+        (sum, row) => sum + (row.artInit02 ?? 0) + (row.artInit312 ?? 0),
+        0,
+      ),
+      hei24,
+    };
+  }, [
+    vtpEntries,
+    heiOutcomes,
+    partner,
+    countyScope,
+    subCountyScope,
+    filter.facility,
+    pe,
+  ]);
 
   // Live PMTCT cascade values for this period (MOH 731-2 EMTCT Rev 2023).
   const { data, loading, error, value } = useKhis({
@@ -875,17 +963,28 @@ const Subtab2B = ({
       "pmtct_anc1_on_haart",
       "pmtct_start_haart_anc",
       "hiv_deliveries",
-      "eid_2_8_weeks",
-      "pcr_positive_hei",
       "vl_lt_1000",
       "vl_result",
-      "hei_pcr_pos_6_8wks",
-      "hei_cohort_24m",
-      "hei_negative_18m",
-      "hei_art_linkage",
       "maternal_haart_total",
       "maternal_haart_start_anc",
     ],
+  });
+
+  // Per-facility missed-opportunity detail. The main call above returns only
+  // partner-level sums, so we ask KHIS for the same scope with
+  // byFacilityDetail=1: every facility that reported either element, with its
+  // per-element values kept SEPARATE (this mode does NOT sum across dx, which
+  // is exactly what we need — "New Positive" and "Started on ART" must stay
+  // distinguishable to compute the gap per facility).
+  const { data: missedData, loading: missedLoading } = useKhis({
+    partner,
+    pe,
+    county: countyScope,
+    subCounty: subCountyScope,
+    facility: facilityUid,
+    roster: true,
+    byFacilityDetail: true,
+    indicators: ["pmtct_new_positive", "pmtct_start_haart_anc"],
   });
 
   // Need = KP at 1st ANC + Newly HIV+ at ANC (HV02-01 + HV02-10); ART =
@@ -906,14 +1005,8 @@ const Subtab2B = ({
           ? (onHaart ?? 0) + (startHaart ?? 0)
           : null,
       deliveries: value("hiv_deliveries"),
-      eid: value("eid_2_8_weeks"),
-      pcrPos: value("pcr_positive_hei"),
       vlLt1000: value("vl_lt_1000"),
       vlResult: value("vl_result"),
-      pcrPos6_8: value("hei_pcr_pos_6_8wks"),
-      cohort24m: value("hei_cohort_24m"),
-      neg18m: value("hei_negative_18m"),
-      heiLinkage: value("hei_art_linkage"),
       haartTotal: value("maternal_haart_total"),
       haartStartAnc: value("maternal_haart_start_anc"),
     };
@@ -946,13 +1039,72 @@ const Subtab2B = ({
   const reported = (v: number | null | undefined) =>
     !khisAnswered || v != null || !isLive;
 
-  // HEI 18–24m cohort pair (KHIS HV02-50 net cohort + HEI AB− 18m) — only used
-  // together when the pair is sane (negatives ≤ enrolled); otherwise n/r.
+  // HEI 18–24m cohort pair from the user-entered HEI outcome form.
   const liveHeiPair =
-    live.cohort24m != null &&
-    live.cohort24m > 0 &&
-    live.neg18m != null &&
-    live.neg18m <= live.cohort24m;
+    formScope.hasHei &&
+    formScope.hei24.netCohort > 0 &&
+    formScope.hei24.neg <= formScope.hei24.netCohort;
+
+  // ---- Missed opportunities (New Positive − Initiated on ART) -------------
+  // One row per facility KHIS reported for either element. Missed =
+  // newly HIV+ at ANC − started HAART at ANC, floored at 0: a facility that
+  // started more clients on ART than it reported newly positive has no
+  // missed opportunity (we do NOT carry a negative "credit" to other
+  // facilities, so the sum of per-facility gaps can legitimately exceed the
+  // partner-level net difference).
+  const missedOpportunityFacilities = useMemo(() => {
+    return (missedData?.facilityDetail ?? [])
+      .map((f) => {
+        const newPositive = f.values[NEW_POSITIVE_DX] ?? 0;
+        const startedOnArt = f.values[START_HAART_ANC_DX] ?? 0;
+        return {
+          facility: f.name,
+          newPositive,
+          startedOnArt,
+          missed: Math.max(0, newPositive - startedOnArt),
+        };
+      })
+      .filter((r) => r.newPositive > 0 || r.startedOnArt > 0)
+      .sort((a, b) => b.missed - a.missed || b.newPositive - a.newPositive);
+  }, [missedData]);
+
+  /** Facilities with at least one un-started newly identified positive. */
+  const missedFacilities = missedOpportunityFacilities.filter(
+    (r) => r.missed > 0,
+  );
+  const missedTotal = missedFacilities.reduce((s, r) => s + r.missed, 0);
+  const missedNewPositiveTotal = missedOpportunityFacilities.reduce(
+    (s, r) => s + r.newPositive,
+    0,
+  );
+  const missedStartedTotal = missedOpportunityFacilities.reduce(
+    (s, r) => s + r.startedOnArt,
+    0,
+  );
+  /** Partner-level KHIS net difference (no per-facility flooring). */
+  const missedAggregate =
+    live.newPos != null && value("pmtct_start_haart_anc") != null
+      ? Math.max(0, (live.newPos ?? 0) - (value("pmtct_start_haart_anc") ?? 0))
+      : null;
+  const missedChartData = missedFacilities.slice(0, 12).map((r) => ({
+    name: r.facility.length > 26 ? `${r.facility.slice(0, 24)}…` : r.facility,
+    fullName: r.facility,
+    missed: r.missed,
+    newPositive: r.newPositive,
+    startedOnArt: r.startedOnArt,
+  }));
+  // Rows for the "View Data" table — the facilities with a gap when there is
+  // one (that is the question being asked), otherwise every facility checked
+  // so a zero result stays auditable. Headers are written out because
+  // ViewDataButton renders the raw keys.
+  const missedViewRows = (
+    missedFacilities.length > 0 ? missedFacilities : missedOpportunityFacilities
+  ).map((r) => ({
+    Facility: r.facility,
+    "Newly HIV+ at ANC (HV02-10)": r.newPositive,
+    "Started on ART at ANC (HV02-15)": r.startedOnArt,
+    "Missed opportunities": r.missed,
+  }));
 
   const p = useMemo(
     () => ({
@@ -962,19 +1114,20 @@ const Subtab2B = ({
       kp: live.kp ?? 0,
       art: live.art ?? 0,
       deliveries: live.deliveries ?? 0,
-      eid: live.eid ?? 0,
-      pcrPos: live.pcrPos6_8 ?? live.pcrPos ?? 0, // HV02 first-PCR +ve (live) over Infected_24mths
+      eid: formScope.eidSamples02,
+      eid312: formScope.eidSamples312,
+      pcrPos: formScope.pcrPos,
       heiEid3_12: 0, // no KHIS org-unit source — not reported
       heiEidPct: 0, // denominator not on KHIS monthly — not reported
-      heiArt: live.heiLinkage ?? 0, // HEI linked to CCC (KHIS) — no EMR estimate
+      heiArt: formScope.artInit,
       sbaPct: 0, // denominator not on KHIS monthly — not reported
-      cohortEnrolled: liveHeiPair ? (live.cohort24m as number) : 0, // KHIS HV02-50 net cohort
-      cohortNegative: liveHeiPair ? (live.neg18m as number) : 0, // KHIS HEI AB− 18m
+      cohortEnrolled: liveHeiPair ? formScope.hei24.netCohort : 0,
+      cohortNegative: liveHeiPair ? formScope.hei24.neg : 0,
       pairsPct: 0, // 18-24m pair % not on KHIS monthly — not reported
       haartTotal: live.haartTotal, // MOH 731-2 On HAART at 1st ANC HV02-14
       haartStartAnc: live.haartStartAnc, // MOH 731-2 Start HAART ANC HV02-15
     }),
-    [live, liveHeiPair],
+    [live, liveHeiPair, formScope],
   );
 
   // Viral-load suppression % — KHIS HV03-042 / HV03-043 when reported at scope.
@@ -1056,19 +1209,19 @@ const Subtab2B = ({
       {
         stage: "New HIV+ PBFW",
         value: p.need,
-        est: live.need == null,
+        est: formScope.hasVtp,
         reported: reported(live.need),
       },
       {
         stage: "Eligible for ART",
         value: p.need,
-        est: live.need == null,
+        est: formScope.hasVtp,
         reported: reported(live.need),
       },
       {
         stage: "Initiated on ART",
         value: p.art,
-        est: live.art == null,
+        est: formScope.hasVtp,
         reported: reported(live.art),
       },
     ],
@@ -1092,7 +1245,6 @@ const Subtab2B = ({
     ],
     [p, liveHeiPair, isLive],
   );
-
   const sourceBadge = loading ? (
     <span className="px-2 py-1 rounded-md bg-amber-50 text-amber-700 text-xs font-bold">
       Loading KHIS…
@@ -1190,13 +1342,11 @@ const Subtab2B = ({
           />
           <DomainKpi
             title="EID ≤ 8 weeks"
-            value={
-              live.eid != null ? p.eid.toLocaleString() : isLive ? "n/r" : "0"
-            }
+            value={formScope.hasVtp ? p.eid.toLocaleString() : "—"}
             sub={
-              live.eid != null
-                ? "EID samples ≤ 8wk (MOH 731 HV02-44)"
-                : "not reported on KHIS this period"
+              formScope.hasVtp
+                ? "EID samples ≤ 8wk (VTP EID/HEI form)"
+                : "no VTP EID/HEI form data"
             }
             tone="off"
             accent="text-red-600"
@@ -1204,26 +1354,22 @@ const Subtab2B = ({
           <DomainKpi
             title="Deliveries among HIV+"
             value={
-              live.deliveries != null
-                ? p.deliveries.toLocaleString()
-                : isLive
-                  ? "n/r"
-                  : "0"
+              live.deliveries != null ? p.deliveries.toLocaleString() : "n/r"
             }
             sub={
               live.deliveries != null
-                ? "deliveries from HIV+ mothers (HV02-02)"
+                ? "deliveries from HIV+ mothers (KHIS MOH 731-2)"
                 : "not reported on KHIS this period"
             }
             tone="on"
           />
           <DomainKpi
             title="HEI HIV-free 18–24m"
-            value={liveHeiPair ? `${heiNegativePct}%` : isLive ? "n/r" : "0%"}
+            value={liveHeiPair ? `${heiNegativePct}%` : "—"}
             sub={
               liveHeiPair
-                ? `${p.cohortNegative.toLocaleString()} of ${p.cohortEnrolled.toLocaleString()} HEI HIV-free at 18–24m · target >95% (KHIS HV02-50/18m)`
-                : "not reported on KHIS this period"
+                ? `${p.cohortNegative.toLocaleString()} of ${p.cohortEnrolled.toLocaleString()} HEI HIV-free at 18–24m · target >95% (HEI outcome form)`
+                : "no HEI outcome form data"
             }
             tone="on"
           />
@@ -1291,14 +1437,16 @@ const Subtab2B = ({
                     },
                     {
                       label: "HEI enrolled in 18–24m cohort (HV02-50)",
-                      value: live.cohort24m ?? null,
+                      value: formScope.hasHei
+                        ? formScope.hei24.netCohort
+                        : null,
                       source: liveHeiPair
                         ? ("live" as const)
                         : ("n/r" as const),
                     },
                     {
                       label: "HEI HIV-free at 18–24m (AB− 18m)",
-                      value: live.neg18m ?? null,
+                      value: formScope.hasHei ? formScope.hei24.neg : null,
                       source: liveHeiPair
                         ? ("live" as const)
                         : ("n/r" as const),
@@ -1306,8 +1454,8 @@ const Subtab2B = ({
                   ],
                   notes: [
                     `Scope: ${data?.scope ?? "—"} · ${data?.peLabel ?? peLabel}. KHIS reports ${liveCount}/16 indicators this period.`,
-                    "Stages KHIS did not report are shown as n/r — no impossible drops are implied between live stages.",
-                    "HEI outcomes are only treated as live when the KHIS pair is sane (negatives ≤ enrolled); otherwise n/r.",
+                    "EID, HIV-positive deliveries, and HEI outcomes come from the user-entered forms, not KHIS.",
+                    "Stages without a matching form entry are shown as —.",
                   ],
                 }}
               />
@@ -1335,9 +1483,9 @@ const Subtab2B = ({
                       ? `−${(prev.count - item.count).toLocaleString()} vs prev stage`
                       : `▲${(item.count - prev.count).toLocaleString()} vs prev stage`;
                 } else if (item.reported) {
-                  note = "prev stage not reported on KHIS this period";
+                  note = "prev stage not entered in the form";
                 } else {
-                  note = "not reported on KHIS this period";
+                  note = "not entered in the form";
                 }
               }
               return (
@@ -1368,11 +1516,12 @@ const Subtab2B = ({
                     max={heiOutcomeData[0].count}
                     unit="of HEI"
                     reported={item.reported}
+                    missingLabel="—"
                     note={
                       idx > 0
                         ? item.reported
                           ? `−${(heiOutcomeData[idx - 1].count - item.count).toLocaleString()} vs enrolled`
-                          : "not reported on KHIS this period"
+                          : "not entered in HEI outcome form"
                         : undefined
                     }
                   />
@@ -1384,12 +1533,12 @@ const Subtab2B = ({
                 HIV-free survival among exposed infants
               </p>
               <p className="text-5xl font-bold text-emerald-700 mt-2">
-                {liveHeiPair ? `${heiNegativePct}%` : isLive ? "n/r" : "0%"}
+                {liveHeiPair ? `${heiNegativePct}%` : "—"}
               </p>
               <p className="text-xs text-emerald-700/80 mt-2">
                 {liveHeiPair
-                  ? `${p.cohortNegative.toLocaleString()} of ${p.cohortEnrolled.toLocaleString()} HEI discharged HIV-negative · target >95% · KHIS cohort (HV02-50/18m)`
-                  : "not reported on KHIS this period"}
+                  ? `${p.cohortNegative.toLocaleString()} of ${p.cohortEnrolled.toLocaleString()} HEI discharged HIV-negative · target >95% · HEI outcome form`
+                  : "no HEI outcome form data"}
               </p>
             </div>
           </div>
@@ -1740,26 +1889,160 @@ const Subtab2B = ({
                   Missed Opportunities (New Positive - Initiated on ART)
                 </h4>
                 <ViewDataButton
-                  title="Missed Opportunities Trend"
-                  data={[]}
-                  note="No data — monthly missed-opportunity trend not reported on KHIS"
+                  title="Missed Opportunities — facilities with a newly HIV+ ANC client not started on ART"
+                  data={missedViewRows}
+                  note={
+                    missedLoading
+                      ? "Loading per-facility values from KHIS…"
+                      : missedOpportunityFacilities.length === 0
+                        ? "No facility reported a newly HIV+ ANC client or an ART start for this period/scope"
+                        : missedFacilities.length === 0
+                          ? `No missed opportunities — all ${missedOpportunityFacilities.length} reporting facilit${missedOpportunityFacilities.length === 1 ? "y" : "ies"} also recorded an ART start`
+                          : undefined
+                  }
+                  detail={{
+                    formula:
+                      "Missed = Newly HIV+ at ANC (MOH 731-2 HV02-10) − Started HAART at ANC (MOH 731-2 HV02-15), floored at 0 per facility",
+                    inputs: [
+                      {
+                        label:
+                          "Newly HIV+ at ANC — KHIS partner total (HV02-10)",
+                        value: live.newPos,
+                        source: nrOf(live.newPos) ? "n/r" : "live",
+                      },
+                      {
+                        label:
+                          "Started HAART at ANC — KHIS partner total (HV02-15)",
+                        value: value("pmtct_start_haart_anc"),
+                        source: nrOf(value("pmtct_start_haart_anc"))
+                          ? "n/r"
+                          : "live",
+                      },
+                      {
+                        label: "Net difference at partner level (KHIS totals)",
+                        value: missedAggregate,
+                        source: "live",
+                      },
+                      {
+                        label: "Per-facility new positive, summed",
+                        value: missedNewPositiveTotal,
+                        source: "live",
+                      },
+                      {
+                        label: "Per-facility ART starts, summed",
+                        value: missedStartedTotal,
+                        source: "live",
+                      },
+                      {
+                        label: "Missed across facilities (Σ per-facility gaps)",
+                        value: missedTotal,
+                        source: "live",
+                      },
+                      {
+                        label: "Facilities with a missed opportunity",
+                        value: `${missedFacilities.length} of ${missedOpportunityFacilities.length} reporting`,
+                        source: "live",
+                      },
+                      { label: "Scope", value: data?.scope ?? partner },
+                      { label: "Period", value: peLabel },
+                    ],
+                    notes: [
+                      "One row per facility KHIS reported for either element — the two elements are read per facility and NOT summed together, so each facility's own gap stays visible.",
+                      "Facilities with a gap are listed first; when no facility has a gap the table lists every reporting facility (all with Missed = 0) so the check is auditable.",
+                      "Missed is floored at 0 per facility: a facility that started more clients on ART than it reported newly positive has no gap, and its surplus is not carried to another facility — so Σ per-facility gaps can exceed the partner-level net difference.",
+                      "n/r = KHIS did not report that element for this period/scope (never shown as a fabricated 0).",
+                      "HV02-14 (on HAART at 1st ANC) is deliberately excluded: those are known positives continuing treatment, not a missed ART start for a newly identified mother.",
+                    ],
+                  }}
                 />
               </div>
-              <ResponsiveContainer width="100%" height={200}>
-                <LineChart data={[]}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="month" />
-                  <YAxis />
-                  <Tooltip />
-                  <Line
-                    type="monotone"
-                    dataKey="missed"
-                    stroke="#ef4444"
-                    strokeWidth={2}
-                    name="Missed Cases"
-                  />
-                </LineChart>
-              </ResponsiveContainer>
+              {missedLoading ? (
+                <div className="h-[200px] flex items-center justify-center rounded-md border-2 border-dashed border-slate-300 text-xs font-medium text-slate-400">
+                  Loading per-facility KHIS values…
+                </div>
+              ) : missedOpportunityFacilities.length === 0 ? (
+                <div className="h-[200px] flex flex-col items-center justify-center rounded-md border-2 border-dashed border-slate-300 px-6 text-center text-xs font-medium text-slate-400">
+                  <span>No data to compare for this period / scope.</span>
+                  <span className="mt-1 font-normal">
+                    KHIS reported no newly HIV+ ANC client (HV02-10) and no ART
+                    start at ANC (HV02-15) for the facilities in scope.
+                  </span>
+                </div>
+              ) : missedFacilities.length === 0 ? (
+                <div className="h-[200px] flex flex-col items-center justify-center rounded-md border-2 border-dashed border-emerald-300 bg-emerald-50/40 px-6 text-center">
+                  <span className="text-sm font-semibold text-emerald-700">
+                    0 missed opportunities
+                  </span>
+                  <span className="mt-1 text-xs font-normal text-emerald-600">
+                    All {missedOpportunityFacilities.length} facilit
+                    {missedOpportunityFacilities.length === 1
+                      ? "y"
+                      : "ies"}{" "}
+                    that reported a newly HIV+ ANC client also recorded an ART
+                    start ({missedNewPositiveTotal} identified →{" "}
+                    {missedStartedTotal} started).
+                  </span>
+                </div>
+              ) : (
+                <>
+                  <ResponsiveContainer width="100%" height={240}>
+                    <BarChart
+                      data={missedChartData}
+                      margin={{ left: 0, right: 12 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis
+                        dataKey="name"
+                        tick={{ fontSize: 10 }}
+                        interval={0}
+                        angle={-20}
+                        textAnchor="end"
+                        height={70}
+                      />
+                      <YAxis allowDecimals={false} />
+                      <Tooltip
+                        labelFormatter={(_label, payload) => {
+                          const p0 = payload?.[0]?.payload as
+                            | { fullName?: string }
+                            | undefined;
+                          return p0?.fullName ?? String(_label);
+                        }}
+                        formatter={(val, _name, item) => {
+                          const row = (
+                            item as
+                              | {
+                                  payload?: {
+                                    newPositive?: number;
+                                    startedOnArt?: number;
+                                  };
+                                }
+                              | undefined
+                          )?.payload;
+                          return [
+                            `${String(val)} missed (${row?.newPositive ?? 0} new positive → ${row?.startedOnArt ?? 0} started on ART)`,
+                            "Missed",
+                          ];
+                        }}
+                      />
+                      <Bar
+                        dataKey="missed"
+                        name="Missed (not started on ART)"
+                        fill="#ef4444"
+                      />
+                    </BarChart>
+                  </ResponsiveContainer>
+                  <p className="mt-2 text-xs text-gray-500">
+                    {missedTotal} ANC client
+                    {missedTotal === 1 ? "" : "s"} missed ART initiation across{" "}
+                    {missedFacilities.length} facilit
+                    {missedFacilities.length === 1 ? "y" : "ies"} — newly HIV+
+                    at ANC with no ART start recorded at that facility (
+                    {missedNewPositiveTotal} identified → {missedStartedTotal}{" "}
+                    started across {missedOpportunityFacilities.length}{" "}
+                    reporting facilities).
+                  </p>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -1776,28 +2059,31 @@ const Subtab2B = ({
             <IndicatorRow
               code="PMTCT_EID"
               label={
-                live.eid != null
+                formScope.hasVtp
                   ? "HEI with EID sample collected within 2-8 weeks (incl. birth testing)"
-                  : "HEI with EID sample within 2-8 weeks (HV02-44) — not reported this period"
+                  : "HEI with EID sample within 2-8 weeks — no VTP EID/HEI form data"
               }
-              value={live.eid != null ? p.eid : isLive ? "n/r" : 0}
+              value={formScope.hasVtp ? p.eid : "—"}
             />
             <IndicatorRow
               code="EID 3-12m"
-              label="HEI with EID samples collected within 3-12 months — not reported on KHIS (no org-unit source)"
-              value={isLive ? "n/r" : 0}
+              label="HEI with EID samples collected within 3-12 months — VTP EID/HEI form"
+              value={formScope.hasVtp ? p.eid312 : "—"}
             />
             <IndicatorRow
               code="% EID ≤ 8wk"
-              label="% of HEI with EID samples collected within 2-8 weeks — denominator not on KHIS monthly"
-              value={isLive ? "n/r" : 0}
+              label="% of HEI with EID samples collected within 2-8 weeks — form denominator required"
+              value={
+                formScope.hasVtp && p.eid + p.eid312 > 0
+                  ? Math.round((p.eid / (p.eid + p.eid312)) * 100)
+                  : "—"
+              }
               isPct
             />
           </div>
           <p className="text-xs text-gray-400 mb-3">
-            EID ≤ 8 weeks is live from KHIS (MOH 731 HV02-44); the 3-12 month
-            bucket and the % need cohort denominators not reported on KHIS
-            monthly — shown as n/r, never estimates.
+            EID values are entered in the VTP EID/HEI form. KHIS is not used for
+            EID or HEI cards in this section.
           </p>
           <div className="flex items-center justify-between gap-2 mb-3">
             <h4 className="text-sm font-semibold text-gray-700">
@@ -1833,37 +2119,19 @@ const Subtab2B = ({
           </h3>
           <IndicatorRow
             code="PCR+"
-            label={
-              live.pcrPos6_8 != null
-                ? "HEI tested positive by first PCR at 6-8 weeks (KHIS)"
-                : "HEI positive by first PCR at 6-8 weeks (HV02-42) — not reported this period"
-            }
-            value={live.pcrPos6_8 != null ? p.pcrPos : isLive ? "n/r" : 0}
+            label="HEI positive by first PCR at 6-8 weeks — VTP EID/HEI form"
+            value={formScope.hasVtp ? p.pcrPos : "—"}
           />
           <IndicatorRow
             code="PMTCT_HEI_ART"
-            label={
-              live.heiLinkage != null
-                ? "HEI HIV+ infants 0-9m linked to CCC (KHIS)"
-                : "HEI HIV+ infants 0-9m linked to CCC — not reported this period"
-            }
-            value={live.heiLinkage != null ? p.heiArt : isLive ? "n/r" : 0}
+            label="HEI HIV+ infants with ART initiated — VTP EID/HEI form"
+            value={formScope.hasVtp ? p.heiArt : "—"}
           />
           <IndicatorRow
             code="% HEI ART"
             label="% of PCR positive initiated on ART"
-            value={
-              live.pcrPos6_8 != null && live.heiLinkage != null
-                ? p.heiArt
-                : isLive
-                  ? "n/r"
-                  : 0
-            }
-            pct={
-              live.pcrPos6_8 != null && live.heiLinkage != null
-                ? heiArtPct
-                : undefined
-            }
+            value={formScope.hasVtp && p.pcrPos > 0 ? p.heiArt : "—"}
+            pct={formScope.hasVtp && p.pcrPos > 0 ? heiArtPct : undefined}
           />
         </div>
 
@@ -1876,7 +2144,7 @@ const Subtab2B = ({
             <ViewDataButton
               title="Delivery Care among HIV+ Mothers"
               data={[]}
-              note="No data — SBA % among HIV+ not disaggregated on KHIS monthly"
+              note="HIV-positive delivery count comes from live KHIS"
             />
           </div>
           <p className="text-sm text-gray-500 mb-4">
@@ -1885,10 +2153,8 @@ const Subtab2B = ({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mb-4">
             <IndicatorRow
               code="Deliveries"
-              label="Number of Deliveries among HIV-positive mothers in supported facilities"
-              value={
-                live.deliveries != null ? p.deliveries : isLive ? "n/r" : 0
-              }
+              label="Number of Deliveries among HIV-positive mothers (KHIS MOH 731-2)"
+              value={live.deliveries != null ? p.deliveries : "n/r"}
             />
             <IndicatorRow
               code="% SBA"
@@ -1917,7 +2183,7 @@ const Subtab2B = ({
             <ViewDataButton
               title="HEI Cohort Follow-up Trend"
               data={[]}
-              note="No data — cohort follow-up not reported on KHIS monthly"
+              note="HEI cohort follow-up comes from the HEI outcome form"
             />
           </div>
           <p className="text-sm text-gray-500 mb-4">
@@ -1929,34 +2195,34 @@ const Subtab2B = ({
               code="PMTCT_FO"
               label={
                 liveHeiPair
-                  ? "Number of HEI in the 18–24 month net cohort (KHIS HV02-50)"
-                  : "Number of HEI in the 18–24 month net cohort (HV02-50) — not reported this period"
+                  ? "Number of HEI in the 18–24 month net cohort (HEI outcome form)"
+                  : "Number of HEI in the 18–24 month net cohort — no HEI outcome form data"
               }
-              value={liveHeiPair ? p.cohortEnrolled : isLive ? "n/r" : 0}
+              value={liveHeiPair ? p.cohortEnrolled : "—"}
             />
             <IndicatorRow
               code="PMTCT_FO (−)"
               label={
                 liveHeiPair
-                  ? "Number of HEI antibody-negative at 18 months (KHIS)"
-                  : "Number of HEI antibody-negative at 18 months — not reported this period"
+                  ? "Number of HEI antibody-negative at 18 months (HEI outcome form)"
+                  : "Number of HEI antibody-negative at 18 months — no HEI outcome form data"
               }
-              value={liveHeiPair ? p.cohortNegative : isLive ? "n/r" : 0}
+              value={liveHeiPair ? p.cohortNegative : "—"}
             />
             <IndicatorRow
               code="% Negative"
               label={
                 liveHeiPair
-                  ? "% of HEI discharged HIV Negative at 18-24 months (KHIS)"
-                  : "% of HEI discharged HIV Negative at 18-24 months — not reported this period"
+                  ? "% of HEI discharged HIV Negative at 18-24 months (HEI outcome form)"
+                  : "% of HEI discharged HIV Negative at 18-24 months — no HEI outcome form data"
               }
-              value={liveHeiPair ? p.cohortNegative : isLive ? "n/r" : 0}
+              value={liveHeiPair ? p.cohortNegative : "—"}
               pct={liveHeiPair ? heiNegativePct : undefined}
             />
             <IndicatorRow
               code="% Pairs"
-              label="% of mother–baby pair across the continuum of care reported at 18-24 months — not reported on KHIS monthly"
-              value={isLive ? "n/r" : 0}
+              label="% of mother–baby pair across the continuum of care reported at 18-24 months — HEI outcome form"
+              value="—"
               isPct
             />
           </div>

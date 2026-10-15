@@ -11,6 +11,8 @@ import {
 } from "recharts";
 import { Landmark } from "lucide-react";
 import { ViewDataButton } from "@/components/view-data";
+import { ChartActions } from "@/components/chart-actions";
+import type { ChartInsight } from "@/components/ai-assistant";
 import { COUNTY_COLORS } from "./shared";
 
 type IndicatorCountyRow = {
@@ -32,15 +34,26 @@ export function PartnerIndicatorChart({
   subtitle,
   rows,
   counties,
+  onAskAi,
+  onSaveToPlayground,
 }: {
   title: string;
   subtitle: string;
   rows: IndicatorCountyRow[];
   counties: string[];
+  onAskAi?: (chart: ChartInsight) => void;
+  onSaveToPlayground?: (chart: ChartInsight) => void;
 }) {
   const data = rows.map((r) => {
     const obj: Record<string, number | string> = { label: r.label };
     for (const v of r.values) obj[v.county] = v.value;
+    return obj;
+  });
+  // Same rows for the View Data table, but a not-reported cell renders as a
+  // dash rather than 0 — a missing value must never look like a real zero.
+  const tableData = rows.map((r) => {
+    const obj: Record<string, number | string> = { label: r.label };
+    for (const v of r.values) obj[v.county] = v.notReported ? "—" : v.value;
     return obj;
   });
   return (
@@ -72,10 +85,23 @@ export function PartnerIndicatorChart({
               </span>
             ))}
           </div>
+          {onAskAi && onSaveToPlayground && (
+            <ChartActions
+              chart={{
+                id: `indicator-${title}`,
+                title,
+                summary: subtitle,
+                prompt:
+                  "Which county is furthest from target on these indicators?",
+              }}
+              onAskAi={onAskAi}
+              onSaveToPlayground={onSaveToPlayground}
+            />
+          )}
           <ViewDataButton
             title={title}
-            data={data}
-            note="% per county — rows match the bars above"
+            data={tableData}
+            note="% per county — rows match the bars above; — = nothing reported or entered"
             detail={{
               formula:
                 "each indicator shown as % per county — target line from the VTP / readiness target set",
@@ -83,11 +109,16 @@ export function PartnerIndicatorChart({
                 r.values.map((v) => ({
                   label: `${r.full} · ${v.county}`,
                   value: v.notReported ? 0 : v.value,
-                  source: v.live ? ("live" as const) : ("n/r" as const),
+                  source: v.notReported
+                    ? ("n/r" as const)
+                    : v.entered
+                      ? ("entry" as const)
+                      : ("live" as const),
                 })),
               ),
               notes: [
-                "Colored bars are real KHIS values for the selected month (● badge); blank bars (n/r) are indicators not reported on KHIS for these counties this period — nothing is shown rather than a fake baseline.",
+                "Bars ● are live KHIS values for the selected month; bars ★ come from an in-app data-entry form.",
+                "Blank bars (n/r) mean nothing was reported or entered for that county this period - an empty result is shown rather than a fake baseline value.",
               ],
             }}
           />
@@ -122,7 +153,15 @@ export function PartnerIndicatorChart({
                 );
                 const entry = r?.values.find((x) => x.county === String(name));
                 if (entry?.notReported) {
-                  return ["Not reported on KHIS this period", String(name)];
+                  // Form-driven cards have no KHIS value to be "not reported" —
+                  // say what is actually missing.
+                  const formDriven = r?.values.some((x) => x.entered) ?? false;
+                  return [
+                    formDriven
+                      ? "No assessment entered for this scope"
+                      : "Not reported on KHIS this period",
+                    String(name),
+                  ];
                 }
                 return [
                   `${Number(v).toFixed(1)}%${
@@ -135,7 +174,7 @@ export function PartnerIndicatorChart({
                 const r = rows.find((row) => row.label === label);
                 return r
                   ? r.values.every((x) => x.notReported)
-                    ? `${r.full} · no monthly KHIS data`
+                    ? `${r.full} · nothing reported or entered`
                     : `${r.full} · target ≥ ${r.target}%`
                   : String(label);
               }}

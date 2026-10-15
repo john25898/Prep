@@ -19,4 +19,10 @@ node_modules
 # KHIS probe/verification scratch files (never commit)
 scripts/probe-*.mjs
 scripts/*-output.txt
+scripts/_*
 vtp_verify.png
+
+# Local dev scratch output
+check.txt
+render.txt
+dev-server.log

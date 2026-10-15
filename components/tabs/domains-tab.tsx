@@ -39,7 +39,8 @@ import { MortalityTab } from "@/components/tabs/mortality-tab";
 import { ClinicalTab } from "@/components/tabs/clinical-tab";
 import { MpdsrMeetingDialog } from "@/components/mpdsr-meeting-dialog";
 import { CauseOfDeathDialog } from "@/components/cause-of-death-dialog";
-import type { ChartInsight } from "@/components/ai-assistant";
+import { AIAssistant, type ChartInsight } from "@/components/ai-assistant";
+import { ChartActions } from "@/components/chart-actions";
 import { ViewDataButton } from "@/components/view-data";
 import { JT_COVERAGE_COUNTIES, readinessForCounties } from "./home/shared";
 
@@ -73,7 +74,7 @@ const COVERAGE_INDICATORS: IndicatorDef[] = [
     baseline: "70% (national)",
     y1: 90,
     y2: 95,
-    note: "Source: KHIS (monthly)",
+    note: "Source: KHIS (monthly) — MOH 711 skilled deliveries ÷ Estimated Deliveries ÷ 12 (KHIS SBA % definition; KHIS stores the denominator annually)",
   },
   {
     code: "2.3",
@@ -334,12 +335,18 @@ export function DomainsTab({
       {activeSubtab === "1" && (
         <ClinicalTab onSaveToPlayground={onSaveToPlayground} />
       )}
-      {activeSubtab === "2" && <CoverageSection />}
-      {activeSubtab === "3" && <ReadinessSection />}
+      {activeSubtab === "2" && (
+        <CoverageSection onSaveToPlayground={onSaveToPlayground} />
+      )}
+      {activeSubtab === "3" && (
+        <ReadinessSection onSaveToPlayground={onSaveToPlayground} />
+      )}
       {activeSubtab === "4" && (
         <MpdsrSection onSaveToPlayground={onSaveToPlayground} />
       )}
-      {activeSubtab === "5" && <DataSystemsSection />}
+      {activeSubtab === "5" && (
+        <DataSystemsSection onSaveToPlayground={onSaveToPlayground} />
+      )}
     </div>
   );
 }
@@ -425,10 +432,17 @@ interface CountyCoverageLive {
   mmr?: number;
   md?: number;
   lb?: number;
+  sk?: number;
+  ed?: number;
 }
 
-function CoverageSection() {
+function CoverageSection({
+  onSaveToPlayground,
+}: {
+  onSaveToPlayground?: (chart: ChartInsight) => void;
+}) {
   const { filter, pe, peLabel } = useGeoFilter();
+  const [activeChart, setActiveChart] = useState<ChartInsight | null>(null);
   // Scope the county strip to the CURRENT partner — when a specific county /
   // sub-county / facility is selected in the filter bar, only that scope shows.
   const counties = useMemo(() => {
@@ -479,7 +493,7 @@ function CoverageSection() {
                 filter.partner,
               )}&roster=1`;
         return fetch(
-          `/api/khis?${q}&pe=${pe}&indicators=pmtct_anc1_visits,anc4_visits,anc1_4_dropout,deliv_normal,deliv_assisted_vaginal,deliv_breach,deliv_caesarian,pnc_48h_mother_care,pnc_48h_infant_care,kmc,chlorhexidine,stillbirths,mmr,maternal_deaths_reported,moh711_live_births`,
+          `/api/khis?${q}&pe=${pe}&indicators=pmtct_anc1_visits,anc4_visits,anc1_4_dropout,deliv_normal,deliv_assisted_vaginal,deliv_breach,deliv_caesarian,estimated_deliveries,pnc_48h_mother_care,pnc_48h_infant_care,kmc,chlorhexidine,stillbirths,mmr,maternal_deaths_reported,moh711_live_births`,
         )
           .then((r) => (r.ok ? r.json() : null))
           .catch(() => null);
@@ -532,17 +546,35 @@ function CoverageSection() {
             ? Math.round((md / lb) * 100000 * 10) / 10
             : undefined
           : r1(ind("mmr"));
-        // SBA % — computed locally: skilled deliveries (MOH 711 modes) ÷ ANC1
-        // attendance (count/count, so it sums correctly at every scope).
+        // SBA % — computed locally: skilled deliveries (MOH 711 modes) ÷
+        // Estimated Deliveries. Both sides are exactly what KHIS's own SBA %
+        // indicator uses (numerator #{jaPrPmor6WV}+#{Kx64gGqaFVq}+
+        // #{sMqM8DwiAaj}+#{rAZBTMa7Jy3}, denominator #{tmlMpIqHimf}) —
+        // verified from /indicators/sAWX6GB722p.json. NOT ÷ ANC1: MOH 711
+        // records facility deliveries only, so dividing by ANC1 attendance
+        // gave structurally impossible figures (Embu west 497 ÷ 274 = 181%).
+        // count/count, so it sums correctly at every scope.
         const sbaCount = [
           "deliv_normal",
           "deliv_assisted_vaginal",
           "deliv_breach",
           "deliv_caesarian",
         ].reduce((acc, k) => acc + (ind(k) ?? 0), 0);
+        // KHIS stores "Estimated Deliveries" (tmlMpIqHimf) as an ANNUAL
+        // catchment figure even when pe is a single month — verified against
+        // KHIS's own SBA % indicator (sAWX6GB722p), May 2025:
+        //   Kakamega County General Hospital 67 ÷ (1,779 ÷ 12) = 45.2%
+        //     vs KHIS 44.34%
+        //   AP Line Dispensary                1 ÷ (1,116 ÷ 12) =  1.1%
+        //     vs KHIS 1.06%
+        // Dividing by the raw annual value makes the denominator ~12x too
+        // large and collapses SBA (Nuru Ya Mtoto 4.9%, AP Line 0.1%).
+        const expectedRaw = ind("estimated_deliveries");
+        const expected =
+          expectedRaw != null && expectedRaw > 0 ? expectedRaw / 12 : null;
         const sba =
-          anc1 != null && anc1 > 0 && sbaCount > 0
-            ? Math.round((sbaCount / anc1) * 1000) / 10
+          expected != null && expected > 0 && sbaCount > 0
+            ? Math.round((sbaCount / expected) * 1000) / 10
             : undefined;
         // PNC % — computed locally from MOH 711 counts (same rationale as
         // SBA): Early PNC = mothers with PNC ≤48h ÷ total deliveries;
@@ -568,6 +600,8 @@ function CoverageSection() {
           mmr: mmrLive,
           md: md ?? undefined,
           lb: lb ?? undefined,
+          sk: sbaCount > 0 ? sbaCount : undefined,
+          ed: expected != null && expected > 0 ? expected : undefined,
         };
       });
       if (!cancelled) {
@@ -617,9 +651,19 @@ function CoverageSection() {
       rows.length > 1 && lbMd > 0 && mdSum > 0
         ? Math.round((mdSum / lbMd) * 100000 * 10) / 10
         : avg("mmr");
+    // SBA across several counties = Σskilled deliveries ÷ ΣEstimated
+    // Deliveries (counties that reported the denominator only) — averaging
+    // per-county ratios would let one small county dominate the partner view.
+    const edRows = rows.filter((r) => r.ed != null && r.ed > 0);
+    const skSum = edRows.reduce((a, r) => a + (r.sk ?? 0), 0);
+    const edSum = edRows.reduce((a, r) => a + (r.ed as number), 0);
+    const sba =
+      rows.length > 1 && edSum > 0 && skSum > 0
+        ? Math.round((skSum / edSum) * 1000) / 10
+        : avg("sba");
     return {
       anc4Pct: avg("anc4Pct"),
-      sba: avg("sba"),
+      sba,
       pnc: avg("pnc"),
       pncInfant: avg("pncInfant"),
       kmc: sum("kmc"),
@@ -637,6 +681,17 @@ function CoverageSection() {
       : filter.county
         ? filter.county
         : partnerLabel;
+
+  // "Coverage by County" is only accurate at county scope — at sub-county /
+  // facility scope the scope name is the subject, so the heading follows the
+  // filter instead of claiming a county breakdown.
+  const coverageCardTitle = filter.facility
+    ? `Coverage — ${filter.facility}`
+    : filter.subCounty
+      ? `Coverage — ${filter.subCounty} Sub-County`
+      : filter.county
+        ? `Coverage by County — ${filter.county} (${partnerLabel})`
+        : `Coverage by County — ${partnerLabel}`;
   // At a single-county / sub-county / facility scope the route's own scope
   // label (e.g. "Embu County · jamii-tekelezi (49 facilities)") is the most
   // precise; at multi-county partner scope it would only name the first
@@ -651,13 +706,38 @@ function CoverageSection() {
         }`
       : `No KHIS data for ${peLabel} — shown blank`;
 
-  // Live current values per indicator code (2.1–2.8) — real KHIS only, no
-  // baseline fallbacks. Missing = blank ("No data").
-  const liveCurrent: Record<string, number | null> = {
+  // ---- >100% guard --------------------------------------------------------
+  // KHIS counts are not internally consistent, and at facility / sub-county
+  // scope a PNC numerator can exceed its denominator (mothers/infants counted
+  // for a period in which the facility reported fewer deliveries/live births,
+  // or women who delivered elsewhere presenting for PNC). PNC / newborn PNC
+  // therefore come out above 100% (e.g. Turkana PNC 103.76). SBA no longer can
+  // in normal operation — it is now ÷ Estimated Deliveries ÷ 12 (the KHIS SBA
+  // denominator, converted from its annual storage to a monthly equivalent);
+  // the old ÷ ANC1 version gave Embu west 497 ÷ 274 = 181.4%.
+  // The bar and the headline figure are clamped to 100% and flagged with * —
+  // the same convention as the Home page — while the raw KHIS ratio is
+  // preserved verbatim in View Data.
+  const clampPct = (v?: number | null) =>
+    v == null ? null : Math.min(100, Math.round(v * 10) / 10);
+  const rawPct: Record<string, number | null> = {
     "2.1": live?.anc4Pct ?? null,
     "2.2": live?.sba ?? null,
     "2.3": live?.pnc ?? null,
     "2.4": live?.pncInfant ?? null,
+  };
+  const clampedCodes = Object.keys(rawPct).filter(
+    (k) => rawPct[k] != null && (rawPct[k] as number) > 100,
+  );
+  const star = (code: string) => (clampedCodes.includes(code) ? "*" : "");
+
+  // Live current values per indicator code (2.1–2.8) — real KHIS only, no
+  // baseline fallbacks. Missing = blank ("No data").
+  const liveCurrent: Record<string, number | null> = {
+    "2.1": clampPct(live?.anc4Pct),
+    "2.2": clampPct(live?.sba),
+    "2.3": clampPct(live?.pnc),
+    "2.4": clampPct(live?.pncInfant),
     "2.5": live?.kmc ?? null,
     "2.6": live?.chlorhexidine ?? null,
     "2.7": live?.stillbirths ?? null,
@@ -668,9 +748,10 @@ function CoverageSection() {
     const c = coverage?.[name];
     return {
       name,
-      anc4: c?.anc4Pct ?? null,
-      sba: c?.sba ?? null,
-      pnc: c?.pnc ?? null,
+      anc4: clampPct(c?.anc4Pct),
+      sba: clampPct(c?.sba),
+      pnc: clampPct(c?.pnc),
+      pncInfant: clampPct(c?.pncInfant),
     };
   });
 
@@ -684,14 +765,24 @@ function CoverageSection() {
         <p className="text-sm mt-1 opacity-80">
           {liveReady ? (
             <>
-              Only <b>{live?.anc4Pct != null ? `${live.anc4Pct}%` : "—"}</b> of
-              pregnant women reach 4+ ANC visits and{" "}
-              <b>{live?.sba != null ? `${live.sba}%` : "—"}</b> deliver with a
-              skilled attendant — far short of the 90:90:80:80 ambition. Every
-              missed ANC visit is a missed opportunity for HIV testing, syphilis
-              screening, and delivery planning; every facility-only delivery is
-              a risk for mother and baby. Closing the gap means tracing each
-              mother–baby pair from first contact through the postnatal period.
+              Only{" "}
+              <b>
+                {clampPct(live?.anc4Pct) != null
+                  ? `${clampPct(live?.anc4Pct)}%`
+                  : "—"}
+              </b>{" "}
+              of pregnant women reach 4+ ANC visits and{" "}
+              <b>
+                {clampPct(live?.sba) != null
+                  ? `${clampPct(live?.sba)}%${star("2.2")}`
+                  : "—"}
+              </b>{" "}
+              deliver with a skilled attendant — far short of the 90:90:80:80
+              ambition. Every missed ANC visit is a missed opportunity for HIV
+              testing, syphilis screening, and delivery planning; every
+              facility-only delivery is a risk for mother and baby. Closing the
+              gap means tracing each mother–baby pair from first contact through
+              the postnatal period.
             </>
           ) : (
             <>
@@ -709,32 +800,73 @@ function CoverageSection() {
         <SubtabKpi
           code="2.1 · ANC 4+"
           title="4+ ANC Visits"
-          value={live?.anc4Pct != null ? `${live.anc4Pct}%` : "—"}
+          value={
+            clampPct(live?.anc4Pct) != null
+              ? `${clampPct(live?.anc4Pct)}%${star("2.1")}`
+              : "—"
+          }
           sub={`Target ≥ 90% (Y2) · ${liveSub}`}
-          tone={live?.anc4Pct != null ? toneOf(live.anc4Pct, 90) : "na"}
+          tone={
+            clampPct(live?.anc4Pct) != null
+              ? toneOf(clampPct(live?.anc4Pct) as number, 90)
+              : "na"
+          }
         />
         <SubtabKpi
           code="2.2 · SBA"
           title="Skilled Birth Attendance"
-          value={live?.sba != null ? `${live.sba}%` : "—"}
+          value={
+            clampPct(live?.sba) != null
+              ? `${clampPct(live?.sba)}%${star("2.2")}`
+              : "—"
+          }
           sub={`Target ≥ 95% (Y2) · ${liveSub}`}
-          tone={live?.sba != null ? toneOf(live.sba, 95) : "na"}
+          tone={
+            clampPct(live?.sba) != null
+              ? toneOf(clampPct(live?.sba) as number, 95)
+              : "na"
+          }
         />
         <SubtabKpi
           code="2.3 · PNC"
           title="Maternal PNC ≤ 48 hrs"
-          value={live?.pnc != null ? `${live.pnc}%` : "—"}
+          value={
+            clampPct(live?.pnc) != null
+              ? `${clampPct(live?.pnc)}%${star("2.3")}`
+              : "—"
+          }
           sub={`Target ≥ 80% (Y2) · ${liveSub}`}
-          tone={live?.pnc != null ? toneOf(live.pnc, 80) : "na"}
+          tone={
+            clampPct(live?.pnc) != null
+              ? toneOf(clampPct(live?.pnc) as number, 80)
+              : "na"
+          }
         />
         <SubtabKpi
           code="2.4 · Newborn PNC"
           title="Newborn PNC ≤ 48 hrs"
-          value={live?.pncInfant != null ? `${live.pncInfant}%` : "—"}
+          value={
+            clampPct(live?.pncInfant) != null
+              ? `${clampPct(live?.pncInfant)}%${star("2.4")}`
+              : "—"
+          }
           sub={`Target ≥ 80% (Y2) · ${liveSub}`}
-          tone={live?.pncInfant != null ? toneOf(live.pncInfant, 80) : "na"}
+          tone={
+            clampPct(live?.pncInfant) != null
+              ? toneOf(clampPct(live?.pncInfant) as number, 80)
+              : "na"
+          }
         />
       </div>
+      {clampedCodes.length > 0 && (
+        <p className="text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-md px-3 py-2">
+          <b>* Clamped to 100%.</b> Raw KHIS for {scopeCoverageLabel}:{" "}
+          {clampedCodes.map((c) => `${c} = ${rawPct[c]}%`).join(", ")} — the
+          postnatal numerator is counted for the period while the delivery /
+          live-birth denominator is under-reported, so the ratio exceeds 100%.
+          View Data keeps the raw ratio.
+        </p>
+      )}
 
       {/* Headline tracking lives on Home — Results & Impact */}
       <div className="bg-white rounded-lg p-5 border border-slate-200 flex flex-wrap items-center justify-between gap-3">
@@ -762,26 +894,31 @@ function CoverageSection() {
       <div className="bg-white rounded-lg p-6 border border-slate-200">
         <div className="flex flex-wrap items-center justify-between gap-2 mb-1">
           <h3 className="text-lg font-semibold text-gray-900">
-            Coverage by County — {partnerLabel}
-            {filter.facility
-              ? ` · ${filter.facility}`
-              : filter.subCounty
-                ? ` · ${filter.subCounty}`
-                : filter.county
-                  ? ` · ${filter.county}`
-                  : ""}
+            {coverageCardTitle}
           </h3>
           <div className="flex items-center gap-2 flex-wrap">
             <span className="px-2.5 py-1 rounded-full bg-teal-50 text-teal-700 border border-teal-200 text-xs font-semibold whitespace-nowrap">
               {liveSub}
             </span>
+            <ChartActions
+              chart={{
+                id: "coverage-by-county",
+                title: coverageCardTitle,
+                summary:
+                  "ANC4, SBA, PNC and newborn PNC per county — the 90:90:80:80 pillars (live KHIS where reported).",
+                prompt:
+                  "Which county lags on coverage and what drives the gap?",
+              }}
+              onAskAi={setActiveChart}
+              onSaveToPlayground={onSaveToPlayground}
+            />
             <ViewDataButton
-              title={`Coverage by County — ${partnerLabel}`}
+              title={coverageCardTitle}
               data={countyCoverageData}
               note={`${liveSub} · % of eligible women (county-level average)`}
               detail={{
                 formula:
-                  "ANC4 % = women with 4+ ANC visits ÷ expected pregnancies × 100 · SBA % = skilled deliveries ÷ ANC1 attendance × 100 · PNC % = mothers with PNC ≤48h ÷ total deliveries × 100 · Continuity % = infants with PNC ≤48h ÷ live births × 100",
+                  "ANC4 % = women with 4+ ANC visits ÷ 1st ANC visits (ANC1) × 100 (or 100 − ANC 1-4 dropout rate where KHIS reports it) · SBA % = skilled deliveries (normal + assisted vaginal + breech + caesarean) ÷ (Estimated Deliveries ÷ 12) × 100 · Maternal PNC % = mothers with PNC ≤48h ÷ skilled deliveries × 100 · Newborn PNC % = infants with PNC ≤48h ÷ MOH 711 live births × 100 · MMR = maternal deaths in facilities ÷ live births × 100,000",
                 inputs: counties.flatMap((name) => {
                   const c = coverage?.[name];
                   return [
@@ -800,16 +937,44 @@ function CoverageSection() {
                         c?.sba != null ? ("live" as const) : ("n/r" as const),
                     },
                     {
+                      label: `${name} · Skilled deliveries (count)`,
+                      value: c?.sk ?? null,
+                      source:
+                        c?.sk != null ? ("live" as const) : ("n/r" as const),
+                    },
+                    {
+                      label: `${name} · Estimated Deliveries (annual ÷ 12 — SBA denominator)`,
+                      value: c?.ed ?? null,
+                      source:
+                        c?.ed != null ? ("live" as const) : ("n/r" as const),
+                    },
+                    {
                       label: `${name} · Maternal PNC ≤48h %`,
                       value: c?.pnc ?? null,
                       source:
                         c?.pnc != null ? ("live" as const) : ("n/r" as const),
+                    },
+                    {
+                      label: `${name} · Newborn PNC ≤48h %`,
+                      value: c?.pncInfant ?? null,
+                      source:
+                        c?.pncInfant != null
+                          ? ("live" as const)
+                          : ("n/r" as const),
                     },
                   ];
                 }),
                 notes: [
                   `${liveSub} — live values come from KHIS per county; where KHIS reports none the cell is blank (no baseline constants).`,
                   "Percentages are county-level KHIS values, not summed across facilities.",
+                  "SBA % = MOH 711 skilled deliveries ÷ Estimated Deliveries — the exact numerator and denominator KHIS's own 'Deliveries conducted by Skilled Birth Attendants (%)' indicator uses (verified via /indicators/sAWX6GB722p.json). KHIS stores Estimated Deliveries as an ANNUAL catchment figure, so it is converted to a monthly equivalent (÷ 12) before dividing — verified May 2025: Kakamega County General 67 ÷ (1,779 ÷ 12) = 45.2% vs KHIS 44.34%; AP Line Dispensary 1 ÷ (1,116 ÷ 12) = 1.1% vs KHIS 1.06%. Facilities that do not report Estimated Deliveries are excluded from the SBA ratio.",
+                  clampedCodes.length > 0
+                    ? `Clamped for display: ${clampedCodes
+                        .map((c) => `${c} = ${rawPct[c]}% (raw)`)
+                        .join(
+                          ", ",
+                        )} — mothers/infants are counted for the period while the delivery or live-birth denominator is under-reported, so the ratio exceeds 100%.`
+                    : "All ratios within 0–100%.",
                 ],
               }}
             />
@@ -848,6 +1013,12 @@ function CoverageSection() {
               fill="#06b6d4"
               radius={[4, 4, 0, 0]}
             />
+            <Bar
+              dataKey="pncInfant"
+              name="Newborn PNC ≤ 48h"
+              fill="#0ea5e9"
+              radius={[4, 4, 0, 0]}
+            />
           </BarChart>
         </ResponsiveContainer>
       </div>
@@ -862,10 +1033,24 @@ function CoverageSection() {
               key={ind.code}
               indicator={ind}
               current={liveCurrent[ind.code] ?? null}
+              flag={star(ind.code)}
             />
           ))}
         </div>
+        {clampedCodes.length > 0 && (
+          <p className="text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-md px-3 py-2 mt-4">
+            <b>* Clamped to 100%.</b> Raw KHIS for {scopeCoverageLabel}:{" "}
+            {clampedCodes.map((c) => `${c} = ${rawPct[c]}%`).join(", ")}. KHIS
+            counts mothers / infants receiving postnatal care within this scope
+            against a delivery or live-birth denominator that is reported
+            elsewhere (or in another month), so the ratio exceeds 100%.
+          </p>
+        )}
       </div>
+      <AIAssistant
+        chartContext={activeChart}
+        onSaveToPlayground={onSaveToPlayground}
+      />
     </div>
   );
 }
@@ -874,9 +1059,14 @@ function CoverageSection() {
 // 3. Readiness & Safe Systems — Domain 3 framework + live assessment content
 // ---------------------------------------------------------------------------
 
-function ReadinessSection() {
+function ReadinessSection({
+  onSaveToPlayground,
+}: {
+  onSaveToPlayground?: (chart: ChartInsight) => void;
+}) {
   const allAssessments = useAssessments();
   const { filter, peLabel } = useGeoFilter();
+  const [activeChart, setActiveChart] = useState<ChartInsight | null>(null);
 
   // County readiness is scoped to the CURRENT partner's counties — computed
   // live from the assessments entered below (no hardcoded county list).
@@ -891,7 +1081,6 @@ function ReadinessSection() {
     () => readinessForCounties(allAssessments, rCounties).avg,
     [allAssessments, rCounties],
   );
-
   const preChecklist = [
     {
       step: "1",
@@ -982,7 +1171,6 @@ function ReadinessSection() {
     },
   ];
 
-  // Partner county readiness — computed live from entered assessments.
   const countyReadiness = rCounties.map((county) => {
     const r = readinessForCounties(allAssessments, [county]);
     return {
@@ -1178,10 +1366,20 @@ function ReadinessSection() {
             <span className="px-2.5 py-1 rounded-full bg-lime-50 text-lime-700 border border-lime-200 text-xs font-semibold whitespace-nowrap">
               Live · facility assessments · {peLabel}
             </span>
+            <ChartActions
+              chart={{
+                id: "readiness-by-county",
+                title: `Facility Readiness by County — ${getPartner(filter.partner)?.shortName ?? "Partner"}`,
+                summary:
+                  "Average readiness score per county computed live from the entered facility assessments (Domain 3 tick-lists).",
+                prompt:
+                  "Which counties are least ready and which enablers should we fix first?",
+              }}
+              onAskAi={setActiveChart}
+              onSaveToPlayground={onSaveToPlayground}
+            />
             <ViewDataButton
-              title={`Facility Readiness by County — ${
-                getPartner(filter.partner)?.shortName ?? "Partner"
-              }`}
+              title={`Facility Readiness by County — ${getPartner(filter.partner)?.shortName ?? "Partner"}`}
               data={countyReadiness}
               note="Readiness = average of the entered facility assessments per county (no KHIS source — assessment tick-lists)."
             />
@@ -1257,7 +1455,11 @@ function ReadinessSection() {
       </div>
 
       {/* Live readiness assessments (existing content) */}
-      <AssessmentTab />
+      <AssessmentTab onSaveToPlayground={onSaveToPlayground} />
+      <AIAssistant
+        chartContext={activeChart}
+        onSaveToPlayground={onSaveToPlayground}
+      />
     </div>
   );
 }
@@ -1275,6 +1477,7 @@ function MpdsrSection({
   const partner = filter.partner || "jamii-tekelezi";
   const [showMeetingDialog, setShowMeetingDialog] = useState(false);
   const [showCodDialog, setShowCodDialog] = useState(false);
+  const [activeChart, setActiveChart] = useState<ChartInsight | null>(null);
   // Data-entry sources for the two Domain-4 items KHIS does not report:
   // 4.3 monthly meetings + cause-of-death disaggregation.
   const meetingEntries = useMpdsrMeetings();
@@ -1620,6 +1823,18 @@ function MpdsrSection({
                 ? `Live · data entry · ${codDeathsTotal} deaths (all months)`
                 : "No entries yet — add via the cause-of-death form"}
             </span>
+            <ChartActions
+              chart={{
+                id: "cause-of-death",
+                title: "Cause of Death Disaggregation (4.1 / 4.2)",
+                summary:
+                  "Where maternal and neonatal deaths concentrate by cause — entered via the data entry form (not on KHIS).",
+                prompt:
+                  "Which causes dominate and what readiness enablers address them?",
+              }}
+              onAskAi={setActiveChart}
+              onSaveToPlayground={onSaveToPlayground}
+            />
             <ViewDataButton
               title="Cause of Death Disaggregation"
               data={causeOfDeathData}
@@ -1669,6 +1884,18 @@ function MpdsrSection({
             <span className="px-2 py-1 rounded-md bg-slate-100 text-slate-600 text-xs font-bold">
               Audit % live (KHIS) · meetings % live (data entry)
             </span>
+            <ChartActions
+              chart={{
+                id: "mpdsr-audit-loop",
+                title: "The MPDSR Audit Loop — % vs Target (4.1 – 4.3)",
+                summary:
+                  "Audit % (live KHIS) vs target, with meeting % from data entry — the loop from death notification to action.",
+                prompt:
+                  "Where does the audit loop break and what should the review act on?",
+              }}
+              onAskAi={setActiveChart}
+              onSaveToPlayground={onSaveToPlayground}
+            />
             <ViewDataButton
               title="MPDSR Audit Loop — % vs Target"
               data={chartData}
@@ -1718,6 +1945,17 @@ function MpdsrSection({
                 ? `Live · KHIS ${peLabel} · ${mCounties.length} counties`
                 : "Loading KHIS…"}
             </span>
+            <ChartActions
+              chart={{
+                id: "mpdsr-by-county",
+                title: `MPDSR by County — ${partner}`,
+                summary:
+                  "% of deaths audited vs % of facilities holding monthly MPDSR/QI meetings, per county.",
+                prompt: "Which counties are weakest on audit and meetings?",
+              }}
+              onAskAi={setActiveChart}
+              onSaveToPlayground={onSaveToPlayground}
+            />
             <ViewDataButton
               title={`MPDSR by County — ${partner}`}
               data={countyMpdsrData}
@@ -1783,6 +2021,10 @@ function MpdsrSection({
           ))}
         </div>
       </div>
+      <AIAssistant
+        chartContext={activeChart}
+        onSaveToPlayground={onSaveToPlayground}
+      />
     </div>
   );
 }
@@ -1791,8 +2033,13 @@ function MpdsrSection({
 // 5. Data Systems
 // ---------------------------------------------------------------------------
 
-function DataSystemsSection() {
+function DataSystemsSection({
+  onSaveToPlayground,
+}: {
+  onSaveToPlayground?: (chart: ChartInsight) => void;
+}) {
   const { filter, pe, peLabel } = useGeoFilter();
+  const [activeChart, setActiveChart] = useState<ChartInsight | null>(null);
   const dCounties = useMemo(() => {
     if (filter.facility) return [filter.facility];
     if (filter.subCounty) return [filter.subCounty];
@@ -1808,7 +2055,9 @@ function DataSystemsSection() {
   );
 
   // Live KHIS reporting rate per county: facilities that submitted the MOH
-  // 731 ANC row / total facilities in the county roster (May 2025).
+  // 711 New ANC clients row / total facilities in the county roster (May 2025).
+  // NOTE: only the PRESENCE of a value is used (reporting=1), not the count —
+  // so this is a submission-rate proxy, not an ANC volume.
   const [khisByCounty, setKhisByCounty] = useState<Record<
     string,
     number
@@ -2038,24 +2287,38 @@ function DataSystemsSection() {
                     filter.facility
                       ? "1 facility"
                       : filter.subCounty
-                        ? `${dCounties.length} sub-county facilities`
+                        ? dCounties.length === 1
+                          ? "1 sub-county"
+                          : `${dCounties.length} sub-counties`
                         : filter.county
                           ? "1 county"
                           : `${dCounties.length} counties`
-                  } submitting MOH 731`
+                  } submitting MOH 711`
                 : "Loading KHIS…"}
             </span>
+            <ChartActions
+              chart={{
+                id: "data-systems-by-county",
+                title: `Data Systems by County — ${dPartnerLabel}`,
+                summary:
+                  "KHIS reporting (facilities submitting MOH 711 New ANC clients), EMR and DQA per county — the three gears of a healthy data system.",
+                prompt:
+                  "Which counties have weak reporting and what should we fix?",
+              }}
+              onAskAi={setActiveChart}
+              onSaveToPlayground={onSaveToPlayground}
+            />
             <ViewDataButton
               title={`Data Systems by County — ${dPartnerLabel}`}
               data={countyDataData}
-              note="KHIS = live facilities reporting MOH 731 · EMR & DQA blank (no source wired)"
+              note="KHIS = live facilities reporting MOH 711 New ANC clients · EMR & DQA blank (no source wired)"
             />
           </div>
         </div>
         <p className="text-sm text-gray-500 mb-4">
-          Timely KHIS submission (facilities reporting the MOH 731 ANC row in{" "}
-          {peLabel}), active EMR capturing mother–baby pairs, and monthly DQA —
-          the three gears of a healthy data system.
+          Timely KHIS submission (facilities reporting the MOH 711 New ANC
+          clients element in {peLabel}), active EMR capturing mother–baby pairs,
+          and monthly DQA — the three gears of a healthy data system.
         </p>
         <ResponsiveContainer width="100%" height={260}>
           <BarChart data={countyDataData} margin={{ left: 0, right: 12 }}>
@@ -2153,6 +2416,10 @@ function DataSystemsSection() {
         semi-annual → annual) and review platforms live on the Home page under
         Governance &amp; Reporting Cadence.
       </p>
+      <AIAssistant
+        chartContext={activeChart}
+        onSaveToPlayground={onSaveToPlayground}
+      />
     </div>
   );
 }
@@ -2164,6 +2431,9 @@ function DataSystemsSection() {
 interface IndicatorBarProps {
   indicator: IndicatorDef;
   current: number | null;
+  // Optional marker appended to the value (e.g. "*" when the raw KHIS ratio
+  // was >100% and the displayed figure is clamped).
+  flag?: string;
 }
 
 const UNIT_SUFFIX: Record<NonNullable<IndicatorDef["unit"]>, string> = {
@@ -2173,7 +2443,7 @@ const UNIT_SUFFIX: Record<NonNullable<IndicatorDef["unit"]>, string> = {
   "per-100000": " per 100,000 live births",
 };
 
-function IndicatorBar({ indicator, current }: IndicatorBarProps) {
+function IndicatorBar({ indicator, current, flag }: IndicatorBarProps) {
   const unit = indicator.unit ?? "percent";
   const suffix = UNIT_SUFFIX[unit];
   const y2Target = indicator.y2;
@@ -2207,8 +2477,8 @@ function IndicatorBar({ indicator, current }: IndicatorBarProps) {
     current === null
       ? "No data"
       : unit === "percent"
-        ? `${current.toFixed(1)}%`
-        : `${current}${suffix}`;
+        ? `${current.toFixed(1)}%${flag ?? ""}`
+        : `${current}${suffix}${flag ?? ""}`;
 
   const targetText =
     unit === "count"
