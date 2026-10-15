@@ -15,13 +15,7 @@ const path = require("path");
 const repo = path.join(__dirname, "..");
 const source =
   process.argv[2] ||
-  path.join(
-    repo,
-    "..",
-    "..",
-    "dictionaries",
-    "khis_org_units.json",
-  );
+  path.join(repo, "..", "..", "dictionaries", "khis_org_units.json");
 
 if (!fs.existsSync(source)) {
   console.error(`Source org-unit dump not found: ${source}`);
